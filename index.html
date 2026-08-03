@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#8f2948">
-<title>RHIA Alpha v0.6</title>
+<title>RHIA Alpha v0.7</title>
 <style>
 :root{
   --bg:#0d090c;--panel:#191116;--accent:#8f2948;--accent2:#c14d73;
@@ -59,7 +59,7 @@ aside{padding:24px;background:radial-gradient(circle at 50% 15%,rgba(193,77,115,
 <main>
 <header>
 <div><h1>RHIA</h1><div class="subtitle">RH Intelligent Assistant</div></div>
-<div class="version">Alpha v0.6</div>
+<div class="version">Alpha v0.7</div>
 </header>
 
 <section class="chat">
@@ -89,13 +89,13 @@ aside{padding:24px;background:radial-gradient(circle at 50% 15%,rgba(193,77,115,
 <script>
 "use strict";
 
-const VERSION="0.6";
+const VERSION="0.7";
 const KEYS={
   tasks:"rhia_tasks_v03",
   notes:"rhia_notes_v03",
   chat:"rhia_chat_v04",
   ideas:"rhia_ideas_v06",
-  settings:"rhia_settings_v06"
+  settings:"rhia_settings_v07"
 };
 
 function loadArray(key){
@@ -157,7 +157,12 @@ function formatTime(value){
   return Number.isNaN(d.getTime())?"":d.toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 }
 function normalizeSpeechText(text){
-  return String(text??"").replace(/\b(ria|riha|rhea|rija|riah)\b/gi,"RHIA").replace(/\s+/g," ").trim();
+  return String(text??"")
+    .replace(/\b(ria|riha|rhea|rija|riah)\b/gi,"RHIA")
+    .replace(/^\s*(wir|wie)\s+(aufgabe|notiz|idee)\b/i,"$2")
+    .replace(/\bpc\s+angebote\b/gi,"PC-Angebote")
+    .replace(/\s+/g," ")
+    .trim();
 }
 function stripWakeWord(text){
   return text.replace(/^\s*(hey\s+)?(rhia|ria|riha|rhea|rija|riah)[\s,.:;-]*/i,"").trim();
@@ -304,19 +309,24 @@ function help(){
 return `Du kannst mich per Text oder Mikrofon bedienen.
 
 AUFGABEN
-Aufgabe: PC-Angebote vergleichen
+Aufgabe PC-Angebote vergleichen
+Mach eine Aufgabe PC-Angebote vergleichen
+Merke dir als Aufgabe PC-Angebote vergleichen
 Zeige Aufgaben
 Aufgabe erledigt: 1
 Aufgabe wieder öffnen: 1
 Aufgabe löschen: 1
 
 NOTIZEN
-Notiz: Kunde morgen zurückrufen
+Notiz Kunde morgen zurückrufen
+Notiere Kunde morgen zurückrufen
+Merke dir als Notiz Kunde morgen zurückrufen
 Zeige Notizen
 Notiz löschen: 1
 
 OFFENE IDEEN
-Idee: Neue Shadow-Grown-Videoreihe
+Idee Neue Shadow-Grown-Videoreihe
+Merke dir als Idee eine neue Videoreihe
 Zeige offene Ideen
 Idee übernehmen: 1
 Idee zurückstellen: 1
@@ -346,33 +356,95 @@ function fallback(lower){
   if(state.settings.focusMode)return"Wir bleiben bei genau einem Schritt. Sage mir, was jetzt Vorrang hat.";
   return"Ich verstehe den freien Satz noch nicht sicher genug. Ich erfinde deshalb keine Antwort. Schreibe „Hilfe“, oder formuliere den gewünschten Schritt als Aufgabe, Notiz oder offene Idee.";
 }
+
+function cleanIntentContent(text){
+  return String(text??"").replace(/^[\s,.:;-]+/,"").trim();
+}
+
+function parseIntent(cleaned){
+  const lower=cleaned.toLowerCase().replace(/\s+/g," ").trim();
+
+  const patterns=[
+    {type:"task_create",regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|lege|setz|setze|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?aufgabe(?:\s+an|\s+fest|\s+hinzu)?\s*[:,-]?\s*(.+)$/i},
+    {type:"note_create",regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|schreib|schreibe|notier|notiere|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?notiz(?:\s+an|\s+hinzu)?\s*[:,-]?\s*(.+)$/i},
+    {type:"idea_create",regex:/^(?:bitte\s+)?(?:speichere|merk|merke|notier|notiere|halte)?\s*(?:mir\s+)?(?:diese\s+|eine\s+|neue\s+|offene\s+)?idee(?:\s+für\s+später|\s+fuer\s+spaeter|\s+fest)?\s*[:,-]?\s*(.+)$/i},
+    {type:"task_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+aufgabe\s*[:,-]?\s*(.+)$/i},
+    {type:"note_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+notiz\s*[:,-]?\s*(.+)$/i},
+    {type:"idea_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+(?:offene\s+)?idee\s*[:,-]?\s*(.+)$/i}
+  ];
+
+  for(const pattern of patterns){
+    const match=cleaned.match(pattern.regex);
+    if(match&&cleanIntentContent(match[1])){
+      return{type:pattern.type,content:cleanIntentContent(match[1])};
+    }
+  }
+
+  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+aufgaben\b/i.test(lower))return{type:"task_show"};
+  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+notizen\b/i.test(lower))return{type:"note_show"};
+  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+(offenen?\s+)?ideen\b/i.test(lower))return{type:"idea_show"};
+
+  const done=cleaned.match(/^(?:aufgabe\s+)?(?:erledigt|abschließen|abschliessen)\s*[:,-]?\s*(\d+)$/i);
+  if(done)return{type:"task_toggle",number:Number(done[1])};
+
+  const reopen=cleaned.match(/^(?:aufgabe\s+)?(?:wieder\s+öffnen|wieder\s+oeffnen)\s*[:,-]?\s*(\d+)$/i);
+  if(reopen)return{type:"task_toggle",number:Number(reopen[1])};
+
+  const taskDelete=cleaned.match(/^(?:aufgabe\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i);
+  if(taskDelete)return{type:"task_delete",number:Number(taskDelete[1])};
+
+  const noteDelete=cleaned.match(/^(?:notiz\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i);
+  if(noteDelete)return{type:"note_delete",number:Number(noteDelete[1])};
+
+  const ideaStatus=cleaned.match(/^idee\s+(übernehmen|uebernehmen|zurückstellen|zurueckstellen|verwerfen)\s*[:,-]?\s*(\d+)$/i);
+  if(ideaStatus){
+    const raw=ideaStatus[1].toLowerCase();
+    const status=raw.includes("bernehmen")?"übernommen":raw.includes("stellen")?"zurückgestellt":"verworfen";
+    return{type:"idea_status",number:Number(ideaStatus[2]),status};
+  }
+
+  return{type:"unknown"};
+}
+
+function toggleTaskDirect(number){
+  if(!number||number<1||number>state.tasks.length){addMessage("Diese Aufgabennummer gibt es nicht.");return}
+  toggleTask(number-1);
+}
+function removeDirect(type,number){
+  if(!number||number<1||number>state[type].length){addMessage("Diese Nummer gibt es nicht.");return}
+  removeByIndex(type,number-1);
+}
+function setIdeaStatusDirect(number,status){
+  if(!number||number<1||number>state.ideas.length){addMessage("Diese Ideennummer gibt es nicht.");return}
+  setIdeaStatus(number-1,status);
+}
+
 function handle(raw){
   const text=normalizeSpeechText(raw);if(!text)return;
   addMessage(text,"user");
+
   const cleaned=stripWakeWord(text);
   const lower=cleaned.toLowerCase().replace(/\s+/g," ").trim();
   detectContext(lower);
 
-  if(startsAny(lower,["aufgabe:","aufgabe hinzufügen:","aufgabe hinzufuegen:","erstelle eine aufgabe:","erstell eine aufgabe:","lege eine aufgabe an:","neue aufgabe:"])){createEntry("tasks",afterColon(cleaned));return}
-  if(startsAny(lower,["notiz:","notiz erstellen:","notiz hinzufügen:","notiz hinzufuegen:","erstelle eine notiz:","speichere als notiz:","neue notiz:"])){createEntry("notes",afterColon(cleaned));return}
-  if(startsAny(lower,["idee:","offene idee:","speichere als idee:","speichere als offene idee:","idee für später:","idee fuer spaeter:"])){createIdea(afterColon(cleaned));return}
+  const intent=parseIntent(cleaned);
 
-  if(equalsAny(lower,["zeige aufgaben","zeige meine aufgaben","meine aufgaben","welche aufgaben habe ich"])){showList("tasks");return}
-  if(equalsAny(lower,["zeige notizen","zeige meine notizen","meine notizen","welche notizen habe ich"])){showList("notes");return}
-  if(equalsAny(lower,["zeige offene ideen","meine offenen ideen","welche ideen sind offen","welche ideen haben wir noch"])){showIdeas();return}
-
-  if(startsAny(lower,["aufgabe erledigt:","aufgabe abschließen:","aufgabe abschliessen:"])){toggleTaskNumber(cleaned);return}
-  if(startsAny(lower,["aufgabe wieder öffnen:","aufgabe wieder oeffnen:"])){toggleTaskNumber(cleaned);return}
-  if(startsAny(lower,["aufgabe löschen:","aufgabe loeschen:"])){removeNumber("tasks",cleaned);return}
-  if(startsAny(lower,["notiz löschen:","notiz loeschen:"])){removeNumber("notes",cleaned);return}
-  if(startsAny(lower,["idee übernehmen:","idee uebernehmen:"])){setIdeaStatusNumber(cleaned,"übernommen");return}
-  if(startsAny(lower,["idee zurückstellen:","idee zurueckstellen:"])){setIdeaStatusNumber(cleaned,"zurückgestellt");return}
-  if(startsAny(lower,["idee verwerfen:"])){setIdeaStatusNumber(cleaned,"verworfen");return}
+  if(intent.type==="task_create"){createEntry("tasks",intent.content);return}
+  if(intent.type==="note_create"){createEntry("notes",intent.content);return}
+  if(intent.type==="idea_create"){createIdea(intent.content);return}
+  if(intent.type==="task_show"){showList("tasks");return}
+  if(intent.type==="note_show"){showList("notes");return}
+  if(intent.type==="idea_show"){showIdeas();return}
+  if(intent.type==="task_toggle"){toggleTaskDirect(intent.number);return}
+  if(intent.type==="task_delete"){removeDirect("tasks",intent.number);return}
+  if(intent.type==="note_delete"){removeDirect("notes",intent.number);return}
+  if(intent.type==="idea_status"){setIdeaStatusDirect(intent.number,intent.status);return}
 
   if(equalsAny(lower,["fokusmodus","fokusmodus starten","starte den fokusmodus"])){
     state.settings.focusMode=true;save();renderLists();
     const open=state.tasks.find(x=>!x.done);
-    addMessage(open?"Fokusmodus ist aktiv, "+address()+". Der nächste klare Schritt ist: „"+open.text+"“.":"Fokusmodus ist aktiv, "+address()+". Nenne mir die eine Aufgabe, die jetzt Vorrang hat.");return
+    addMessage(open?"Fokusmodus ist aktiv, "+address()+". Der nächste klare Schritt ist: „"+open.text+"“.":"Fokusmodus ist aktiv, "+address()+". Nenne mir die eine Aufgabe, die jetzt Vorrang hat.");
+    return;
   }
   if(equalsAny(lower,["fokusmodus beenden","beende den fokusmodus","fokusmodus aus"])){state.settings.focusMode=false;save();renderLists();addMessage("Fokusmodus beendet.");return}
   if(equalsAny(lower,["chat löschen","chat loeschen","chatverlauf löschen","chatverlauf loeschen"])){clearChat();return}
@@ -382,7 +454,7 @@ function handle(raw){
   if(includesAny(lower,["deine persönlichkeit","deine persoenlichkeit","wie sollst du sein"])){addMessage("Ich arbeite loyal, ehrlich, locker, direkt, zuverlässig und lösungsorientiert. Ich nenne zuerst das klare Ergebnis und spiele keine Sicherheit vor.");return}
   if(includesAny(lower,["was ist rh produktion","rh produktion"])){addMessage("RH Produktion ist die Dachmarke. Darunter befinden sich Shadow Grown, RHIA und langfristig Kundenprojekte.");return}
   if(includesAny(lower,["was ist shadow grown","wer ist shadow grown","shadow grown"])){addMessage("Shadow Grown ist die Künstler- und Medienmarke von RH Produktion.");return}
-  if(includesAny(lower,["welche version","aktueller stand","dein status","projektstand"])){addMessage("RHIA Alpha v"+VERSION+" läuft. Chat, Aufgaben, Notizen, offene Ideen, Fokusmodus und Spracheingabe arbeiten lokal.");return}
+  if(includesAny(lower,["welche version","aktueller stand","dein status","projektstand"])){addMessage("RHIA Alpha v"+VERSION+" läuft. Der Intent-Parser versteht Aufgaben, Notizen und Ideen jetzt auch ohne Doppelpunkt und bei ungenauer Spracheingabe.");return}
   if(includesAny(lower,["hallo","hi","hey","guten morgen","guten tag","guten abend"])){addMessage(state.settings.context==="geschäftlich"?"Willkommen zurück, Sir. Womit fangen wir an?":"Hallo Mike. Schön, dass du da bist. Was steht an?");return}
 
   addMessage(fallback(lower));
