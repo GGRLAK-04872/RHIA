@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RHIA Alpha v0.3</title>
+
+<style>
+:root{
+  --bg:#0d090c;
+  --panel:#191116;
+  --accent:#8f2948;
+  --accent2:#c14d73;
+  --text:#f5edf1;
+  --muted:#b9a8b1;
+  --border:rgba(193,77,115,.25);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Arial,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 20% 0%,#2a1420 0%,var(--bg) 45%);
+}
+
+.app{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:1fr 380px;
+}
+
+main{
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+h1{
+  margin:0;
+  letter-spacing:3px;
+}
+
+.subtitle{
+  color:var(--muted);
+  margin-top:5px;
+}
+
+.version{
+  padding:7px 12px;
+  border:1px solid var(--border);
+  border-radius:20px;
+  color:#e7c2ce;
+}
+
+.chat{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:600px;
+  background:rgba(25,17,22,.94);
+  border:1px solid var(--border);
+  border-radius:22px;
+  overflow:hidden;
+}
+
+.status{
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  color:#d8c8cf;
+}
+
+.messages{
+  flex:1;
+  overflow:auto;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.message{
+  max-width:82%;
+  padding:13px 15px;
+  border-radius:15px;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
+.rhia{
+  align-self:flex-start;
+  background:rgba(143,41,72,.22);
+  border-bottom-left-radius:4px;
+}
+
+.user{
+  align-self:flex-end;
+  background:rgba(255,255,255,.08);
+  border-bottom-right-radius:4px;
+}
+
+.input{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+  padding:15px;
+  border-top:1px solid var(--border);
+}
+
+input{
+  padding:14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:white;
+  font-size:16px;
+  outline:none;
+}
+
+button{
+  padding:12px 18px;
+  border:0;
+  border-radius:12px;
+  cursor:pointer;
+  color:white;
+  font-weight:bold;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+}
+
+aside{
+  padding:24px;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(193,77,115,.32),transparent 35%),
+    linear-gradient(180deg,#24121b,#10090e);
+  border-left:1px solid var(--border);
+}
+
+.card{
+  margin-bottom:18px;
+  padding:16px;
+  border-radius:17px;
+  background:rgba(12,8,11,.75);
+  border:1px solid var(--border);
+}
+
+.cardhead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.count{
+  min-width:28px;
+  padding:6px;
+  text-align:center;
+  border-radius:20px;
+  background:rgba(143,41,72,.3);
+}
+
+.item{
+  display:grid;
+  grid-template-columns:25px 1fr 30px;
+  gap:8px;
+  align-items:start;
+  margin-top:9px;
+  padding:10px;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+}
+
+.number{
+  color:#e8b7c7;
+}
+
+.delete{
+  padding:2px;
+  background:transparent;
+  color:#e7a6b2;
+  font-size:18px;
+}
+
+.empty{
+  margin-top:10px;
+  color:var(--muted);
+}
+
+small{
+  color:var(--muted);
+  line-height:1.4;
+}
+
+@media(max-width:850px){
+  .app{grid-template-columns:1fr}
+  aside{border-left:0;border-top:1px solid var(--border)}
+  main{padding:14px}
+  .chat{min-height:620px}
+}
+
+@media(max-width:500px){
+  .input{grid-template-columns:1fr}
+  .message{max-width:92%}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<main>
+<header>
+  <div>
+    <h1>RHIA</h1>
+    <div class="subtitle">RH Intelligent Assistant</div>
+  </div>
+  <div class="version">Alpha v0.3</div>
+</header>
+
+<section class="chat">
+  <div class="status">● Bereit, Mike</div>
+
+  <div class="messages" id="messages"></div>
+
+  <form class="input" id="form">
+    <input
+      id="command"
+      autocomplete="off"
+      placeholder="Schreibe einen Befehl …"
+    >
+    <button type="submit">Senden</button>
+  </form>
+</section>
+</main>
+
+<aside>
+  <h2>Lokaler Speicher</h2>
+
+  <section class="card">
+    <div class="cardhead">
+      <h3>Aufgaben</h3>
+      <span class="count" id="taskCount">0</span>
+    </div>
+    <div id="tasks"></div>
+  </section>
+
+  <section class="card">
+    <div class="cardhead">
+      <h3>Notizen</h3>
+      <span class="count" id="noteCount">0</span>
+    </div>
+    <div id="notes"></div>
+  </section>
+
+  <small>
+    Aufgaben und Notizen werden nur im lokalen Speicher
+    dieses Browsers gespeichert.
+  </small>
+</aside>
+
+</div>
+
+<script>
+const KEYS={
+  tasks:"rhia_tasks_v03",
+  notes:"rhia_notes_v03"
+};
+
+const state={
+  tasks:load(KEYS.tasks),
+  notes:load(KEYS.notes)
+};
+
+const messages=document.getElementById("messages");
+const command=document.getElementById("command");
+
+function load(key){
+  try{
+    return JSON.parse(localStorage.getItem(key))||[];
+  }catch{
+    return [];
+  }
+}
+
+function save(){
+  localStorage.setItem(KEYS.tasks,JSON.stringify(state.tasks));
+  localStorage.setItem(KEYS.notes,JSON.stringify(state.notes));
+}
+
+function message(text,type="rhia"){
+  const el=document.createElement("div");
+  el.className="message "+type;
+  el.textContent=text;
+  messages.appendChild(el);
+  messages.scrollTop=messages.scrollHeight;
+}
+
+function render(){
+  drawList("tasks");
+  drawList("notes");
+
+  document.getElementById("taskCount").textContent=state.tasks.length;
+  document.getElementById("noteCount").textContent=state.notes.length;
+}
+
+function drawList(type){
+  const target=document.getElementById(type);
+  const data=state[type];
+
+  target.innerHTML="";
+
+  if(!data.length){
+    const empty=document.createElement("div");
+    empty.className="empty";
+    empty.textContent=type==="tasks"
+      ?"Noch keine Aufgaben gespeichert."
+      :"Noch keine Notizen gespeichert.";
+    target.appendChild(empty);
+    return;
+  }
+
+  data.forEach((text,index)=>{
+    const row=document.createElement("div");
+    row.className="item";
+
+    const number=document.createElement("div");
+    number.className="number";
+    number.textContent=index+1+".";
+
+    const content=document.createElement("div");
+    content.textContent=text;
+
+    const remove=document.createElement("button");
+    remove.className="delete";
+    remove.textContent="×";
+
+    remove.onclick=()=>{
+      data.splice(index,1);
+      save();
+      render();
+      message(
+        (type==="tasks"?"Aufgabe ":"Notiz ")+(index+1)+" wurde gelöscht."
+      );
+    };
+
+    row.append(number,content,remove);
+    target.appendChild(row);
+  });
+}
+
+function afterColon(text){
+  const position=text.indexOf(":");
+  return position<0?"":text.slice(position+1).trim();
+}
+
+function showList(type){
+  const data=state[type];
+  const title=type==="tasks"?"Aufgaben":"Notizen";
+
+  if(!data.length){
+    message("Du hast aktuell keine "+title.toLowerCase()+" gespeichert.");
+    return;
+  }
+
+  message(
+    title+":\n"+
+    data.map((item,index)=>(index+1)+". "+item).join("\n")
+  );
+}
+
+function handle(text){
+  text=text.trim();
+  if(!text)return;
+
+  message(text,"user");
+
+  const lower=text.toLowerCase();
+
+  if(
+    lower.startsWith("aufgabe hinzufügen:")||
+    lower.startsWith("aufgabe hinzufuegen:")
+  ){
+    const value=afterColon(text);
+
+    if(!value){
+      message("Bitte schreibe nach dem Doppelpunkt eine Aufgabe.");
+      return;
+    }
+
+    state.tasks.push(value);
+    save();
+    render();
+    message("Erledigt. Die Aufgabe „"+value+"“ wurde gespeichert.");
+    return;
+  }
+
+  if(
+    lower.startsWith("notiz erstellen:")||
+    lower.startsWith("notiz hinzufügen:")||
+    lower.startsWith("notiz hinzufuegen:")
+  ){
+    const value=afterColon(text);
+
+    if(!value){
+      message("Bitte schreibe nach dem Doppelpunkt eine Notiz.");
+      return;
+    }
+
+    state.notes.push(value);
+    save();
+    render();
+    message("Gespeichert. Die Notiz „"+value+"“ bleibt lokal erhalten.");
+    return;
+  }
+
+  if(lower==="zeige meine aufgaben"){
+    showList("tasks");
+    return;
+  }
+
+  if(lower==="zeige meine notizen"){
+    showList("notes");
+    return;
+  }
+
+  if(
+    lower.startsWith("aufgabe löschen:")||
+    lower.startsWith("aufgabe loeschen:")
+  ){
+    removeItem("tasks",text);
+    return;
+  }
+
+  if(
+    lower.startsWith("notiz löschen:")||
+    lower.startsWith("notiz loeschen:")
+  ){
+    removeItem("notes",text);
+    return;
+  }
+
+  if(lower==="hilfe"){
+    message(
+`Verfügbare Befehle:
+
+Aufgabe hinzufügen: …
+Notiz erstellen: …
+Zeige meine Aufgaben
+Zeige meine Notizen
+Aufgabe löschen: 1
+Notiz löschen: 1`
+    );
+    return;
+  }
+
+  message(
+    "Diesen Befehl kenne ich in Alpha v0.3 noch nicht. Schreibe „Hilfe“."
+  );
+}
+
+function removeItem(type,text){
+  const number=parseInt(afterColon(text),10);
+  const data=state[type];
+
+  if(!number||number<1||number>data.length){
+    message("Diese Nummer gibt es nicht.");
+    return;
+  }
+
+  const removed=data.splice(number-1,1)[0];
+  save();
+  render();
+
+  message(
+    (type==="tasks"?"Die Aufgabe „":"Die Notiz „")+
+    removed+
+    "“ wurde gelöscht."
+  );
+}
+
+document.getElementById("form").addEventListener("submit",event=>{
+  event.preventDefault();
+  const value=command.value;
+  command.value="";
+  handle(value);
+  command.focus();
+});
+
+render();
+
+message(
+`RHIA Alpha v0.3 ist bereit, Mike.
+
+Du kannst jetzt lokale Aufgaben und Notizen speichern.`
+);
+</script>
+</body>
+</html>
