@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#8f2948">
-<title>RHIA Alpha v0.5</title>
+<title>RHIA Alpha v0.6</title>
 
 <style>
 :root{
@@ -263,7 +263,7 @@ aside{
       <h1>RHIA</h1>
       <div class="subtitle">RH Intelligent Assistant</div>
     </div>
-    <div class="version">Alpha v0.5</div>
+    <div class="version">Alpha v0.6</div>
   </header>
 
   <section class="chat">
@@ -307,8 +307,16 @@ aside{
     <div id="notes"></div>
   </section>
 
+  <section class="card">
+    <div class="cardhead">
+      <h3>Offene Ideen</h3>
+      <span class="count" id="ideaCount">0</span>
+    </div>
+    <div id="ideas"></div>
+  </section>
+
   <div class="info">
-    Chatverlauf, Aufgaben und Notizen werden lokal in diesem Browser gespeichert.
+    Chatverlauf, Aufgaben, Notizen und offene Ideen werden lokal in diesem Browser gespeichert.
   </div>
   <div class="info">
     Bedienung zentral über den Chat. Die Schaltflächen rechts sind nur eine zusätzliche sichtbare Kontrolle.
@@ -319,7 +327,7 @@ aside{
 <script>
 "use strict";
 
-const VERSION = "0.5";
+const VERSION = "0.6";
 
 /*
   Die alten Schlüssel bleiben absichtlich erhalten.
@@ -329,12 +337,14 @@ const KEYS = {
   tasks: "rhia_tasks_v03",
   notes: "rhia_notes_v03",
   chat: "rhia_chat_v04",
-  settings: "rhia_settings_v05"
+  ideas: "rhia_ideas_v06",
+  settings: "rhia_settings_v06"
 };
 
 const state = {
   tasks: normalizeEntries(load(KEYS.tasks), "task"),
   notes: normalizeEntries(load(KEYS.notes), "note"),
+  ideas: normalizeIdeas(load(KEYS.ideas)),
   chat: load(KEYS.chat),
   settings: Object.assign({focusMode:false}, loadObject(KEYS.settings))
 };
@@ -344,6 +354,8 @@ const command = document.getElementById("command");
 const form = document.getElementById("form");
 const tasksElement = document.getElementById("tasks");
 const notesElement = document.getElementById("notes");
+const ideasElement = document.getElementById("ideas");
+const ideaCount = document.getElementById("ideaCount");
 const taskCount = document.getElementById("taskCount");
 const noteCount = document.getElementById("noteCount");
 const voiceButton = document.getElementById("voiceButton");
@@ -392,10 +404,25 @@ function normalizeEntries(entries, type){
   }).filter(entry => entry.text);
 }
 
+function normalizeIdeas(entries){
+  return entries.map(entry => {
+    if(typeof entry === "string"){
+      return {title:entry,area:"Allgemein",status:"offen",createdAt:new Date().toISOString()};
+    }
+    return {
+      title:String(entry?.title ?? entry?.text ?? "").trim(),
+      area:String(entry?.area ?? "Allgemein"),
+      status:String(entry?.status ?? "offen"),
+      createdAt:entry?.createdAt || new Date().toISOString()
+    };
+  }).filter(entry => entry.title);
+}
+
 function save(){
   try{
     localStorage.setItem(KEYS.tasks, JSON.stringify(state.tasks));
     localStorage.setItem(KEYS.notes, JSON.stringify(state.notes));
+    localStorage.setItem(KEYS.ideas, JSON.stringify(state.ideas));
     localStorage.setItem(KEYS.chat, JSON.stringify(state.chat));
     localStorage.setItem(KEYS.settings, JSON.stringify(state.settings));
   }catch(error){
@@ -455,8 +482,10 @@ function renderChat(){
 function renderLists(){
   drawList("tasks", tasksElement);
   drawList("notes", notesElement);
+  drawIdeas();
   taskCount.textContent = state.tasks.length;
   noteCount.textContent = state.notes.length;
+  ideaCount.textContent = state.ideas.filter(idea => idea.status !== "verworfen").length;
   focusLabel.classList.toggle("active", state.settings.focusMode);
 }
 
@@ -518,6 +547,49 @@ function drawList(type, target){
     row.append(firstButton,content,removeButton);
     target.appendChild(row);
   });
+}
+
+function inferIdeaArea(text){
+  const lower = text.toLowerCase();
+  if(lower.includes("shadow grown") || lower.includes("song") || lower.includes("musik")) return "Shadow Grown";
+  if(lower.includes("rhia")) return "RHIA";
+  if(lower.includes("kunde") || lower.includes("rh produktion") || lower.includes("werbevideo")) return "RH Produktion";
+  if(lower.includes("familie") || lower.includes("privat") || lower.includes("urlaub")) return "Privat";
+  return "Allgemein";
+}
+
+function createIdea(value){
+  const clean = String(value ?? "").trim();
+  if(!clean){ addMessage("Welche Idee soll ich für später festhalten?"); return; }
+  state.ideas.push({title:clean,area:inferIdeaArea(clean),status:"offen",createdAt:new Date().toISOString()});
+  save(); renderLists();
+  addMessage("Die Idee „" + clean + "“ ist als offene Idee gespeichert.");
+}
+
+function showIdeas(){
+  const data = state.ideas.filter(idea => idea.status !== "verworfen");
+  if(!data.length){ addMessage("Du hast aktuell keine offenen Ideen gespeichert."); return; }
+  addMessage("Offene Ideen:\n" + data.map((idea,index) => (index+1) + ". " + idea.title + " [" + idea.area + ", " + idea.status + "]").join("\n"));
+}
+
+function drawIdeas(){
+  ideasElement.innerHTML = "";
+  const data = state.ideas.filter(idea => idea.status !== "verworfen");
+  if(!data.length){
+    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="Noch keine offenen Ideen gespeichert."; ideasElement.appendChild(empty); return;
+  }
+  data.forEach((idea,index) => {
+    const row=document.createElement("div"); row.className="item";
+    const number=document.createElement("button"); number.className="action-small"; number.disabled=true; number.textContent=index+1;
+    const content=document.createElement("div"); content.className="item-text"; content.textContent=idea.title;
+    const meta=document.createElement("small"); meta.className="item-meta"; meta.textContent=idea.area + " · " + idea.status + " · " + formatTime(idea.createdAt); content.appendChild(meta);
+    const remove=document.createElement("button"); remove.className="action-small delete"; remove.type="button"; remove.textContent="×"; remove.addEventListener("click",()=>{ idea.status="verworfen"; save(); renderLists(); addMessage("Die Idee „"+idea.title+"“ wurde verworfen."); });
+    row.append(number,content,remove); ideasElement.appendChild(row);
+  });
+}
+
+function normalizeSpeechText(text){
+  return String(text ?? "").replace(/\b(ria|riha|rhea|rija|riah)\b/gi,"RHIA").replace(/\s+/g," ").trim();
 }
 
 function afterColon(text){
@@ -667,7 +739,7 @@ function profileAnswer(){
 }
 
 function handle(rawText){
-  const originalText = String(rawText ?? "").trim();
+  const originalText = normalizeSpeechText(rawText);
   if(!originalText) return;
 
   addMessage(originalText,"user");
@@ -702,6 +774,28 @@ function handle(rawText){
     ])
   ){
     createEntry("notes",afterColon(cleaned));
+    return;
+  }
+
+  if(startsWithAny(lower,[
+    "idee:",
+    "offene idee:",
+    "speichere als idee:",
+    "speichere als offene idee:",
+    "idee für später:",
+    "idee fuer spaeter:"
+  ])){
+    createIdea(afterColon(cleaned));
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "zeige offene ideen",
+    "meine offenen ideen",
+    "welche ideen sind offen",
+    "welche ideen haben wir noch"
+  ])){
+    showIdeas();
     return;
   }
 
@@ -819,10 +913,15 @@ function handle(rawText){
     return;
   }
 
+  if(includesAny(lower,["hörst du mich","hoerst du mich","kannst du mich hören","kannst du mich hoeren"])){
+    addMessage("Ja, Mike. Deine Sprache wurde erkannt und als Text an mich übergeben. Ich kann dich in dieser Alpha hören.");
+    return;
+  }
+
   if(includesAny(lower,[
     "hallo","hi rhia","hey rhia","guten morgen","guten tag","guten abend"
   ])){
-    addMessage("Hallo Mike. RHIA Alpha v" + VERSION + " ist bereit. Was möchtest du erledigen?");
+    addMessage("Hallo Mike. Schön, dass du da bist. Was steht an?");
     return;
   }
 
@@ -863,8 +962,9 @@ if(SpeechRecognition){
   recognition.addEventListener("result",event => {
     const transcript = event.results?.[0]?.[0]?.transcript?.trim();
     if(transcript){
-      command.value = transcript;
-      handle(transcript);
+      const corrected = normalizeSpeechText(transcript);
+      command.value = corrected;
+      handle(corrected);
       command.value = "";
     }
   });
@@ -891,7 +991,7 @@ render();
 if(state.chat.length === 0){
   addMessage(
     "RHIA Alpha v" + VERSION + " ist bereit, Mike.\n\n" +
-    "Chatverlauf, Aufgaben und Notizen werden lokal gespeichert. " +
+    "Chatverlauf, Aufgaben, Notizen und offene Ideen werden lokal gespeichert. " +
     "Du kannst mich jetzt zentral über den Chat bedienen. Schreibe „Hilfe“, um die ersten möglichen Befehle zu sehen.",
     "rhia",
     false
