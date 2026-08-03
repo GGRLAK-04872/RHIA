@@ -2,38 +2,55 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RHIA Alpha v0.3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#8f2948">
+
+<title>RHIA Alpha v0.4</title>
 
 <style>
 :root{
   --bg:#0d090c;
   --panel:#191116;
+  --panel-soft:rgba(25,17,22,.94);
   --accent:#8f2948;
-  --accent2:#c14d73;
+  --accent-light:#c14d73;
   --text:#f5edf1;
   --muted:#b9a8b1;
   --border:rgba(193,77,115,.25);
+  --success:#78c69a;
+  --danger:#e7a6b2;
 }
 
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
+
+html{
+  min-height:100%;
+}
 
 body{
   margin:0;
   min-height:100vh;
-  font-family:Arial,sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
   color:var(--text);
   background:
-    radial-gradient(circle at 20% 0%,#2a1420 0%,var(--bg) 45%);
+    radial-gradient(circle at 20% 0%, #2a1420 0%, var(--bg) 45%);
+}
+
+button,
+input{
+  font:inherit;
 }
 
 .app{
   min-height:100vh;
   display:grid;
-  grid-template-columns:1fr 380px;
+  grid-template-columns:minmax(0, 1fr) 380px;
 }
 
 main{
+  min-width:0;
   padding:24px;
   display:flex;
   flex-direction:column;
@@ -44,10 +61,17 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:15px;
+}
+
+h1,
+h2,
+h3{
+  margin-top:0;
 }
 
 h1{
-  margin:0;
+  margin-bottom:0;
   letter-spacing:3px;
 }
 
@@ -57,10 +81,12 @@ h1{
 }
 
 .version{
+  flex-shrink:0;
   padding:7px 12px;
   border:1px solid var(--border);
   border-radius:20px;
   color:#e7c2ce;
+  background:rgba(143,41,72,.12);
 }
 
 .chat{
@@ -68,16 +94,21 @@ h1{
   display:flex;
   flex-direction:column;
   min-height:600px;
-  background:rgba(25,17,22,.94);
+  background:var(--panel-soft);
   border:1px solid var(--border);
   border-radius:22px;
   overflow:hidden;
+  box-shadow:0 18px 45px rgba(0,0,0,.24);
 }
 
 .status{
   padding:14px 18px;
   border-bottom:1px solid var(--border);
   color:#d8c8cf;
+}
+
+.status-dot{
+  color:var(--success);
 }
 
 .messages{
@@ -87,6 +118,7 @@ h1{
   display:flex;
   flex-direction:column;
   gap:12px;
+  scroll-behavior:smooth;
 }
 
 .message{
@@ -95,17 +127,20 @@ h1{
   border-radius:15px;
   line-height:1.45;
   white-space:pre-wrap;
+  overflow-wrap:anywhere;
 }
 
-.rhia{
+.message.rhia{
   align-self:flex-start;
   background:rgba(143,41,72,.22);
+  border:1px solid rgba(193,77,115,.12);
   border-bottom-left-radius:4px;
 }
 
-.user{
+.message.user{
   align-self:flex-end;
   background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.06);
   border-bottom-right-radius:4px;
 }
 
@@ -118,6 +153,7 @@ h1{
 }
 
 input{
+  width:100%;
   padding:14px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,.12);
@@ -127,6 +163,15 @@ input{
   outline:none;
 }
 
+input:focus{
+  border-color:rgba(193,77,115,.75);
+  box-shadow:0 0 0 3px rgba(143,41,72,.15);
+}
+
+input::placeholder{
+  color:#a8959f;
+}
+
 button{
   padding:12px 18px;
   border:0;
@@ -134,15 +179,27 @@ button{
   cursor:pointer;
   color:white;
   font-weight:bold;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  background:linear-gradient(135deg, var(--accent), var(--accent-light));
+}
+
+button:hover{
+  filter:brightness(1.08);
+}
+
+button:active{
+  transform:translateY(1px);
 }
 
 aside{
   padding:24px;
   background:
-    radial-gradient(circle at 50% 15%,rgba(193,77,115,.32),transparent 35%),
-    linear-gradient(180deg,#24121b,#10090e);
+    radial-gradient(circle at 50% 15%, rgba(193,77,115,.32), transparent 35%),
+    linear-gradient(180deg, #24121b, #10090e);
   border-left:1px solid var(--border);
+}
+
+.storage-title{
+  margin-bottom:18px;
 }
 
 .card{
@@ -157,6 +214,11 @@ aside{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:10px;
+}
+
+.cardhead h3{
+  margin-bottom:0;
 }
 
 .count{
@@ -169,7 +231,7 @@ aside{
 
 .item{
   display:grid;
-  grid-template-columns:25px 1fr 30px;
+  grid-template-columns:25px minmax(0, 1fr) 30px;
   gap:8px;
   align-items:start;
   margin-top:9px;
@@ -182,10 +244,15 @@ aside{
   color:#e8b7c7;
 }
 
+.item-text{
+  overflow-wrap:anywhere;
+  line-height:1.4;
+}
+
 .delete{
   padding:2px;
   background:transparent;
-  color:#e7a6b2;
+  color:var(--danger);
   font-size:18px;
 }
 
@@ -194,61 +261,109 @@ aside{
   color:var(--muted);
 }
 
+.info{
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
+  color:var(--muted);
+  background:rgba(255,255,255,.035);
+  line-height:1.45;
+  font-size:14px;
+}
+
 small{
   color:var(--muted);
   line-height:1.4;
 }
 
 @media(max-width:850px){
-  .app{grid-template-columns:1fr}
-  aside{border-left:0;border-top:1px solid var(--border)}
-  main{padding:14px}
-  .chat{min-height:620px}
+  .app{
+    grid-template-columns:1fr;
+  }
+
+  aside{
+    border-left:0;
+    border-top:1px solid var(--border);
+  }
+
+  main{
+    padding:14px;
+  }
+
+  .chat{
+    min-height:620px;
+  }
 }
 
 @media(max-width:500px){
-  .input{grid-template-columns:1fr}
-  .message{max-width:92%}
+  header{
+    align-items:flex-start;
+  }
+
+  .input{
+    grid-template-columns:1fr;
+  }
+
+  .message{
+    max-width:92%;
+  }
+
+  aside{
+    padding:18px 14px;
+  }
 }
 </style>
 </head>
 
-<body>
+  <body>
 <div class="app">
 
 <main>
-<header>
-  <div>
-    <h1>RHIA</h1>
-    <div class="subtitle">RH Intelligent Assistant</div>
-  </div>
-  <div class="version">Alpha v0.3</div>
-</header>
+  <header>
+    <div>
+      <h1>RHIA</h1>
+      <div class="subtitle">RH Intelligent Assistant</div>
+    </div>
 
-<section class="chat">
-  <div class="status">● Bereit, Mike</div>
+    <div class="version">Alpha v0.4</div>
+  </header>
 
-  <div class="messages" id="messages"></div>
+  <section class="chat">
+    <div class="status">
+      <span class="status-dot">●</span>
+      Bereit, Mike
+    </div>
 
-  <form class="input" id="form">
-    <input
-      id="command"
-      autocomplete="off"
-      placeholder="Schreibe einen Befehl …"
-    >
-    <button type="submit">Senden</button>
-  </form>
-</section>
+    <div
+      class="messages"
+      id="messages"
+      aria-live="polite"
+      aria-label="Chatverlauf"
+    ></div>
+
+    <form class="input" id="form">
+      <input
+        id="command"
+        type="text"
+        autocomplete="off"
+        placeholder="Schreibe einen Befehl …"
+        aria-label="Nachricht an RHIA"
+      >
+
+      <button type="submit">Senden</button>
+    </form>
+  </section>
 </main>
 
 <aside>
-  <h2>Lokaler Speicher</h2>
+  <h2 class="storage-title">Lokaler Speicher</h2>
 
   <section class="card">
     <div class="cardhead">
       <h3>Aufgaben</h3>
       <span class="count" id="taskCount">0</span>
     </div>
+
     <div id="tasks"></div>
   </section>
 
@@ -257,212 +372,391 @@ small{
       <h3>Notizen</h3>
       <span class="count" id="noteCount">0</span>
     </div>
+
     <div id="notes"></div>
   </section>
 
-  <small>
-    Aufgaben und Notizen werden nur im lokalen Speicher
-    dieses Browsers gespeichert.
-  </small>
+  <div class="info">
+    Chatverlauf, Aufgaben und Notizen werden lokal in diesem Browser gespeichert.
+  </div>
+
+  <div class="info">
+    Vorbereitet für spätere Module: Sprache, Kalender, Dateien, Vision,
+    RH Produktion, Shadow Grown, Social Media, Automationen und Sicherheit.
+  </div>
 </aside>
 
 </div>
 
 <script>
-const KEYS={
-  tasks:"rhia_tasks_v03",
-  notes:"rhia_notes_v03",
-  chat:"rhia_chat_v04"
+"use strict";
+
+/*
+  RHIA Alpha v0.4
+  RH Intelligent Assistant
+
+  Aktuelle Module:
+  - Chat
+  - lokaler Chatverlauf
+  - Aufgaben
+  - Notizen
+  - Grundidentität
+  - Projektwissen
+
+  Später:
+  - KI-Modell
+  - Sprachsteuerung
+  - Kalender
+  - Dateien
+  - E-Mail
+  - Vision
+  - Automationen
+*/
+
+const VERSION = "0.4";
+
+const KEYS = {
+  tasks: "rhia_tasks_v03",
+  notes: "rhia_notes_v03",
+  chat: "rhia_chat_v04"
 };
 
-const state={
-  tasks:load(KEYS.tasks),
-  notes:load(KEYS.notes),
-chat:load(KEYS.chat)
+const RHIA_PROFILE = {
+  name: "RHIA",
+  fullName: "RH Intelligent Assistant",
+
+  role:
+    "Persönliche, langfristig lernende KI-Assistentin von Mike und digitales Herz von RH Produktion.",
+
+  owner: "Mike",
+
+  personality: [
+    "loyal",
+    "ehrlich",
+    "locker",
+    "direkt",
+    "lösungsorientiert",
+    "zuverlässig"
+  ],
+
+  communication: [
+    "Zuerst das Ergebnis, danach eine kurze Erklärung.",
+    "Verständlich erklären.",
+    "Bei echter Unklarheit sinnvoll nachfragen.",
+    "Keine unnötig langen Fragerunden.",
+    "Mike privat mit Mike oder du ansprechen.",
+    "Geschäftlich dosiert Sir verwenden."
+  ],
+
+  appearance: {
+    theme: "Dunkles, hochwertiges Design",
+    mainColor: "Bordeaux",
+    storage: "Rechter Speicherbereich",
+    activationWord: "Rhia"
+  },
+
+  developmentRules: [
+    "Modulare Architektur",
+    "Zunächst modularer Monolith",
+    "Lokal oder hybrid betreiben",
+    "Anbieterunabhängigkeit",
+    "Datenschutz",
+    "Kontrolle vor Autonomie",
+    "Tests nach jeder Änderung",
+    "Saubere Dokumentation",
+    "Keine Geheimnisse im Quellcode",
+    "Rechte- und Freigabesystem",
+    "Nur kleine getestete Entwicklungsschritte",
+    "RHIA muss jederzeit lauffähig bleiben"
+  ],
+
+  project: {
+    platform: "GitHub",
+    repository: "RHIA",
+    githubUser: "GGRLAK-04872",
+    website: "https://ggrlak-04872.github.io/RHIA/",
+    hardware:
+      "Samsung Galaxy Tab S11 Ultra mit Android 16 und One UI 8"
+  },
+
+  modules: [
+    "Gehirn",
+    "Gedächtnis",
+    "Aufgaben",
+    "Notizen",
+    "Kalender",
+    "Dateien",
+    "Sprachsteuerung",
+    "Bilder und Vision",
+    "RH Produktion",
+    "Shadow Grown",
+    "Social Media",
+    "Automationen",
+    "Einstellungen",
+    "Sicherheit"
+  ]
 };
 
-const messages=document.getElementById("messages");
-const command=document.getElementById("command");
+const KNOWLEDGE = {
+  rhProduktion:
+    "RH Produktion ist Mikes kreatives Produktionsprojekt und die geschäftliche Heimat von RHIA und Shadow Grown.",
 
-function load(key){
+  shadowGrown:
+    "Shadow Grown ist der Künstlercharakter von RH Produktion. Er steht für authentischen KI-Rap, eine markante verdeckte Erscheinung und eine kontrollierte, selbstbewusste visuelle Sprache.",
+
+  voice:
+    "Die spätere Sprachsteuerung soll überwiegend per Sprache funktionieren. Das Aktivierungswort lautet „Rhia“. Sprachchat ist geplant, aber in Alpha v0.4 noch nicht technisch aktiviert.",
+
+  memory:
+    "RHIA besitzt in Alpha v0.4 lokalen Speicher für Chat, Aufgaben und Notizen. Ein echtes lernendes Langzeitgedächtnis wird später als eigenes Modul entwickelt.",
+
+  architecture:
+    "RHIA wird zunächst als modularer Monolith aufgebaut. Dadurch bleibt sie übersichtlich und kann später in einzelne technische Module aufgeteilt werden.",
+
+  privacy:
+    "Datenschutz, Anbieterunabhängigkeit und die Kontrolle durch Mike gehören zu den festen Grundregeln des Projekts.",
+
+  currentStatus:
+    "RHIA Alpha v0.4 besitzt eine Oberfläche, lokalen Chatverlauf, Aufgaben, Notizen, Grundidentität und fest hinterlegtes Projektwissen."
+};
+
+const state = {
+  tasks: load(KEYS.tasks),
+  notes: load(KEYS.notes),
+  chat: load(KEYS.chat)
+};
+
+const messages = document.getElementById("messages");
+const command = document.getElementById("command");
+const form = document.getElementById("form");
+const tasksElement = document.getElementById("tasks");
+const notesElement = document.getElementById("notes");
+const taskCount = document.getElementById("taskCount");
+const noteCount = document.getElementById("noteCount");
+
+  function load(key){
   try{
-    return JSON.parse(localStorage.getItem(key))||[];
-  }catch{
+    const rawValue = localStorage.getItem(key);
+
+    if(!rawValue){
+      return [];
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    return Array.isArray(parsedValue) ? parsedValue : [];
+  }catch(error){
+    console.error("RHIA konnte lokale Daten nicht laden:", error);
     return [];
   }
 }
 
 function save(){
-  localStorage.setItem(KEYS.tasks,JSON.stringify(state.tasks));
-  localStorage.setItem(KEYS.notes,JSON.stringify(state.notes));
-localStorage.setItem(KEYS.chat,JSON.stringify(state.chat));
-}
+  try{
+    localStorage.setItem(KEYS.tasks, JSON.stringify(state.tasks));
+    localStorage.setItem(KEYS.notes, JSON.stringify(state.notes));
+    localStorage.setItem(KEYS.chat, JSON.stringify(state.chat));
+  }catch(error){
+    console.error("RHIA konnte lokale Daten nicht speichern:", error);
+  }
 }
 
-function message(text,type="rhia",store=trueI){
-  const el=document.createElement("div");
-  el.className="message "+type;
-  el.textContent=text;
-  messages.appendChild(el);
-  messages.scrollTop=messages.scrollHeight;
-if(store){
-    state.chat.push({text:text,type:type});
+function addMessage(text, type = "rhia", store = true){
+  const cleanText = String(text ?? "").trim();
+
+  if(!cleanText){
+    return;
+  }
+
+  const element = document.createElement("div");
+  element.className = "message " + type;
+  element.textContent = cleanText;
+
+  messages.appendChild(element);
+  messages.scrollTop = messages.scrollHeight;
+
+  if(store){
+    state.chat.push({
+      text: cleanText,
+      type,
+      createdAt: new Date().toISOString()
+    });
+
     save();
   }
 }
 
-function render(){
-  drawList("tasks");
-  drawList("notes");
+function renderChat(){
+  messages.innerHTML = "";
 
-  messages.innerHTML="";
+  state.chat.forEach(entry => {
+    if(!entry || typeof entry.text !== "string"){
+      return;
+    }
 
-state.chat.forEach(msg=>{
-  message(msg.text,msg.type,false);
-});
-
-  document.getElementById("taskCount").textContent=state.tasks.length;
-  document.getElementById("noteCount").textContent=state.notes.length;
+    const type = entry.type === "user" ? "user" : "rhia";
+    addMessage(entry.text, type, false);
+  });
 }
 
-function drawList(type){
-  const target=document.getElementById(type);
-  const data=state[type];
+function renderLists(){
+  drawList("tasks", tasksElement);
+  drawList("notes", notesElement);
 
-  target.innerHTML="";
+  taskCount.textContent = state.tasks.length;
+  noteCount.textContent = state.notes.length;
+}
+
+function render(){
+  renderChat();
+  renderLists();
+}
+
+function drawList(type, target){
+  const data = state[type];
+
+  target.innerHTML = "";
 
   if(!data.length){
-    const empty=document.createElement("div");
-    empty.className="empty";
-    empty.textContent=type==="tasks"
-      ?"Noch keine Aufgaben gespeichert."
-      :"Noch keine Notizen gespeichert.";
+    const empty = document.createElement("div");
+    empty.className = "empty";
+
+    empty.textContent =
+      type === "tasks"
+        ? "Noch keine Aufgaben gespeichert."
+        : "Noch keine Notizen gespeichert.";
+
     target.appendChild(empty);
     return;
   }
 
-  data.forEach((text,index)=>{
-    const row=document.createElement("div");
-    row.className="item";
+  data.forEach((text, index) => {
+    const row = document.createElement("div");
+    row.className = "item";
 
-    const number=document.createElement("div");
-    number.className="number";
-    number.textContent=index+1+".";
+    const number = document.createElement("div");
+    number.className = "number";
+    number.textContent = index + 1 + ".";
 
-    const content=document.createElement("div");
-    content.textContent=text;
+    const content = document.createElement("div");
+    content.className = "item-text";
+    content.textContent = text;
 
-    const remove=document.createElement("button");
-    remove.className="delete";
-    remove.textContent="×";
+    const removeButton = document.createElement("button");
+    removeButton.className = "delete";
+    removeButton.type = "button";
+    removeButton.textContent = "×";
+    removeButton.title = "Eintrag löschen";
 
-    remove.onclick=()=>{
-      data.splice(index,1);
+    removeButton.addEventListener("click", () => {
+      const removed = data.splice(index, 1)[0];
+
       save();
-      render();
-      message(
-        (type==="tasks"?"Aufgabe ":"Notiz ")+(index+1)+" wurde gelöscht."
-      );
-    };
+      renderLists();
 
-    row.append(number,content,remove);
+      addMessage(
+        type === "tasks"
+          ? "Die Aufgabe „" + removed + "“ wurde gelöscht."
+          : "Die Notiz „" + removed + "“ wurde gelöscht."
+      );
+    });
+
+    row.append(number, content, removeButton);
     target.appendChild(row);
   });
 }
 
 function afterColon(text){
-  const position=text.indexOf(":");
-  return position<0?"":text.slice(position+1).trim();
+  const position = text.indexOf(":");
+  return position < 0 ? "" : text.slice(position + 1).trim();
 }
 
 function showList(type){
-  const data=state[type];
-  const title=type==="tasks"?"Aufgaben":"Notizen";
+  const data = state[type];
+  const title = type === "tasks" ? "Aufgaben" : "Notizen";
 
   if(!data.length){
-    message("Du hast aktuell keine "+title.toLowerCase()+" gespeichert.");
+    addMessage(
+      "Du hast aktuell keine " + title.toLowerCase() + " gespeichert."
+    );
     return;
   }
 
-  message(
-    title+":\n"+
-    data.map((item,index)=>(index+1)+". "+item).join("\n")
+  addMessage(
+    title +
+    ":\n" +
+    data
+      .map((item, index) => index + 1 + ". " + item)
+      .join("\n")
   );
 }
 
-function handle(text){
-  text=text.trim();
-  if(!text)return;
+function removeItem(type, text){
+  const number = Number.parseInt(afterColon(text), 10);
+  const data = state[type];
 
-  message(text,"user");
-
-  const lower=text.toLowerCase();
-
-  if(
-    lower.startsWith("aufgabe hinzufügen:")||
-    lower.startsWith("aufgabe hinzufuegen:")
-  ){
-    const value=afterColon(text);
-
-    if(!value){
-      message("Bitte schreibe nach dem Doppelpunkt eine Aufgabe.");
-      return;
-    }
-
-    state.tasks.push(value);
-    save();
-    render();
-    message("Erledigt. Die Aufgabe „"+value+"“ wurde gespeichert.");
+  if(!number || number < 1 || number > data.length){
+    addMessage("Diese Nummer gibt es nicht.");
     return;
   }
 
-  if(
-    lower.startsWith("notiz erstellen:")||
-    lower.startsWith("notiz hinzufügen:")||
-    lower.startsWith("notiz hinzufuegen:")
-  ){
-    const value=afterColon(text);
+  const removed = data.splice(number - 1, 1)[0];
 
-    if(!value){
-      message("Bitte schreibe nach dem Doppelpunkt eine Notiz.");
-      return;
-    }
+  save();
+  renderLists();
 
-    state.notes.push(value);
-    save();
-    render();
-    message("Gespeichert. Die Notiz „"+value+"“ bleibt lokal erhalten.");
-    return;
-  }
+  addMessage(
+    type === "tasks"
+      ? "Die Aufgabe „" + removed + "“ wurde gelöscht."
+      : "Die Notiz „" + removed + "“ wurde gelöscht."
+  );
+}
 
-  if(lower==="zeige meine aufgaben"){
-    showList("tasks");
-    return;
-  }
+function clearChat(){
+  state.chat = [];
+  save();
+  renderChat();
 
-  if(lower==="zeige meine notizen"){
-    showList("notes");
-    return;
-  }
+  addMessage(
+    "Der lokale Chatverlauf wurde gelöscht.",
+    "rhia",
+    false
+  );
+}
 
-  if(
-    lower.startsWith("aufgabe löschen:")||
-    lower.startsWith("aufgabe loeschen:")
-  ){
-    removeItem("tasks",text);
-    return;
-  }
+function includesAny(text, expressions){
+  return expressions.some(expression => text.includes(expression));
+}
 
-  if(
-    lower.startsWith("notiz löschen:")||
-    lower.startsWith("notiz loeschen:")
-  ){
-    removeItem("notes",text);
-    return;
-  }
+function profileAnswer(){
+  return (
+    "Ich bin RHIA – RH Intelligent Assistant.\n\n" +
+    "Ich bin Mikes persönliche KI-Assistentin und das digitale Herz von RH Produktion. " +
+    "Ich soll loyal, ehrlich, locker, direkt, lösungsorientiert und zuverlässig arbeiten.\n\n" +
+    "Aktuell befinde ich mich in Alpha v" + VERSION + "."
+  );
+}
 
-  if(lower==="hilfe"){
-    message(
+function projectAnswer(){
+  return (
+    "RHIA wird als professionelles Softwareprojekt entwickelt.\n\n" +
+    "Die festen Grundlagen sind: modulare Architektur, Datenschutz, " +
+    "Anbieterunabhängigkeit, Kontrolle vor Autonomie, saubere Dokumentation " +
+    "und Tests nach jeder Änderung.\n\n" +
+    "Entwickelt wird direkt über GitHub und GitHub Pages."
+  );
+}
+
+function modulesAnswer(){
+  return (
+    "Geplante RHIA-Module:\n\n" +
+    RHIA_PROFILE.modules
+      .map((module, index) => index + 1 + ". " + module)
+      .join("\n")
+  );
+}
+
+function helpAnswer(){
+  return (
 `Verfügbare Befehle:
 
 Aufgabe hinzufügen: …
@@ -470,53 +764,308 @@ Notiz erstellen: …
 Zeige meine Aufgaben
 Zeige meine Notizen
 Aufgabe löschen: 1
-Notiz löschen: 1`
+Notiz löschen: 1
+Chat löschen
+
+Du kannst mich außerdem fragen:
+
+Wer bist du?
+Was ist RHIA?
+Was ist RH Produktion?
+Wer ist Shadow Grown?
+Wie sollst du sein?
+Was weißt du über Sprache?
+Was weißt du über dein Gedächtnis?
+Welche Module sind geplant?
+Wie ist dein aktueller Stand?`
+  );
+}
+  function handle(text){
+  const originalText = String(text ?? "").trim();
+
+  if(!originalText){
+    return;
+  }
+
+  addMessage(originalText, "user");
+
+  const lower = originalText.toLowerCase();
+
+  if(
+    lower.startsWith("aufgabe hinzufügen:") ||
+    lower.startsWith("aufgabe hinzufuegen:")
+  ){
+    const value = afterColon(originalText);
+
+    if(!value){
+      addMessage("Bitte schreibe nach dem Doppelpunkt eine Aufgabe.");
+      return;
+    }
+
+    state.tasks.push(value);
+    save();
+    renderLists();
+
+    addMessage(
+      "Erledigt. Die Aufgabe „" + value + "“ wurde gespeichert."
     );
     return;
   }
 
-  message(
-    "Diesen Befehl kenne ich in Alpha v0.3 noch nicht. Schreibe „Hilfe“."
-  );
-}
+  if(
+    lower.startsWith("notiz erstellen:") ||
+    lower.startsWith("notiz hinzufügen:") ||
+    lower.startsWith("notiz hinzufuegen:")
+  ){
+    const value = afterColon(originalText);
 
-function removeItem(type,text){
-  const number=parseInt(afterColon(text),10);
-  const data=state[type];
+    if(!value){
+      addMessage("Bitte schreibe nach dem Doppelpunkt eine Notiz.");
+      return;
+    }
 
-  if(!number||number<1||number>data.length){
-    message("Diese Nummer gibt es nicht.");
+    state.notes.push(value);
+    save();
+    renderLists();
+
+    addMessage(
+      "Gespeichert. Die Notiz „" + value + "“ bleibt lokal erhalten."
+    );
     return;
   }
 
-  const removed=data.splice(number-1,1)[0];
-  save();
-  render();
+  if(lower === "zeige meine aufgaben"){
+    showList("tasks");
+    return;
+  }
 
-  message(
-    (type==="tasks"?"Die Aufgabe „":"Die Notiz „")+
-    removed+
-    "“ wurde gelöscht."
+  if(lower === "zeige meine notizen"){
+    showList("notes");
+    return;
+  }
+
+  if(
+    lower.startsWith("aufgabe löschen:") ||
+    lower.startsWith("aufgabe loeschen:")
+  ){
+    removeItem("tasks", originalText);
+    return;
+  }
+
+  if(
+    lower.startsWith("notiz löschen:") ||
+    lower.startsWith("notiz loeschen:")
+  ){
+    removeItem("notes", originalText);
+    return;
+  }
+
+  if(
+    lower === "chat löschen" ||
+    lower === "chat loeschen" ||
+    lower === "chatverlauf löschen" ||
+    lower === "chatverlauf loeschen"
+  ){
+    clearChat();
+    return;
+  }
+
+  if(
+    lower === "hilfe" ||
+    lower === "was kannst du" ||
+    lower === "was kannst du?"
+  ){
+    addMessage(helpAnswer());
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "wer bist du",
+      "was bist du",
+      "was ist rhia",
+      "wofür steht rhia",
+      "wofuer steht rhia"
+    ])
+  ){
+    addMessage(profileAnswer());
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "wie sollst du sein",
+      "deine persönlichkeit",
+      "deine persoenlichkeit",
+      "wie bist du"
+    ])
+  ){
+    addMessage(
+      "Ich soll " +
+      RHIA_PROFILE.personality.join(", ") +
+      " sein.\n\n" +
+      "Ich gebe zuerst das Ergebnis und danach eine kurze, verständliche Erklärung."
+    );
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "rh produktion",
+      "was ist rh produktion"
+    ])
+  ){
+    addMessage(KNOWLEDGE.rhProduktion);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "shadow grown",
+      "wer ist shadow grown",
+      "was ist shadow grown"
+    ])
+  ){
+    addMessage(KNOWLEDGE.shadowGrown);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "sprachsteuerung",
+      "sprachchat",
+      "aktivierungswort",
+      "sprache"
+    ])
+  ){
+    addMessage(KNOWLEDGE.voice);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "gedächtnis",
+      "gedaechtnis",
+      "langzeitgedächtnis",
+      "langzeitgedaechtnis",
+      "was merkst du dir"
+    ])
+  ){
+    addMessage(KNOWLEDGE.memory);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "architektur",
+      "modularer monolith",
+      "wie wirst du aufgebaut"
+    ])
+  ){
+    addMessage(KNOWLEDGE.architecture);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "datenschutz",
+      "anbieterunabhängig",
+      "anbieterunabhaengig",
+      "sicherheit"
+    ])
+  ){
+    addMessage(KNOWLEDGE.privacy);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "welche module",
+      "module sind geplant",
+      "modulstruktur"
+    ])
+  ){
+    addMessage(modulesAnswer());
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "aktueller stand",
+      "welche version",
+      "dein status",
+      "projektstand"
+    ])
+  ){
+    addMessage(KNOWLEDGE.currentStatus);
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "entwicklung",
+      "projektregeln",
+      "wie wird rhia entwickelt",
+      "github"
+    ])
+  ){
+    addMessage(projectAnswer());
+    return;
+  }
+
+  if(
+    includesAny(lower, [
+      "hallo rhia",
+      "hallo",
+      "hi rhia",
+      "hey rhia",
+      "guten morgen",
+      "guten tag",
+      "guten abend"
+    ])
+  ){
+    addMessage(
+      "Hallo Mike. RHIA Alpha v" +
+      VERSION +
+      " ist bereit. Was möchtest du erledigen?"
+    );
+    return;
+  }
+
+  addMessage(
+    "Diesen freien Befehl kann ich in Alpha v" +
+    VERSION +
+    " noch nicht vollständig verstehen.\n\n" +
+    "Schreibe „Hilfe“, um meine aktuellen Befehle und Wissensbereiche zu sehen."
   );
 }
 
-document.getElementById("form").addEventListener("submit",event=>{
+form.addEventListener("submit", event => {
   event.preventDefault();
-  const value=command.value;
-  command.value="";
+
+  const value = command.value;
+  command.value = "";
+
   handle(value);
   command.focus();
 });
 
 render();
 
-message(
-`RHIA Alpha v0.4 ist bereit, Mike.
+if(state.chat.length === 0){
+  addMessage(
+    "RHIA Alpha v" +
+    VERSION +
+    " ist bereit, Mike.\n\n" +
+    "Chatverlauf, Aufgaben und Notizen werden lokal gespeichert. " +
+    "Ich kenne bereits meine Grundidentität, RH Produktion, Shadow Grown " +
+    "und unsere wichtigsten Entwicklungsregeln.",
+    "rhia",
+    false
+  );
+}
 
-Chatverlauf, Aufgaben und Notizen werden lokal gespeichert.`,
-  "rhia",
-  false
-);
+command.focus();
 </script>
 </body>
 </html>
