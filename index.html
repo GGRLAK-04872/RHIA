@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#8f2948">
-
-<title>RHIA Alpha v0.4</title>
+<title>RHIA Alpha v0.5</title>
 
 <style>
 :root{
@@ -19,36 +18,24 @@
   --border:rgba(193,77,115,.25);
   --success:#78c69a;
   --danger:#e7a6b2;
+  --warning:#e8c27a;
 }
-
-*{
-  box-sizing:border-box;
-}
-
-html{
-  min-height:100%;
-}
-
+*{box-sizing:border-box}
+html{min-height:100%}
 body{
   margin:0;
   min-height:100vh;
-  font-family:Arial, Helvetica, sans-serif;
+  font-family:Arial,Helvetica,sans-serif;
   color:var(--text);
-  background:
-    radial-gradient(circle at 20% 0%, #2a1420 0%, var(--bg) 45%);
+  background:radial-gradient(circle at 20% 0%,#2a1420 0%,var(--bg) 45%);
 }
-
-button,
-input{
-  font:inherit;
-}
-
+button,input{font:inherit}
+button{touch-action:manipulation}
 .app{
   min-height:100vh;
   display:grid;
-  grid-template-columns:minmax(0, 1fr) 380px;
+  grid-template-columns:minmax(0,1fr) 380px;
 }
-
 main{
   min-width:0;
   padding:24px;
@@ -56,30 +43,15 @@ main{
   flex-direction:column;
   gap:18px;
 }
-
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:15px;
 }
-
-h1,
-h2,
-h3{
-  margin-top:0;
-}
-
-h1{
-  margin-bottom:0;
-  letter-spacing:3px;
-}
-
-.subtitle{
-  color:var(--muted);
-  margin-top:5px;
-}
-
+h1,h2,h3{margin-top:0}
+h1{margin-bottom:0;letter-spacing:3px}
+.subtitle{color:var(--muted);margin-top:5px}
 .version{
   flex-shrink:0;
   padding:7px 12px;
@@ -88,7 +60,6 @@ h1{
   color:#e7c2ce;
   background:rgba(143,41,72,.12);
 }
-
 .chat{
   flex:1;
   display:flex;
@@ -100,17 +71,22 @@ h1{
   overflow:hidden;
   box-shadow:0 18px 45px rgba(0,0,0,.24);
 }
-
 .status{
   padding:14px 18px;
   border-bottom:1px solid var(--border);
   color:#d8c8cf;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
 }
-
-.status-dot{
-  color:var(--success);
+.status-dot{color:var(--success)}
+.focus-label{
+  display:none;
+  color:var(--warning);
+  font-size:13px;
 }
-
+.focus-label.active{display:inline}
 .messages{
   flex:1;
   overflow:auto;
@@ -120,7 +96,6 @@ h1{
   gap:12px;
   scroll-behavior:smooth;
 }
-
 .message{
   max-width:82%;
   padding:13px 15px;
@@ -129,29 +104,32 @@ h1{
   white-space:pre-wrap;
   overflow-wrap:anywhere;
 }
-
 .message.rhia{
   align-self:flex-start;
   background:rgba(143,41,72,.22);
   border:1px solid rgba(193,77,115,.12);
   border-bottom-left-radius:4px;
 }
-
 .message.user{
   align-self:flex-end;
   background:rgba(255,255,255,.08);
   border:1px solid rgba(255,255,255,.06);
   border-bottom-right-radius:4px;
 }
-
+.message-time{
+  display:block;
+  margin-top:6px;
+  color:var(--muted);
+  font-size:11px;
+  opacity:.8;
+}
 .input{
   display:grid;
-  grid-template-columns:1fr auto;
+  grid-template-columns:1fr auto auto;
   gap:10px;
   padding:15px;
   border-top:1px solid var(--border);
 }
-
 input{
   width:100%;
   padding:14px;
@@ -162,16 +140,11 @@ input{
   font-size:16px;
   outline:none;
 }
-
 input:focus{
   border-color:rgba(193,77,115,.75);
   box-shadow:0 0 0 3px rgba(143,41,72,.15);
 }
-
-input::placeholder{
-  color:#a8959f;
-}
-
+input::placeholder{color:#a8959f}
 button{
   padding:12px 18px;
   border:0;
@@ -179,29 +152,33 @@ button{
   cursor:pointer;
   color:white;
   font-weight:bold;
-  background:linear-gradient(135deg, var(--accent), var(--accent-light));
+  background:linear-gradient(135deg,var(--accent),var(--accent-light));
 }
-
-button:hover{
-  filter:brightness(1.08);
+button:hover{filter:brightness(1.08)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.voice-button{
+  min-width:50px;
+  padding:12px;
+  background:rgba(255,255,255,.09);
+  border:1px solid var(--border);
 }
-
-button:active{
-  transform:translateY(1px);
+.voice-button.listening{
+  background:linear-gradient(135deg,var(--accent),var(--accent-light));
+  animation:pulse 1.1s infinite;
 }
-
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(193,77,115,.35)}
+  50%{box-shadow:0 0 0 8px rgba(193,77,115,0)}
+}
 aside{
   padding:24px;
   background:
-    radial-gradient(circle at 50% 15%, rgba(193,77,115,.32), transparent 35%),
-    linear-gradient(180deg, #24121b, #10090e);
+    radial-gradient(circle at 50% 15%,rgba(193,77,115,.32),transparent 35%),
+    linear-gradient(180deg,#24121b,#10090e);
   border-left:1px solid var(--border);
 }
-
-.storage-title{
-  margin-bottom:18px;
-}
-
+.storage-title{margin-bottom:18px}
 .card{
   margin-bottom:18px;
   padding:16px;
@@ -209,18 +186,13 @@ aside{
   background:rgba(12,8,11,.75);
   border:1px solid var(--border);
 }
-
 .cardhead{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:10px;
 }
-
-.cardhead h3{
-  margin-bottom:0;
-}
-
+.cardhead h3{margin-bottom:0}
 .count{
   min-width:28px;
   padding:6px;
@@ -228,10 +200,9 @@ aside{
   border-radius:20px;
   background:rgba(143,41,72,.3);
 }
-
 .item{
   display:grid;
-  grid-template-columns:25px minmax(0, 1fr) 30px;
+  grid-template-columns:28px minmax(0,1fr) 30px;
   gap:8px;
   align-items:start;
   margin-top:9px;
@@ -239,28 +210,26 @@ aside{
   border-radius:10px;
   background:rgba(255,255,255,.05);
 }
-
-.number{
-  color:#e8b7c7;
+.number{color:#e8b7c7}
+.item-text{overflow-wrap:anywhere;line-height:1.4}
+.item-text.done{text-decoration:line-through;color:var(--muted)}
+.item-meta{
+  display:block;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:11px;
 }
-
-.item-text{
-  overflow-wrap:anywhere;
-  line-height:1.4;
-}
-
-.delete{
+.action-small{
+  width:28px;
+  height:28px;
   padding:2px;
   background:transparent;
-  color:var(--danger);
-  font-size:18px;
-}
-
-.empty{
-  margin-top:10px;
+  border:1px solid rgba(255,255,255,.08);
   color:var(--muted);
 }
-
+.action-small.done-button{color:var(--success)}
+.action-small.delete{color:var(--danger);font-size:18px;border:0}
+.empty{margin-top:10px;color:var(--muted)}
 .info{
   margin-top:12px;
   padding:12px;
@@ -270,86 +239,50 @@ aside{
   line-height:1.45;
   font-size:14px;
 }
-
-small{
-  color:var(--muted);
-  line-height:1.4;
-}
-
 @media(max-width:850px){
-  .app{
-    grid-template-columns:1fr;
-  }
-
-  aside{
-    border-left:0;
-    border-top:1px solid var(--border);
-  }
-
-  main{
-    padding:14px;
-  }
-
-  .chat{
-    min-height:620px;
-  }
+  .app{grid-template-columns:1fr}
+  aside{border-left:0;border-top:1px solid var(--border)}
+  main{padding:14px}
+  .chat{min-height:620px}
 }
-
 @media(max-width:500px){
-  header{
-    align-items:flex-start;
-  }
-
-  .input{
-    grid-template-columns:1fr;
-  }
-
-  .message{
-    max-width:92%;
-  }
-
-  aside{
-    padding:18px 14px;
-  }
+  header{align-items:flex-start}
+  .input{grid-template-columns:1fr auto}
+  .input input{grid-column:1/-1}
+  .message{max-width:92%}
+  aside{padding:18px 14px}
 }
 </style>
 </head>
 
-  <body>
+<body>
 <div class="app">
-
 <main>
   <header>
     <div>
       <h1>RHIA</h1>
       <div class="subtitle">RH Intelligent Assistant</div>
     </div>
-
-    <div class="version">Alpha v0.4</div>
+    <div class="version">Alpha v0.5</div>
   </header>
 
   <section class="chat">
     <div class="status">
-      <span class="status-dot">●</span>
-      Bereit, Mike
+      <span><span class="status-dot">●</span> Bereit, Mike</span>
+      <span class="focus-label" id="focusLabel">Fokusmodus aktiv</span>
     </div>
 
-    <div
-      class="messages"
-      id="messages"
-      aria-live="polite"
-      aria-label="Chatverlauf"
-    ></div>
+    <div class="messages" id="messages" aria-live="polite" aria-label="Chatverlauf"></div>
 
     <form class="input" id="form">
       <input
         id="command"
         type="text"
         autocomplete="off"
-        placeholder="Schreibe einen Befehl …"
+        placeholder="Schreibe oder sprich mit RHIA …"
         aria-label="Nachricht an RHIA"
       >
-
+      <button class="voice-button" id="voiceButton" type="button" title="Spracheingabe">🎤</button>
       <button type="submit">Senden</button>
     </form>
   </section>
@@ -363,7 +296,6 @@ small{
       <h3>Aufgaben</h3>
       <span class="count" id="taskCount">0</span>
     </div>
-
     <div id="tasks"></div>
   </section>
 
@@ -372,158 +304,39 @@ small{
       <h3>Notizen</h3>
       <span class="count" id="noteCount">0</span>
     </div>
-
     <div id="notes"></div>
   </section>
 
   <div class="info">
     Chatverlauf, Aufgaben und Notizen werden lokal in diesem Browser gespeichert.
   </div>
-
   <div class="info">
-    Vorbereitet für spätere Module: Sprache, Kalender, Dateien, Vision,
-    RH Produktion, Shadow Grown, Social Media, Automationen und Sicherheit.
+    Bedienung zentral über den Chat. Die Schaltflächen rechts sind nur eine zusätzliche sichtbare Kontrolle.
   </div>
 </aside>
-
 </div>
 
 <script>
 "use strict";
 
+const VERSION = "0.5";
+
 /*
-  RHIA Alpha v0.4
-  RH Intelligent Assistant
-
-  Aktuelle Module:
-  - Chat
-  - lokaler Chatverlauf
-  - Aufgaben
-  - Notizen
-  - Grundidentität
-  - Projektwissen
-
-  Später:
-  - KI-Modell
-  - Sprachsteuerung
-  - Kalender
-  - Dateien
-  - E-Mail
-  - Vision
-  - Automationen
+  Die alten Schlüssel bleiben absichtlich erhalten.
+  Dadurch werden Aufgaben, Notizen und der Chat aus v0.3/v0.4 übernommen.
 */
-
-const VERSION = "0.4";
-
 const KEYS = {
   tasks: "rhia_tasks_v03",
   notes: "rhia_notes_v03",
-  chat: "rhia_chat_v04"
-};
-
-const RHIA_PROFILE = {
-  name: "RHIA",
-  fullName: "RH Intelligent Assistant",
-
-  role:
-    "Persönliche, langfristig lernende KI-Assistentin von Mike und digitales Herz von RH Produktion.",
-
-  owner: "Mike",
-
-  personality: [
-    "loyal",
-    "ehrlich",
-    "locker",
-    "direkt",
-    "lösungsorientiert",
-    "zuverlässig"
-  ],
-
-  communication: [
-    "Zuerst das Ergebnis, danach eine kurze Erklärung.",
-    "Verständlich erklären.",
-    "Bei echter Unklarheit sinnvoll nachfragen.",
-    "Keine unnötig langen Fragerunden.",
-    "Mike privat mit Mike oder du ansprechen.",
-    "Geschäftlich dosiert Sir verwenden."
-  ],
-
-  appearance: {
-    theme: "Dunkles, hochwertiges Design",
-    mainColor: "Bordeaux",
-    storage: "Rechter Speicherbereich",
-    activationWord: "Rhia"
-  },
-
-  developmentRules: [
-    "Modulare Architektur",
-    "Zunächst modularer Monolith",
-    "Lokal oder hybrid betreiben",
-    "Anbieterunabhängigkeit",
-    "Datenschutz",
-    "Kontrolle vor Autonomie",
-    "Tests nach jeder Änderung",
-    "Saubere Dokumentation",
-    "Keine Geheimnisse im Quellcode",
-    "Rechte- und Freigabesystem",
-    "Nur kleine getestete Entwicklungsschritte",
-    "RHIA muss jederzeit lauffähig bleiben"
-  ],
-
-  project: {
-    platform: "GitHub",
-    repository: "RHIA",
-    githubUser: "GGRLAK-04872",
-    website: "https://ggrlak-04872.github.io/RHIA/",
-    hardware:
-      "Samsung Galaxy Tab S11 Ultra mit Android 16 und One UI 8"
-  },
-
-  modules: [
-    "Gehirn",
-    "Gedächtnis",
-    "Aufgaben",
-    "Notizen",
-    "Kalender",
-    "Dateien",
-    "Sprachsteuerung",
-    "Bilder und Vision",
-    "RH Produktion",
-    "Shadow Grown",
-    "Social Media",
-    "Automationen",
-    "Einstellungen",
-    "Sicherheit"
-  ]
-};
-
-const KNOWLEDGE = {
-  rhProduktion:
-    "RH Produktion ist Mikes kreatives Produktionsprojekt und die geschäftliche Heimat von RHIA und Shadow Grown.",
-
-  shadowGrown:
-    "Shadow Grown ist der Künstlercharakter von RH Produktion. Er steht für authentischen KI-Rap, eine markante verdeckte Erscheinung und eine kontrollierte, selbstbewusste visuelle Sprache.",
-
-  voice:
-    "Die spätere Sprachsteuerung soll überwiegend per Sprache funktionieren. Das Aktivierungswort lautet „Rhia“. Sprachchat ist geplant, aber in Alpha v0.4 noch nicht technisch aktiviert.",
-
-  memory:
-    "RHIA besitzt in Alpha v0.4 lokalen Speicher für Chat, Aufgaben und Notizen. Ein echtes lernendes Langzeitgedächtnis wird später als eigenes Modul entwickelt.",
-
-  architecture:
-    "RHIA wird zunächst als modularer Monolith aufgebaut. Dadurch bleibt sie übersichtlich und kann später in einzelne technische Module aufgeteilt werden.",
-
-  privacy:
-    "Datenschutz, Anbieterunabhängigkeit und die Kontrolle durch Mike gehören zu den festen Grundregeln des Projekts.",
-
-  currentStatus:
-    "RHIA Alpha v0.4 besitzt eine Oberfläche, lokalen Chatverlauf, Aufgaben, Notizen, Grundidentität und fest hinterlegtes Projektwissen."
+  chat: "rhia_chat_v04",
+  settings: "rhia_settings_v05"
 };
 
 const state = {
-  tasks: load(KEYS.tasks),
-  notes: load(KEYS.notes),
-  chat: load(KEYS.chat)
+  tasks: normalizeEntries(load(KEYS.tasks), "task"),
+  notes: normalizeEntries(load(KEYS.notes), "note"),
+  chat: load(KEYS.chat),
+  settings: Object.assign({focusMode:false}, loadObject(KEYS.settings))
 };
 
 const messages = document.getElementById("messages");
@@ -533,21 +346,50 @@ const tasksElement = document.getElementById("tasks");
 const notesElement = document.getElementById("notes");
 const taskCount = document.getElementById("taskCount");
 const noteCount = document.getElementById("noteCount");
+const voiceButton = document.getElementById("voiceButton");
+const focusLabel = document.getElementById("focusLabel");
 
-  function load(key){
+function load(key){
   try{
-    const rawValue = localStorage.getItem(key);
-
-    if(!rawValue){
-      return [];
-    }
-
-    const parsedValue = JSON.parse(rawValue);
-    return Array.isArray(parsedValue) ? parsedValue : [];
+    const raw = localStorage.getItem(key);
+    if(!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   }catch(error){
     console.error("RHIA konnte lokale Daten nicht laden:", error);
     return [];
   }
+}
+
+function loadObject(key){
+  try{
+    const raw = localStorage.getItem(key);
+    if(!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  }catch(error){
+    console.error("RHIA konnte Einstellungen nicht laden:", error);
+    return {};
+  }
+}
+
+function normalizeEntries(entries, type){
+  return entries.map(entry => {
+    if(typeof entry === "string"){
+      return {
+        text:entry,
+        done:false,
+        createdAt:new Date().toISOString(),
+        type
+      };
+    }
+    return {
+      text:String(entry?.text ?? "").trim(),
+      done:Boolean(entry?.done),
+      createdAt:entry?.createdAt || new Date().toISOString(),
+      type
+    };
+  }).filter(entry => entry.text);
 }
 
 function save(){
@@ -555,55 +397,67 @@ function save(){
     localStorage.setItem(KEYS.tasks, JSON.stringify(state.tasks));
     localStorage.setItem(KEYS.notes, JSON.stringify(state.notes));
     localStorage.setItem(KEYS.chat, JSON.stringify(state.chat));
+    localStorage.setItem(KEYS.settings, JSON.stringify(state.settings));
   }catch(error){
     console.error("RHIA konnte lokale Daten nicht speichern:", error);
   }
 }
 
-function addMessage(text, type = "rhia", store = true){
+function formatTime(dateString){
+  const date = new Date(dateString);
+  if(Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("de-DE", {
+    day:"2-digit",
+    month:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+function addMessage(text, type="rhia", store=true, createdAt=null){
   const cleanText = String(text ?? "").trim();
+  if(!cleanText) return;
 
-  if(!cleanText){
-    return;
-  }
-
+  const timestamp = createdAt || new Date().toISOString();
   const element = document.createElement("div");
   element.className = "message " + type;
-  element.textContent = cleanText;
 
+  const content = document.createElement("span");
+  content.textContent = cleanText;
+
+  const time = document.createElement("small");
+  time.className = "message-time";
+  time.textContent = formatTime(timestamp);
+
+  element.append(content, time);
   messages.appendChild(element);
   messages.scrollTop = messages.scrollHeight;
 
   if(store){
-    state.chat.push({
-      text: cleanText,
-      type,
-      createdAt: new Date().toISOString()
-    });
-
+    state.chat.push({text:cleanText,type,createdAt:timestamp});
     save();
   }
 }
 
 function renderChat(){
   messages.innerHTML = "";
-
   state.chat.forEach(entry => {
-    if(!entry || typeof entry.text !== "string"){
-      return;
-    }
-
-    const type = entry.type === "user" ? "user" : "rhia";
-    addMessage(entry.text, type, false);
+    if(!entry || typeof entry.text !== "string") return;
+    addMessage(
+      entry.text,
+      entry.type === "user" ? "user" : "rhia",
+      false,
+      entry.createdAt
+    );
   });
 }
 
 function renderLists(){
   drawList("tasks", tasksElement);
   drawList("notes", notesElement);
-
   taskCount.textContent = state.tasks.length;
   noteCount.textContent = state.notes.length;
+  focusLabel.classList.toggle("active", state.settings.focusMode);
 }
 
 function render(){
@@ -613,54 +467,55 @@ function render(){
 
 function drawList(type, target){
   const data = state[type];
-
   target.innerHTML = "";
 
   if(!data.length){
     const empty = document.createElement("div");
     empty.className = "empty";
-
-    empty.textContent =
-      type === "tasks"
-        ? "Noch keine Aufgaben gespeichert."
-        : "Noch keine Notizen gespeichert.";
-
+    empty.textContent = type === "tasks"
+      ? "Noch keine Aufgaben gespeichert."
+      : "Noch keine Notizen gespeichert.";
     target.appendChild(empty);
     return;
   }
 
-  data.forEach((text, index) => {
+  data.forEach((entry,index) => {
     const row = document.createElement("div");
     row.className = "item";
 
-    const number = document.createElement("div");
-    number.className = "number";
-    number.textContent = index + 1 + ".";
+    const firstButton = document.createElement("button");
+    firstButton.type = "button";
+    firstButton.className = "action-small" + (type === "tasks" ? " done-button" : "");
+    firstButton.textContent = type === "tasks" ? (entry.done ? "↶" : "✓") : (index + 1);
+    firstButton.title = type === "tasks"
+      ? (entry.done ? "Aufgabe wieder öffnen" : "Aufgabe erledigen")
+      : "Notiz Nummer " + (index + 1);
+
+    if(type === "tasks"){
+      firstButton.addEventListener("click", () => toggleTask(index));
+    }else{
+      firstButton.disabled = true;
+    }
 
     const content = document.createElement("div");
-    content.className = "item-text";
-    content.textContent = text;
+    content.className = "item-text" + (entry.done ? " done" : "");
+    content.textContent = entry.text;
+
+    const meta = document.createElement("small");
+    meta.className = "item-meta";
+    meta.textContent = type === "tasks"
+      ? (entry.done ? "Erledigt" : "Offen") + " · " + formatTime(entry.createdAt)
+      : formatTime(entry.createdAt);
+    content.appendChild(meta);
 
     const removeButton = document.createElement("button");
-    removeButton.className = "delete";
+    removeButton.className = "action-small delete";
     removeButton.type = "button";
     removeButton.textContent = "×";
     removeButton.title = "Eintrag löschen";
+    removeButton.addEventListener("click", () => removeByIndex(type,index));
 
-    removeButton.addEventListener("click", () => {
-      const removed = data.splice(index, 1)[0];
-
-      save();
-      renderLists();
-
-      addMessage(
-        type === "tasks"
-          ? "Die Aufgabe „" + removed + "“ wurde gelöscht."
-          : "Die Notiz „" + removed + "“ wurde gelöscht."
-      );
-    });
-
-    row.append(number, content, removeButton);
+    row.append(firstButton,content,removeButton);
     target.appendChild(row);
   });
 }
@@ -670,396 +525,374 @@ function afterColon(text){
   return position < 0 ? "" : text.slice(position + 1).trim();
 }
 
-function showList(type){
-  const data = state[type];
-  const title = type === "tasks" ? "Aufgaben" : "Notizen";
-
-  if(!data.length){
-    addMessage(
-      "Du hast aktuell keine " + title.toLowerCase() + " gespeichert."
-    );
-    return;
-  }
-
-  addMessage(
-    title +
-    ":\n" +
-    data
-      .map((item, index) => index + 1 + ". " + item)
-      .join("\n")
-  );
+function stripWakeWord(text){
+  return text.replace(/^\s*(hey\s+)?rhia[\s,.:;-]*/i,"").trim();
 }
 
-function removeItem(type, text){
-  const number = Number.parseInt(afterColon(text), 10);
-  const data = state[type];
-
-  if(!number || number < 1 || number > data.length){
-    addMessage("Diese Nummer gibt es nicht.");
-    return;
-  }
-
-  const removed = data.splice(number - 1, 1)[0];
-
-  save();
-  renderLists();
-
-  addMessage(
-    type === "tasks"
-      ? "Die Aufgabe „" + removed + "“ wurde gelöscht."
-      : "Die Notiz „" + removed + "“ wurde gelöscht."
-  );
+function startsWithAny(text, expressions){
+  return expressions.some(expression => text.startsWith(expression));
 }
 
-function clearChat(){
-  state.chat = [];
-  save();
-  renderChat();
-
-  addMessage(
-    "Der lokale Chatverlauf wurde gelöscht.",
-    "rhia",
-    false
-  );
+function equalsAny(text, expressions){
+  return expressions.includes(text);
 }
 
 function includesAny(text, expressions){
   return expressions.some(expression => text.includes(expression));
 }
 
-function profileAnswer(){
-  return (
-    "Ich bin RHIA – RH Intelligent Assistant.\n\n" +
-    "Ich bin Mikes persönliche KI-Assistentin und das digitale Herz von RH Produktion. " +
-    "Ich soll loyal, ehrlich, locker, direkt, lösungsorientiert und zuverlässig arbeiten.\n\n" +
-    "Aktuell befinde ich mich in Alpha v" + VERSION + "."
-  );
+function createEntry(type,value){
+  const clean = String(value ?? "").trim();
+  if(!clean){
+    addMessage(type === "tasks"
+      ? "Welche Aufgabe soll ich speichern?"
+      : "Welche Notiz soll ich speichern?");
+    return;
+  }
+
+  const entry = {
+    text:clean,
+    done:false,
+    createdAt:new Date().toISOString(),
+    type:type === "tasks" ? "task" : "note"
+  };
+
+  state[type].push(entry);
+  save();
+  renderLists();
+
+  addMessage(type === "tasks"
+    ? "Erledigt, Sir. Die Aufgabe „" + clean + "“ wurde gespeichert."
+    : "Gespeichert. Die Notiz „" + clean + "“ bleibt lokal erhalten.");
 }
 
-function projectAnswer(){
-  return (
-    "RHIA wird als professionelles Softwareprojekt entwickelt.\n\n" +
-    "Die festen Grundlagen sind: modulare Architektur, Datenschutz, " +
-    "Anbieterunabhängigkeit, Kontrolle vor Autonomie, saubere Dokumentation " +
-    "und Tests nach jeder Änderung.\n\n" +
-    "Entwickelt wird direkt über GitHub und GitHub Pages."
-  );
+function showList(type){
+  const data = state[type];
+  const title = type === "tasks" ? "Aufgaben" : "Notizen";
+
+  if(!data.length){
+    addMessage("Du hast aktuell keine " + title.toLowerCase() + " gespeichert.");
+    return;
+  }
+
+  const lines = data.map((entry,index) => {
+    const status = type === "tasks" ? (entry.done ? " ✓" : " – offen") : "";
+    return (index + 1) + ". " + entry.text + status;
+  });
+
+  addMessage(title + ":\n" + lines.join("\n"));
 }
 
-function modulesAnswer(){
-  return (
-    "Geplante RHIA-Module:\n\n" +
-    RHIA_PROFILE.modules
-      .map((module, index) => index + 1 + ". " + module)
-      .join("\n")
-  );
+function removeByIndex(type,index){
+  const data = state[type];
+  if(index < 0 || index >= data.length){
+    addMessage("Diesen Eintrag gibt es nicht.");
+    return;
+  }
+
+  const removed = data.splice(index,1)[0];
+  save();
+  renderLists();
+
+  addMessage(type === "tasks"
+    ? "Die Aufgabe „" + removed.text + "“ wurde gelöscht."
+    : "Die Notiz „" + removed.text + "“ wurde gelöscht.");
+}
+
+function removeNumber(type,text){
+  const number = Number.parseInt(afterColon(text),10);
+  if(!number || number < 1 || number > state[type].length){
+    addMessage("Diese Nummer gibt es nicht. Sage zum Beispiel: „Aufgabe löschen: 1“.");
+    return;
+  }
+  removeByIndex(type,number - 1);
+}
+
+function toggleTask(index){
+  const task = state.tasks[index];
+  if(!task){
+    addMessage("Diese Aufgabe gibt es nicht.");
+    return;
+  }
+
+  task.done = !task.done;
+  save();
+  renderLists();
+
+  addMessage(task.done
+    ? "Erledigt. „" + task.text + "“ ist abgeschlossen."
+    : "„" + task.text + "“ ist wieder offen.");
+}
+
+function toggleTaskByNumber(text){
+  const number = Number.parseInt(afterColon(text),10);
+  if(!number || number < 1 || number > state.tasks.length){
+    addMessage("Diese Aufgabennummer gibt es nicht.");
+    return;
+  }
+  toggleTask(number - 1);
+}
+
+function clearChat(){
+  state.chat = [];
+  save();
+  renderChat();
+  addMessage("Der lokale Chatverlauf wurde gelöscht.","rhia",false);
 }
 
 function helpAnswer(){
-  return (
-`Verfügbare Befehle:
+  return `Du kannst natürlich mit mir schreiben. Diese Befehle funktionieren bereits:
 
-Aufgabe hinzufügen: …
-Notiz erstellen: …
-Zeige meine Aufgaben
-Zeige meine Notizen
+Aufgabe: PC-Angebote vergleichen
+Erstelle eine Aufgabe: Rechnung prüfen
+Notiz: Idee für Shadow Grown
+Speichere als Notiz: Werbevideo anbieten
+
+Zeige Aufgaben
+Zeige Notizen
+Aufgabe erledigt: 1
+Aufgabe wieder öffnen: 1
 Aufgabe löschen: 1
 Notiz löschen: 1
+
+Rhia, Fokusmodus
+Fokusmodus beenden
 Chat löschen
 
-Du kannst mich außerdem fragen:
-
-Wer bist du?
-Was ist RHIA?
-Was ist RH Produktion?
-Wer ist Shadow Grown?
-Wie sollst du sein?
-Was weißt du über Sprache?
-Was weißt du über dein Gedächtnis?
-Welche Module sind geplant?
-Wie ist dein aktueller Stand?`
-  );
+Die Mikrofontaste nutzt die Spracheingabe deines Browsers, sofern sie dort unterstützt wird.`;
 }
-  function handle(text){
-  const originalText = String(text ?? "").trim();
 
-  if(!originalText){
-    return;
-  }
+function profileAnswer(){
+  return "Ich bin RHIA – RH Intelligent Assistant. Ich bin Mikes loyale digitale Partnerin und das langfristige Assistenzsystem von RH Produktion. Ich arbeite ehrlich, direkt, zuverlässig und lösungsorientiert. Wichtige Entscheidungen bleiben bei Mike.";
+}
 
-  addMessage(originalText, "user");
+function handle(rawText){
+  const originalText = String(rawText ?? "").trim();
+  if(!originalText) return;
 
-  const lower = originalText.toLowerCase();
+  addMessage(originalText,"user");
+
+  const cleaned = stripWakeWord(originalText);
+  const lower = cleaned.toLowerCase().replace(/\s+/g," ").trim();
 
   if(
-    lower.startsWith("aufgabe hinzufügen:") ||
-    lower.startsWith("aufgabe hinzufuegen:")
+    startsWithAny(lower,[
+      "aufgabe:",
+      "aufgabe hinzufügen:",
+      "aufgabe hinzufuegen:",
+      "erstelle eine aufgabe:",
+      "erstell eine aufgabe:",
+      "lege eine aufgabe an:",
+      "neue aufgabe:"
+    ])
   ){
-    const value = afterColon(originalText);
-
-    if(!value){
-      addMessage("Bitte schreibe nach dem Doppelpunkt eine Aufgabe.");
-      return;
-    }
-
-    state.tasks.push(value);
-    save();
-    renderLists();
-
-    addMessage(
-      "Erledigt. Die Aufgabe „" + value + "“ wurde gespeichert."
-    );
+    createEntry("tasks",afterColon(cleaned));
     return;
   }
 
   if(
-    lower.startsWith("notiz erstellen:") ||
-    lower.startsWith("notiz hinzufügen:") ||
-    lower.startsWith("notiz hinzufuegen:")
+    startsWithAny(lower,[
+      "notiz:",
+      "notiz erstellen:",
+      "notiz hinzufügen:",
+      "notiz hinzufuegen:",
+      "erstelle eine notiz:",
+      "speichere als notiz:",
+      "neue notiz:"
+    ])
   ){
-    const value = afterColon(originalText);
-
-    if(!value){
-      addMessage("Bitte schreibe nach dem Doppelpunkt eine Notiz.");
-      return;
-    }
-
-    state.notes.push(value);
-    save();
-    renderLists();
-
-    addMessage(
-      "Gespeichert. Die Notiz „" + value + "“ bleibt lokal erhalten."
-    );
+    createEntry("notes",afterColon(cleaned));
     return;
   }
 
-  if(lower === "zeige meine aufgaben"){
+  if(equalsAny(lower,[
+    "zeige aufgaben",
+    "zeige meine aufgaben",
+    "meine aufgaben",
+    "welche aufgaben habe ich",
+    "was sind meine aufgaben"
+  ])){
     showList("tasks");
     return;
   }
 
-  if(lower === "zeige meine notizen"){
+  if(equalsAny(lower,[
+    "zeige notizen",
+    "zeige meine notizen",
+    "meine notizen",
+    "welche notizen habe ich"
+  ])){
     showList("notes");
     return;
   }
 
-  if(
-    lower.startsWith("aufgabe löschen:") ||
-    lower.startsWith("aufgabe loeschen:")
-  ){
-    removeItem("tasks", originalText);
+  if(startsWithAny(lower,[
+    "aufgabe erledigt:",
+    "aufgabe abschließen:",
+    "aufgabe abschliessen:"
+  ])){
+    toggleTaskByNumber(cleaned);
     return;
   }
 
-  if(
-    lower.startsWith("notiz löschen:") ||
-    lower.startsWith("notiz loeschen:")
-  ){
-    removeItem("notes", originalText);
+  if(startsWithAny(lower,[
+    "aufgabe wieder öffnen:",
+    "aufgabe wieder oeffnen:"
+  ])){
+    toggleTaskByNumber(cleaned);
     return;
   }
 
-  if(
-    lower === "chat löschen" ||
-    lower === "chat loeschen" ||
-    lower === "chatverlauf löschen" ||
-    lower === "chatverlauf loeschen"
-  ){
+  if(startsWithAny(lower,["aufgabe löschen:","aufgabe loeschen:"])){
+    removeNumber("tasks",cleaned);
+    return;
+  }
+
+  if(startsWithAny(lower,["notiz löschen:","notiz loeschen:"])){
+    removeNumber("notes",cleaned);
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "chat löschen",
+    "chat loeschen",
+    "chatverlauf löschen",
+    "chatverlauf loeschen"
+  ])){
     clearChat();
     return;
   }
 
-  if(
-    lower === "hilfe" ||
-    lower === "was kannst du" ||
-    lower === "was kannst du?"
-  ){
+  if(equalsAny(lower,["fokusmodus","fokusmodus starten","starte den fokusmodus"])){
+    state.settings.focusMode = true;
+    save();
+    renderLists();
+    addMessage("Fokusmodus ist aktiv, Sir. Wir bearbeiten jetzt genau einen nächsten Schritt. Was hat im Moment Vorrang?");
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "fokusmodus beenden",
+    "beende den fokusmodus",
+    "fokusmodus aus"
+  ])){
+    state.settings.focusMode = false;
+    save();
+    renderLists();
+    addMessage("Fokusmodus beendet. Wir können wieder normal weiterarbeiten.");
+    return;
+  }
+
+  if(equalsAny(lower,["hilfe","was kannst du","was kannst du?","befehle"])){
     addMessage(helpAnswer());
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "wer bist du",
-      "was bist du",
-      "was ist rhia",
-      "wofür steht rhia",
-      "wofuer steht rhia"
-    ])
-  ){
+  if(includesAny(lower,[
+    "wer bist du",
+    "was bist du",
+    "was ist rhia",
+    "wofür steht rhia",
+    "wofuer steht rhia"
+  ])){
     addMessage(profileAnswer());
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "wie sollst du sein",
-      "deine persönlichkeit",
-      "deine persoenlichkeit",
-      "wie bist du"
-    ])
-  ){
-    addMessage(
-      "Ich soll " +
-      RHIA_PROFILE.personality.join(", ") +
-      " sein.\n\n" +
-      "Ich gebe zuerst das Ergebnis und danach eine kurze, verständliche Erklärung."
-    );
+  if(includesAny(lower,["wie sollst du sein","deine persönlichkeit","deine persoenlichkeit"])){
+    addMessage("Ich arbeite loyal, ehrlich, locker, direkt, zuverlässig und lösungsorientiert. Ich nenne zuerst das klare Ergebnis, widerspreche respektvoll und spiele keine Sicherheit vor.");
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "rh produktion",
-      "was ist rh produktion"
-    ])
-  ){
-    addMessage(KNOWLEDGE.rhProduktion);
+  if(includesAny(lower,["rh produktion","was ist rh produktion"])){
+    addMessage("RH Produktion ist die Dachmarke. Darunter befinden sich Shadow Grown, RHIA und langfristig Kundenprojekte.");
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "shadow grown",
-      "wer ist shadow grown",
-      "was ist shadow grown"
-    ])
-  ){
-    addMessage(KNOWLEDGE.shadowGrown);
+  if(includesAny(lower,["shadow grown","wer ist shadow grown"])){
+    addMessage("Shadow Grown ist die Künstler- und Medienmarke von RH Produktion für Musik, Musikvideos, Social Media und Markenaufbau.");
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "sprachsteuerung",
-      "sprachchat",
-      "aktivierungswort",
-      "sprache"
-    ])
-  ){
-    addMessage(KNOWLEDGE.voice);
+  if(includesAny(lower,["aktueller stand","welche version","dein status","projektstand"])){
+    addMessage("RHIA Alpha v" + VERSION + " läuft. Chatverlauf, Aufgaben, Notizen, erste natürliche Chatbefehle, Fokusmodus-Grundlage und optionale Spracheingabe sind lokal verfügbar.");
     return;
   }
 
-  if(
-    includesAny(lower, [
-      "gedächtnis",
-      "gedaechtnis",
-      "langzeitgedächtnis",
-      "langzeitgedaechtnis",
-      "was merkst du dir"
-    ])
-  ){
-    addMessage(KNOWLEDGE.memory);
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "architektur",
-      "modularer monolith",
-      "wie wirst du aufgebaut"
-    ])
-  ){
-    addMessage(KNOWLEDGE.architecture);
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "datenschutz",
-      "anbieterunabhängig",
-      "anbieterunabhaengig",
-      "sicherheit"
-    ])
-  ){
-    addMessage(KNOWLEDGE.privacy);
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "welche module",
-      "module sind geplant",
-      "modulstruktur"
-    ])
-  ){
-    addMessage(modulesAnswer());
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "aktueller stand",
-      "welche version",
-      "dein status",
-      "projektstand"
-    ])
-  ){
-    addMessage(KNOWLEDGE.currentStatus);
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "entwicklung",
-      "projektregeln",
-      "wie wird rhia entwickelt",
-      "github"
-    ])
-  ){
-    addMessage(projectAnswer());
-    return;
-  }
-
-  if(
-    includesAny(lower, [
-      "hallo rhia",
-      "hallo",
-      "hi rhia",
-      "hey rhia",
-      "guten morgen",
-      "guten tag",
-      "guten abend"
-    ])
-  ){
-    addMessage(
-      "Hallo Mike. RHIA Alpha v" +
-      VERSION +
-      " ist bereit. Was möchtest du erledigen?"
-    );
+  if(includesAny(lower,[
+    "hallo","hi rhia","hey rhia","guten morgen","guten tag","guten abend"
+  ])){
+    addMessage("Hallo Mike. RHIA Alpha v" + VERSION + " ist bereit. Was möchtest du erledigen?");
     return;
   }
 
   addMessage(
-    "Diesen freien Befehl kann ich in Alpha v" +
-    VERSION +
-    " noch nicht vollständig verstehen.\n\n" +
-    "Schreibe „Hilfe“, um meine aktuellen Befehle und Wissensbereiche zu sehen."
+    "Ich habe verstanden, dass du frei mit mir sprechen möchtest. In dieser lokalen Alpha ist noch kein echtes KI-Modell verbunden. Aufgaben und Notizen kann ich aber bereits aus natürlicheren Befehlen erkennen. Schreibe „Hilfe“ für Beispiele."
   );
 }
 
-form.addEventListener("submit", event => {
+form.addEventListener("submit",event => {
   event.preventDefault();
-
   const value = command.value;
   command.value = "";
-
   handle(value);
   command.focus();
 });
+
+/* Optionale Browser-Spracheingabe */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(SpeechRecognition){
+  const recognition = new SpeechRecognition();
+  recognition.lang = "de-DE";
+  recognition.interimResults = false;
+  recognition.continuous = false;
+
+  recognition.addEventListener("start",() => {
+    voiceButton.classList.add("listening");
+    voiceButton.textContent = "●";
+    voiceButton.title = "RHIA hört zu";
+  });
+
+  recognition.addEventListener("end",() => {
+    voiceButton.classList.remove("listening");
+    voiceButton.textContent = "🎤";
+    voiceButton.title = "Spracheingabe";
+  });
+
+  recognition.addEventListener("result",event => {
+    const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+    if(transcript){
+      command.value = transcript;
+      handle(transcript);
+      command.value = "";
+    }
+  });
+
+  recognition.addEventListener("error",event => {
+    console.warn("Spracheingabe:",event.error);
+    addMessage("Die Spracheingabe konnte gerade nicht verwendet werden. Du kannst den Befehl weiterhin eintippen.");
+  });
+
+  voiceButton.addEventListener("click",() => {
+    try{
+      recognition.start();
+    }catch(error){
+      console.warn(error);
+    }
+  });
+}else{
+  voiceButton.disabled = true;
+  voiceButton.title = "Spracheingabe wird von diesem Browser nicht unterstützt";
+}
 
 render();
 
 if(state.chat.length === 0){
   addMessage(
-    "RHIA Alpha v" +
-    VERSION +
-    " ist bereit, Mike.\n\n" +
+    "RHIA Alpha v" + VERSION + " ist bereit, Mike.\n\n" +
     "Chatverlauf, Aufgaben und Notizen werden lokal gespeichert. " +
-    "Ich kenne bereits meine Grundidentität, RH Produktion, Shadow Grown " +
-    "und unsere wichtigsten Entwicklungsregeln.",
+    "Du kannst mich jetzt zentral über den Chat bedienen. Schreibe „Hilfe“, um die ersten möglichen Befehle zu sehen.",
     "rhia",
     false
   );
