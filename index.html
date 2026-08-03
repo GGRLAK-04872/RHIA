@@ -1,33 +1,33 @@
-<!DOCTYPE html>
+.<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#130b07">
-<title>RHIA Alpha v0.8</title>
+<meta name="theme-color" content="#080503">
+<title>RHIA Alpha v0.9</title>
 
 <style>
 :root{
-  --bg:#070504;
-  --bg2:#130b07;
-  --panel:rgba(21,13,9,.86);
-  --panel2:rgba(35,18,10,.78);
-  --orange:#ff8a24;
-  --amber:#ffb04a;
-  --copper:#b94e16;
-  --text:#fff7ee;
-  --muted:#bda99c;
-  --line:rgba(255,138,36,.22);
-  --ok:#7fd49a;
-  --danger:#e7a39a;
+  --bg:#050403;
+  --bg2:#120a06;
+  --panel:rgba(18,11,7,.88);
+  --panel2:rgba(31,16,9,.82);
+  --orange:#ff7f1f;
+  --amber:#ffb15c;
+  --copper:#b64b14;
+  --text:#fff7ef;
+  --muted:#bca99d;
+  --line:rgba(255,132,36,.20);
+  --ok:#78cf94;
+  --danger:#e3a092;
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
 body{
   background:
-    radial-gradient(circle at 50% 35%,rgba(255,112,18,.10),transparent 28%),
-    radial-gradient(circle at 20% 0%,#241108 0%,transparent 34%),
-    linear-gradient(180deg,#090605,#050403);
+    radial-gradient(circle at 50% 38%,rgba(255,109,20,.09),transparent 27%),
+    radial-gradient(circle at 14% 0%,#211006 0%,transparent 33%),
+    linear-gradient(180deg,#090604,#040302);
 }
 button,input{font:inherit}
 button{touch-action:manipulation}
@@ -35,61 +35,64 @@ button{touch-action:manipulation}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   padding:18px 24px;border-bottom:1px solid var(--line);
-  background:rgba(8,5,4,.74);backdrop-filter:blur(16px);position:sticky;top:0;z-index:20
+  background:rgba(7,4,3,.78);backdrop-filter:blur(18px);position:sticky;top:0;z-index:20
 }
 .brand h1{margin:0;letter-spacing:5px;font-size:24px}
 .brand small{display:block;color:var(--muted);margin-top:4px}
-.version{padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:#ffd6b2;background:rgba(255,138,36,.08)}
-.workspace{display:grid;grid-template-columns:minmax(0,1fr) 370px;min-height:0}
+.version{padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:#ffd8b7;background:rgba(255,126,31,.08)}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:0}
 .stage{
-  min-width:0;padding:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;position:relative;overflow:hidden
+  min-width:0;padding:20px 26px 28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;position:relative;overflow:hidden
 }
 .core-wrap{
-  width:min(68vw,560px);aspect-ratio:1;position:relative;display:grid;place-items:center
+  width:min(70vw,610px);aspect-ratio:1;position:relative;display:grid;place-items:center;
 }
-.core-halo{
-  position:absolute;inset:10%;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,153,59,.15),rgba(255,111,20,.03) 48%,transparent 72%);
-  filter:blur(10px);transition:transform .8s ease,opacity .8s ease
+.energy-field{
+  position:absolute;inset:13%;border-radius:48%;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(255,180,90,.18),rgba(255,115,25,.06) 38%,transparent 68%);
+  filter:blur(18px);
+  transition:transform .7s ease,opacity .7s ease;
 }
-#particleCanvas{width:100%;height:100%;display:block;filter:drop-shadow(0 0 20px rgba(255,121,26,.18))}
+#particleCanvas{width:100%;height:100%;display:block}
 .core-center{
   position:absolute;display:grid;place-items:center;text-align:center;pointer-events:none;
-  width:44%;aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(circle,rgba(255,166,74,.16),rgba(255,112,18,.05) 55%,transparent 72%);
-  border:1px solid rgba(255,154,58,.15);box-shadow:inset 0 0 36px rgba(255,122,24,.08)
+  width:34%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,165,72,.12),rgba(255,110,17,.025) 58%,transparent 76%);
+  border:1px solid rgba(255,150,54,.11);
+  box-shadow:inset 0 0 38px rgba(255,115,20,.07);
 }
 .core-center strong{font-size:clamp(24px,4vw,42px);letter-spacing:6px}
-.core-center span{display:block;color:#d8b79e;font-size:12px;letter-spacing:2px;margin-top:8px}
-.state-listening .core-halo{transform:scale(.82);opacity:.9}
-.state-speaking .core-halo{transform:scale(1.06);opacity:1}
-.state-thinking .core-halo{transform:scale(.94);opacity:.7}
+.core-center span{display:block;color:#d6b095;font-size:12px;letter-spacing:2px;margin-top:8px}
+.state-listening .energy-field{transform:scale(.76);opacity:1}
+.state-thinking .energy-field{transform:scale(.92);opacity:.74}
+.state-speaking .energy-field{transform:scale(1.03);opacity:1}
 
-.status-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.status-row{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
 .pill{
   padding:7px 11px;border-radius:999px;border:1px solid var(--line);
-  color:var(--muted);background:rgba(255,255,255,.025);font-size:13px
+  color:var(--muted);background:rgba(255,255,255,.02);font-size:13px
 }
-.pill.active{color:#ffd6b2;border-color:rgba(255,162,74,.45);background:rgba(255,125,24,.08)}
+.pill.active{color:#ffd7b9;border-color:rgba(255,160,70,.45);background:rgba(255,127,29,.08)}
+
 .reply-card{
-  width:min(760px,100%);min-height:110px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;
-  background:linear-gradient(180deg,rgba(40,21,12,.82),rgba(16,10,7,.88));
+  width:min(760px,100%);min-height:104px;padding:18px 20px;border:1px solid var(--line);border-radius:18px;
+  background:linear-gradient(180deg,rgba(38,20,11,.84),rgba(14,9,6,.92));
   box-shadow:0 18px 50px rgba(0,0,0,.28)
 }
 .reply-label{color:var(--amber);font-size:12px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
-.reply-text{font-size:clamp(18px,2.3vw,26px);line-height:1.45;min-height:38px}
+.reply-text{font-size:clamp(18px,2.15vw,25px);line-height:1.45;min-height:38px}
 .last-user{margin-top:12px;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.controls{
-  width:min(760px,100%);display:grid;grid-template-columns:1fr auto auto;gap:10px
-}
+
+.controls{width:min(760px,100%);display:grid;grid-template-columns:1fr auto auto;gap:10px}
 input{
   width:100%;padding:15px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.10);
   background:rgba(255,255,255,.045);color:white;outline:none;font-size:16px
 }
-input:focus{border-color:rgba(255,146,53,.75);box-shadow:0 0 0 3px rgba(255,121,24,.10)}
+input:focus{border-color:rgba(255,145,50,.72);box-shadow:0 0 0 3px rgba(255,120,23,.10)}
 button{
   border:0;border-radius:14px;padding:13px 18px;color:#fff;font-weight:bold;cursor:pointer;
-  background:linear-gradient(135deg,#a74113,#ff8a24)
+  background:linear-gradient(135deg,#a54112,#ff7f1f)
 }
 button:hover{filter:brightness(1.08)}
 button:disabled{opacity:.45;cursor:not-allowed}
@@ -97,23 +100,25 @@ button:disabled{opacity:.45;cursor:not-allowed}
   width:54px;padding:0;display:grid;place-items:center;background:rgba(255,255,255,.06);
   border:1px solid var(--line);font-size:21px
 }
-.mic.listening{background:linear-gradient(135deg,#b64a16,#ff8a24);animation:micpulse 1.2s infinite}
-@keyframes micpulse{50%{box-shadow:0 0 0 10px rgba(255,138,36,0)}}
+.mic.listening{
+  background:linear-gradient(135deg,#b44814,#ff7f1f);
+  box-shadow:0 0 0 1px rgba(255,142,44,.2),0 0 30px rgba(255,121,26,.20)
+}
 
 .sidebar{
-  border-left:1px solid var(--line);padding:20px;background:rgba(9,6,5,.78);overflow:auto;min-height:0
+  border-left:1px solid var(--line);padding:18px;background:rgba(8,5,4,.78);overflow:auto;min-height:0
 }
 .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
 .nav button{padding:10px 8px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--muted)}
-.nav button.active{background:rgba(255,130,31,.12);color:#ffd7b7}
+.nav button.active{background:rgba(255,128,31,.12);color:#ffd7b8}
 .panel{display:none}.panel.active{display:block}
 .card{
   margin-bottom:14px;padding:15px;border-radius:16px;border:1px solid var(--line);
-  background:rgba(25,14,9,.76)
+  background:rgba(24,13,8,.78)
 }
 .cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .cardhead h3{margin:0}
-.count{min-width:28px;text-align:center;padding:5px;border-radius:999px;background:rgba(255,132,34,.14);color:#ffd0a9}
+.count{min-width:28px;text-align:center;padding:5px;border-radius:999px;background:rgba(255,132,34,.14);color:#ffd0a8}
 .item{
   display:grid;grid-template-columns:28px minmax(0,1fr) 30px;gap:8px;align-items:start;
   margin-top:9px;padding:10px;border-radius:10px;background:rgba(255,255,255,.04)
@@ -121,34 +126,35 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .item-text{overflow-wrap:anywhere;line-height:1.4}
 .item-text.done{text-decoration:line-through;color:var(--muted)}
 .meta{display:block;margin-top:4px;color:var(--muted);font-size:11px}
-.badge{display:inline-block;margin-top:5px;margin-right:5px;padding:3px 7px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:#dfc2aa}
+.badge{display:inline-block;margin-top:5px;margin-right:5px;padding:3px 7px;border-radius:999px;border:1px solid var(--line);font-size:10px;color:#dfc1a9}
 .small{width:28px;height:28px;padding:2px;background:transparent;border:1px solid rgba(255,255,255,.08);color:var(--muted)}
 .delete{color:var(--danger);font-size:18px;border:0}
 .empty{margin-top:10px;color:var(--muted);font-size:14px}
 .world-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.world{
-  padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);cursor:pointer
-}
+.world{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025);cursor:pointer}
 .world.active{background:rgba(255,132,34,.12);border-color:rgba(255,159,70,.5)}
 .world strong{display:block;margin-bottom:5px}
 .world span{color:var(--muted);font-size:12px}
-.history{
-  max-height:65vh;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px
-}
+.history{max-height:65vh;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
 .history-entry{padding:10px 11px;border-radius:10px;background:rgba(255,255,255,.035);font-size:13px;line-height:1.4}
 .history-entry.user{border-left:2px solid rgba(255,255,255,.22)}
 .history-entry.rhia{border-left:2px solid var(--orange)}
 .history-entry small{display:block;margin-top:4px;color:var(--muted)}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
+.switch{position:relative;width:48px;height:27px;background:rgba(255,255,255,.10);border:1px solid var(--line);border-radius:999px;cursor:pointer}
+.switch::after{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:#c8b6a9;top:3px;left:4px;transition:.2s}
+.switch.on{background:rgba(255,126,31,.22)}
+.switch.on::after{left:23px;background:var(--orange)}
 .footer{
   padding:12px 20px;border-top:1px solid var(--line);color:var(--muted);font-size:12px;
-  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(8,5,4,.76)
+  display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(7,4,3,.78)
 }
-@media(max-width:930px){
+@media(max-width:940px){
   .workspace{grid-template-columns:1fr}.sidebar{border-left:0;border-top:1px solid var(--line)}
-  .core-wrap{width:min(92vw,520px)}.stage{padding:18px}
+  .core-wrap{width:min(92vw,560px)}.stage{padding:18px}
 }
 @media(max-width:560px){
-  .topbar{padding:14px}.workspace{display:block}.stage{padding:14px}
+  .topbar{padding:14px}.stage{padding:14px}
   .controls{grid-template-columns:1fr auto}.controls input{grid-column:1/-1}
   .sidebar{padding:14px}.world-grid{grid-template-columns:1fr}
 }
@@ -162,13 +168,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
       <h1>RHIA</h1>
       <small>RH Intelligent Assistant</small>
     </div>
-    <div class="version">Alpha v0.8</div>
+    <div class="version">Alpha v0.9</div>
   </header>
 
   <div class="workspace">
     <main class="stage" id="stage">
       <div class="core-wrap">
-        <div class="core-halo"></div>
+        <div class="energy-field"></div>
         <canvas id="particleCanvas"></canvas>
         <div class="core-center">
           <div>
@@ -209,13 +215,24 @@ button:disabled{opacity:.45;cursor:not-allowed}
           <div class="cardhead"><h3>Aufgaben</h3><span class="count" id="taskCount">0</span></div>
           <div id="tasks"></div>
         </div>
+
         <div class="card">
           <div class="cardhead"><h3>Notizen</h3><span class="count" id="noteCount">0</span></div>
           <div id="notes"></div>
         </div>
+
         <div class="card">
           <div class="cardhead"><h3>Offene Ideen</h3><span class="count" id="ideaCount">0</span></div>
           <div id="ideas"></div>
+        </div>
+
+        <div class="card">
+          <div class="cardhead"><h3>Stimme</h3><span class="count">Beta</span></div>
+          <div class="setting-row">
+            <span>Browserstimme verwenden</span>
+            <div class="switch" id="voiceSwitch"></div>
+          </div>
+          <div class="empty">Standardmäßig ausgeschaltet, da Browserstimmen oft künstlich klingen.</div>
         </div>
       </section>
 
@@ -228,7 +245,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 
       <section class="panel" id="panel-history">
         <div class="card">
-          <div class="cardhead"><h3>Hintergrundverlauf</h3><button class="small delete" id="clearHistory" type="button">×</button></div>
+          <div class="cardhead">
+            <h3>Hintergrundverlauf</h3>
+            <button class="small delete" id="clearHistory" type="button">×</button>
+          </div>
           <div class="history" id="history"></div>
         </div>
       </section>
@@ -244,13 +264,14 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <script>
 "use strict";
 
-const VERSION="0.8";
+const VERSION="0.9";
+
 const KEYS={
   tasks:"rhia_tasks_v03",
   notes:"rhia_notes_v03",
   chat:"rhia_chat_v04",
   ideas:"rhia_ideas_v06",
-  settings:"rhia_settings_v08"
+  settings:"rhia_settings_v09"
 };
 
 function loadArray(key){
@@ -258,18 +279,30 @@ function loadArray(key){
     const raw=localStorage.getItem(key);
     const value=raw?JSON.parse(raw):[];
     return Array.isArray(value)?value:[];
-  }catch{return []}
+  }catch{
+    return [];
+  }
 }
+
 function loadObject(key){
   try{
     const raw=localStorage.getItem(key);
     const value=raw?JSON.parse(raw):{};
     return value&&typeof value==="object"&&!Array.isArray(value)?value:{};
-  }catch{return {}}
+  }catch{
+    return {};
+  }
 }
+
 function normalizeEntries(items,type){
   return items.map(x=>typeof x==="string"
-    ?{text:x,done:false,createdAt:new Date().toISOString(),type,world:"Allgemein"}
+    ?{
+      text:x,
+      done:false,
+      createdAt:new Date().toISOString(),
+      type,
+      world:"Allgemein"
+    }
     :{
       text:String(x?.text??"").trim(),
       done:Boolean(x?.done),
@@ -279,9 +312,15 @@ function normalizeEntries(items,type){
     }
   ).filter(x=>x.text);
 }
+
 function normalizeIdeas(items){
   return items.map(x=>typeof x==="string"
-    ?{title:x,area:"Allgemein",status:"offen",createdAt:new Date().toISOString()}
+    ?{
+      title:x,
+      area:"Allgemein",
+      status:"offen",
+      createdAt:new Date().toISOString()
+    }
     :{
       title:String(x?.title??x?.text??"").trim(),
       area:String(x?.area??"Allgemein"),
@@ -290,20 +329,43 @@ function normalizeIdeas(items){
     }
   ).filter(x=>x.title);
 }
+
 function normalizeChat(items){
   return items.map(x=>x&&typeof x.text==="string"
-    ?{text:x.text,type:x.type==="user"?"user":"rhia",createdAt:x.createdAt||new Date().toISOString()}
+    ?{
+      text:x.text,
+      type:x.type==="user"?"user":"rhia",
+      createdAt:x.createdAt||new Date().toISOString()
+    }
     :null
   ).filter(Boolean);
 }
 
 const WORLDS=[
-  {name:"Allgemein",desc:"Gemischte und noch nicht zugeordnete Themen"},
-  {name:"Mike / Privat",desc:"Alltag, Familie, Freizeit und persönliche Themen"},
-  {name:"RH Produktion",desc:"Unternehmen, Kunden, Angebote und Abläufe"},
-  {name:"Shadow Grown",desc:"Musik, Videos, Marke und Social Media"},
-  {name:"RHIA",desc:"Entwicklung, Module, Regeln und Roadmap"},
-  {name:"Kunden",desc:"Kundenwelten und individuelle Projekte"}
+  {
+    name:"Allgemein",
+    desc:"Gemischte und noch nicht zugeordnete Themen"
+  },
+  {
+    name:"Mike / Privat",
+    desc:"Alltag, Familie, Freizeit und persönliche Themen"
+  },
+  {
+    name:"RH Produktion",
+    desc:"Unternehmen, Kunden, Angebote und Abläufe"
+  },
+  {
+    name:"Shadow Grown",
+    desc:"Musik, Videos, Marke und Social Media"
+  },
+  {
+    name:"RHIA",
+    desc:"Entwicklung, Module, Regeln und Roadmap"
+  },
+  {
+    name:"Kunden",
+    desc:"Kundenwelten und individuelle Projekte"
+  }
 ];
 
 const state={
@@ -314,18 +376,47 @@ const state={
   settings:Object.assign({
     focusMode:false,
     world:"Allgemein",
-    autoSpeak:true
+    browserVoice:false
   },loadObject(KEYS.settings))
 };
 
 const $=id=>document.getElementById(id);
-const stage=$("stage"),canvas=$("particleCanvas"),ctx=canvas.getContext("2d");
-const replyText=$("replyText"),lastUser=$("lastUser"),command=$("command"),form=$("form");
-const voiceButton=$("voiceButton"),coreState=$("coreState"),statusPill=$("statusPill");
-const worldPill=$("worldPill"),focusPill=$("focusPill");
-const tasksEl=$("tasks"),notesEl=$("notes"),ideasEl=$("ideas");
-const taskCount=$("taskCount"),noteCount=$("noteCount"),ideaCount=$("ideaCount");
-const historyEl=$("history"),worldGrid=$("worldGrid");
+
+const stage=$("stage");
+const canvas=$("particleCanvas");
+const ctx=canvas.getContext("2d");
+
+const replyText=$("replyText");
+const lastUser=$("lastUser");
+const command=$("command");
+const form=$("form");
+
+const voiceButton=$("voiceButton");
+const coreState=$("coreState");
+const statusPill=$("statusPill");
+
+const worldPill=$("worldPill");
+const focusPill=$("focusPill");
+
+const tasksEl=$("tasks");
+const notesEl=$("notes");
+const ideasEl=$("ideas");
+
+const taskCount=$("taskCount");
+const noteCount=$("noteCount");
+const ideaCount=$("ideaCount");
+
+const historyEl=$("history");
+const worldGrid=$("worldGrid");
+const voiceSwitch=$("voiceSwitch");
+
+let audioContext=null;
+let analyser=null;
+let microphoneStream=null;
+let microphoneSource=null;
+let frequencyData=null;
+let micLevel=0;
+let listeningActive=false;
 
 function save(){
   localStorage.setItem(KEYS.tasks,JSON.stringify(state.tasks));
@@ -334,10 +425,20 @@ function save(){
   localStorage.setItem(KEYS.ideas,JSON.stringify(state.ideas));
   localStorage.setItem(KEYS.settings,JSON.stringify(state.settings));
 }
+
 function formatTime(value){
   const d=new Date(value);
-  return Number.isNaN(d.getTime())?"":d.toLocaleString("de-DE",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+
+  return Number.isNaN(d.getTime())
+    ?""
+    :d.toLocaleString("de-DE",{
+      day:"2-digit",
+      month:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
 }
+
 function normalizeSpeechText(text){
   return String(text??"")
     .replace(/\b(ria|riha|rhea|rija|riah)\b/gi,"RHIA")
@@ -346,55 +447,143 @@ function normalizeSpeechText(text){
     .replace(/\s+/g," ")
     .trim();
 }
+
 function stripWakeWord(text){
-  return text.replace(/^\s*(hey\s+)?(rhia|ria|riha|rhea|rija|riah)[\s,.:;-]*/i,"").trim();
+  return text
+    .replace(/^\s*(hey\s+)?(rhia|ria|riha|rhea|rija|riah)[\s,.:;-]*/i,"")
+    .trim();
 }
-function includesAny(text,list){return list.some(x=>text.includes(x))}
-function equalsAny(text,list){return list.includes(text)}
-function afterColon(text){const p=text.indexOf(":");return p<0?"":text.slice(p+1).trim()}
+
+function includesAny(text,list){
+  return list.some(x=>text.includes(x));
+}
+
+function equalsAny(text,list){
+  return list.includes(text);
+}
 
 function setVisualState(mode){
-  stage.classList.remove("state-listening","state-speaking","state-thinking");
+  stage.classList.remove(
+    "state-listening",
+    "state-thinking",
+    "state-speaking"
+  );
+
   if(mode==="listening"){
     stage.classList.add("state-listening");
     coreState.textContent="ZUHÖREN";
     statusPill.textContent="● RHIA hört zu";
-  }else if(mode==="speaking"){
-    stage.classList.add("state-speaking");
-    coreState.textContent="ANTWORT";
-    statusPill.textContent="● RHIA antwortet";
   }else if(mode==="thinking"){
     stage.classList.add("state-thinking");
     coreState.textContent="DENKEN";
     statusPill.textContent="● RHIA verarbeitet";
+  }else if(mode==="speaking"){
+    stage.classList.add("state-speaking");
+    coreState.textContent="ANTWORT";
+    statusPill.textContent="● RHIA antwortet";
   }else{
     coreState.textContent="BEREIT";
     statusPill.textContent="● Bereit";
   }
 }
 
+async function startAudioAnalysis(){
+  try{
+    if(!audioContext){
+      audioContext=new (
+        window.AudioContext||
+        window.webkitAudioContext
+      )();
+    }
+
+      if(audioContext.state==="suspended"){
+      await audioContext.resume();
+    }
+
+    if(!microphoneStream){
+      microphoneStream=await navigator.mediaDevices.getUserMedia({
+        audio:true
+      });
+
+      microphoneSource=audioContext.createMediaStreamSource(
+        microphoneStream
+      );
+
+      analyser=audioContext.createAnalyser();
+      analyser.fftSize=256;
+      analyser.smoothingTimeConstant=.78;
+
+      frequencyData=new Uint8Array(
+        analyser.frequencyBinCount
+      );
+
+      microphoneSource.connect(analyser);
+    }
+  }catch(error){
+    console.warn(
+      "Mikrofonanalyse nicht verfügbar:",
+      error
+    );
+  }
+}
+
+function updateMicLevel(){
+  if(!analyser||!frequencyData||!listeningActive){
+    micLevel*=.88;
+    return;
+  }
+
+  analyser.getByteFrequencyData(frequencyData);
+
+  let sum=0;
+
+  for(let i=3;i<48;i++){
+    sum+=frequencyData[i];
+  }
+
+  const raw=sum/(45*255);
+  const target=Math.min(1,raw*2.8);
+
+  micLevel=micLevel*.72+target*.28;
+}
+
 function addChat(text,type){
-  state.chat.push({text,type,createdAt:new Date().toISOString()});
+  state.chat.push({
+    text,
+    type,
+    createdAt:new Date().toISOString()
+  });
+
   save();
   renderHistory();
 }
 
-function showReply(text,speak=true){
+function showReply(text){
   replyText.textContent=text;
   addChat(text,"rhia");
   setVisualState("speaking");
 
-  if(speak&&state.settings.autoSpeak&&"speechSynthesis" in window){
+  if(
+    state.settings.browserVoice&&
+    "speechSynthesis" in window
+  ){
     window.speechSynthesis.cancel();
+
     const utterance=new SpeechSynthesisUtterance(text);
+
     utterance.lang="de-DE";
-    utterance.rate=.96;
-    utterance.pitch=.92;
+    utterance.rate=.94;
+    utterance.pitch=.9;
+
     utterance.onend=()=>setVisualState("idle");
     utterance.onerror=()=>setVisualState("idle");
+
     window.speechSynthesis.speak(utterance);
   }else{
-    setTimeout(()=>setVisualState("idle"),900);
+    setTimeout(
+      ()=>setVisualState("idle"),
+      850
+    );
   }
 }
 
@@ -405,383 +594,1413 @@ function logUser(text){
 
 function inferWorld(text){
   const l=text.toLowerCase();
-  if(includesAny(l,["shadow grown","song","musik","track","kling","suno","tiktok"]))return"Shadow Grown";
-  if(includesAny(l,["rhia","version","software","code","github","modul"]))return"RHIA";
-  if(includesAny(l,["kunde","angebot","rechnung","rh produktion","werbevideo","unternehmen"]))return"RH Produktion";
-  if(includesAny(l,["familie","frau","kind","sohn","urlaub","privat","zuhause"]))return"Mike / Privat";
+
+  if(includesAny(l,[
+    "shadow grown",
+    "song",
+    "musik",
+    "track",
+    "kling",
+    "suno",
+    "tiktok"
+  ])){
+    return "Shadow Grown";
+  }
+
+  if(includesAny(l,[
+    "rhia",
+    "version",
+    "software",
+    "code",
+    "github",
+    "modul"
+  ])){
+    return "RHIA";
+  }
+
+  if(includesAny(l,[
+    "kunde",
+    "angebot",
+    "rechnung",
+    "rh produktion",
+    "werbevideo",
+    "unternehmen"
+  ])){
+    return "RH Produktion";
+  }
+
+  if(includesAny(l,[
+    "familie",
+    "frau",
+    "kind",
+    "sohn",
+    "urlaub",
+    "privat",
+    "zuhause"
+  ])){
+    return "Mike / Privat";
+  }
+
   return state.settings.world||"Allgemein";
 }
+
 function setWorld(name){
-  if(!WORLDS.some(w=>w.name===name))return;
+  if(!WORLDS.some(w=>w.name===name)){
+    return;
+  }
+
   state.settings.world=name;
+
   save();
   renderWorlds();
   updateStatus();
 }
+
 function updateStatus(){
-  worldPill.textContent="Welt: "+state.settings.world;
-  focusPill.textContent=state.settings.focusMode?"Fokusmodus aktiv":"Fokusmodus aus";
-  focusPill.classList.toggle("active",state.settings.focusMode);
+  worldPill.textContent=
+    "Welt: "+state.settings.world;
+
+  focusPill.textContent=
+    state.settings.focusMode
+      ?"Fokusmodus aktiv"
+      :"Fokusmodus aus";
+
+  focusPill.classList.toggle(
+    "active",
+    state.settings.focusMode
+  );
+
+  voiceSwitch.classList.toggle(
+    "on",
+    state.settings.browserVoice
+  );
 }
 
 function renderSimple(type,target){
   const data=state[type];
+
   target.innerHTML="";
+
   if(!data.length){
     const empty=document.createElement("div");
+
     empty.className="empty";
-    empty.textContent=type==="tasks"?"Noch keine Aufgaben gespeichert.":"Noch keine Notizen gespeichert.";
-    target.appendChild(empty);return;
+
+    empty.textContent=
+      type==="tasks"
+        ?"Noch keine Aufgaben gespeichert."
+        :"Noch keine Notizen gespeichert.";
+
+    target.appendChild(empty);
+    return;
   }
+
   data.forEach((entry,index)=>{
-    const row=document.createElement("div");row.className="item";
-    const first=document.createElement("button");first.className="small";first.type="button";
-    first.textContent=type==="tasks"?(entry.done?"↶":"✓"):(index+1);
-    if(type==="tasks")first.onclick=()=>toggleTask(index);else first.disabled=true;
+    const row=document.createElement("div");
+    row.className="item";
+
+    const first=document.createElement("button");
+    first.className="small";
+    first.type="button";
+
+    first.textContent=
+      type==="tasks"
+        ?(entry.done?"↶":"✓")
+        :(index+1);
+
+    if(type==="tasks"){
+      first.onclick=()=>toggleTask(index);
+    }else{
+      first.disabled=true;
+    }
 
     const content=document.createElement("div");
-    content.className="item-text"+(entry.done?" done":"");
+
+    content.className=
+      "item-text"+(entry.done?" done":"");
+
     content.textContent=entry.text;
 
     const meta=document.createElement("small");
+
     meta.className="meta";
-    meta.textContent=(type==="tasks"?(entry.done?"Erledigt · ":"Offen · "):"")+formatTime(entry.createdAt);
+
+    meta.textContent=
+      (
+        type==="tasks"
+          ?(entry.done?"Erledigt · ":"Offen · ")
+          :""
+      )+
+      formatTime(entry.createdAt);
+
     content.appendChild(meta);
 
     const badge=document.createElement("span");
+
     badge.className="badge";
     badge.textContent=entry.world||"Allgemein";
+
     content.appendChild(badge);
 
     const del=document.createElement("button");
-    del.className="small delete";del.type="button";del.textContent="×";
+
+    del.className="small delete";
+    del.type="button";
+    del.textContent="×";
+
     del.onclick=()=>removeByIndex(type,index);
 
-    row.append(first,content,del);
+    row.append(
+      first,
+      content,
+      del
+    );
+
     target.appendChild(row);
   });
 }
+
 function renderIdeas(){
   ideasEl.innerHTML="";
-  const visible=state.ideas.filter(x=>x.status!=="verworfen");
+
+  const visible=state.ideas.filter(
+    x=>x.status!=="verworfen"
+  );
+
   if(!visible.length){
-    const empty=document.createElement("div");empty.className="empty";
-    empty.textContent="Noch keine offenen Ideen gespeichert.";
-    ideasEl.appendChild(empty);return;
+    const empty=document.createElement("div");
+
+    empty.className="empty";
+    empty.textContent=
+      "Noch keine offenen Ideen gespeichert.";
+
+    ideasEl.appendChild(empty);
+    return;
   }
+
   visible.forEach(idea=>{
     const index=state.ideas.indexOf(idea);
-    const row=document.createElement("div");row.className="item";
-    const num=document.createElement("button");num.className="small";num.disabled=true;num.textContent=index+1;
-    const content=document.createElement("div");content.className="item-text";content.textContent=idea.title;
-    const meta=document.createElement("small");meta.className="meta";meta.textContent=formatTime(idea.createdAt);content.appendChild(meta);
-    const area=document.createElement("span");area.className="badge";area.textContent=idea.area;content.appendChild(area);
-    const status=document.createElement("span");status.className="badge";status.textContent=idea.status;content.appendChild(status);
-    const del=document.createElement("button");del.className="small delete";del.textContent="×";del.onclick=()=>setIdeaStatus(index,"verworfen");
-    row.append(num,content,del);ideasEl.appendChild(row);
+
+    const row=document.createElement("div");
+    row.className="item";
+
+    const num=document.createElement("button");
+
+    num.className="small";
+    num.disabled=true;
+    num.textContent=index+1;
+
+    const content=document.createElement("div");
+
+    content.className="item-text";
+    content.textContent=idea.title;
+
+    const meta=document.createElement("small");
+
+    meta.className="meta";
+    meta.textContent=formatTime(idea.createdAt);
+
+    content.appendChild(meta);
+
+    const area=document.createElement("span");
+
+    area.className="badge";
+    area.textContent=idea.area;
+
+    content.appendChild(area);
+
+    const status=document.createElement("span");
+
+    status.className="badge";
+    status.textContent=idea.status;
+
+    content.appendChild(status);
+
+    const del=document.createElement("button");
+
+    del.className="small delete";
+    del.textContent="×";
+
+    del.onclick=()=>setIdeaStatus(
+      index,
+      "verworfen"
+    );
+
+    row.append(
+      num,
+      content,
+      del
+    );
+
+    ideasEl.appendChild(row);
   });
 }
+
 function renderLists(){
   renderSimple("tasks",tasksEl);
   renderSimple("notes",notesEl);
   renderIdeas();
+
   taskCount.textContent=state.tasks.length;
   noteCount.textContent=state.notes.length;
-  ideaCount.textContent=state.ideas.filter(x=>x.status==="offen"||x.status==="zurückgestellt").length;
+
+  ideaCount.textContent=state.ideas.filter(
+    x=>
+      x.status==="offen"||
+      x.status==="zurückgestellt"
+  ).length;
 }
+
 function renderHistory(){
   historyEl.innerHTML="";
+
   if(!state.chat.length){
-    const empty=document.createElement("div");empty.className="empty";empty.textContent="Noch kein Verlauf gespeichert.";historyEl.appendChild(empty);return;
+    const empty=document.createElement("div");
+
+    empty.className="empty";
+    empty.textContent=
+      "Noch kein Verlauf gespeichert.";
+
+    historyEl.appendChild(empty);
+    return;
   }
-  state.chat.slice().reverse().forEach(entry=>{
-    const box=document.createElement("div");
-    box.className="history-entry "+entry.type;
-    box.textContent=entry.text;
-    const small=document.createElement("small");small.textContent=formatTime(entry.createdAt);
-    box.appendChild(small);
-    historyEl.appendChild(box);
-  });
+
+  state.chat
+    .slice()
+    .reverse()
+    .forEach(entry=>{
+      const box=document.createElement("div");
+
+      box.className=
+        "history-entry "+entry.type;
+
+      box.textContent=entry.text;
+
+      const small=document.createElement("small");
+
+      small.textContent=formatTime(
+        entry.createdAt
+      );
+
+      box.appendChild(small);
+      historyEl.appendChild(box);
+    });
 }
+
 function renderWorlds(){
   worldGrid.innerHTML="";
+
   WORLDS.forEach(world=>{
     const box=document.createElement("div");
-    box.className="world"+(world.name===state.settings.world?" active":"");
-    box.innerHTML="<strong>"+world.name+"</strong><span>"+world.desc+"</span>";
-    box.onclick=()=>{setWorld(world.name);showReply("Die Welt „"+world.name+"“ ist jetzt aktiv.",false)};
+
+    box.className=
+      "world"+
+      (
+        world.name===state.settings.world
+          ?" active"
+          :""
+      );
+
+    box.innerHTML=
+      "<strong>"+
+      world.name+
+      "</strong><span>"+
+      world.desc+
+      "</span>";
+
+    box.onclick=()=>{
+      setWorld(world.name);
+
+      showReply(
+        "Die Welt „"+
+        world.name+
+        "“ ist jetzt aktiv."
+      );
+    };
+
     worldGrid.appendChild(box);
   });
 }
-function renderAll(){renderLists();renderHistory();renderWorlds();updateStatus()}
+
+function renderAll(){
+  renderLists();
+  renderHistory();
+  renderWorlds();
+  updateStatus();
+}
 
 function cleanIntentContent(text){
-  return String(text??"").replace(/^[\s,.:;-]+/,"").trim();
+  return String(text??"")
+    .replace(/^[\s,.:;-]+/,"")
+    .trim();
 }
-function parseIntent(cleaned){
-  const lower=cleaned.toLowerCase().replace(/\s+/g," ").trim();
-  const patterns=[
-    {type:"task_create",regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|lege|setz|setze|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?aufgabe(?:\s+an|\s+fest|\s+hinzu)?\s*[:,-]?\s*(.+)$/i},
-    {type:"note_create",regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|schreib|schreibe|notier|notiere|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?notiz(?:\s+an|\s+hinzu)?\s*[:,-]?\s*(.+)$/i},
-    {type:"idea_create",regex:/^(?:bitte\s+)?(?:speichere|merk|merke|notier|notiere|halte)?\s*(?:mir\s+)?(?:diese\s+|eine\s+|neue\s+|offene\s+)?idee(?:\s+für\s+später|\s+fuer\s+spaeter|\s+fest)?\s*[:,-]?\s*(.+)$/i},
-    {type:"task_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+aufgabe\s*[:,-]?\s*(.+)$/i},
-    {type:"note_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+notiz\s*[:,-]?\s*(.+)$/i},
-    {type:"idea_create",regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+(?:offene\s+)?idee\s*[:,-]?\s*(.+)$/i}
-  ];
-  for(const pattern of patterns){
-    const match=cleaned.match(pattern.regex);
-    if(match&&cleanIntentContent(match[1]))return{type:pattern.type,content:cleanIntentContent(match[1])};
-  }
-  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+aufgaben\b/i.test(lower))return{type:"task_show"};
-  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+notizen\b/i.test(lower))return{type:"note_show"};
-  if(/^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+(offenen?\s+)?ideen\b/i.test(lower))return{type:"idea_show"};
 
-  const done=cleaned.match(/^(?:aufgabe\s+)?(?:erledigt|abschließen|abschliessen)\s*[:,-]?\s*(\d+)$/i);
-  if(done)return{type:"task_toggle",number:Number(done[1])};
-  const reopen=cleaned.match(/^(?:aufgabe\s+)?(?:wieder\s+öffnen|wieder\s+oeffnen)\s*[:,-]?\s*(\d+)$/i);
-  if(reopen)return{type:"task_toggle",number:Number(reopen[1])};
-  const taskDelete=cleaned.match(/^(?:aufgabe\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i);
-  if(taskDelete)return{type:"task_delete",number:Number(taskDelete[1])};
-  const noteDelete=cleaned.match(/^(?:notiz\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i);
-  if(noteDelete)return{type:"note_delete",number:Number(noteDelete[1])};
-  const ideaStatus=cleaned.match(/^idee\s+(übernehmen|uebernehmen|zurückstellen|zurueckstellen|verwerfen)\s*[:,-]?\s*(\d+)$/i);
-  if(ideaStatus){
-    const raw=ideaStatus[1].toLowerCase();
-    const status=raw.includes("bernehmen")?"übernommen":raw.includes("stellen")?"zurückgestellt":"verworfen";
-    return{type:"idea_status",number:Number(ideaStatus[2]),status};
+function parseIntent(cleaned){
+  const lower=cleaned
+    .toLowerCase()
+    .replace(/\s+/g," ")
+    .trim();
+
+  const patterns=[
+    {
+      type:"task_create",
+      regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|lege|setz|setze|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?aufgabe(?:\s+an|\s+fest|\s+hinzu)?\s*[:,-]?\s*(.+)$/i
+    },
+    {
+      type:"note_create",
+      regex:/^(?:bitte\s+)?(?:mach|mache|erstelle|erstell|schreib|schreibe|notier|notiere|speichere|merk|merke)?\s*(?:mir\s+)?(?:eine\s+|neue\s+)?notiz(?:\s+an|\s+hinzu)?\s*[:,-]?\s*(.+)$/i
+    },
+    {
+      type:"idea_create",
+      regex:/^(?:bitte\s+)?(?:speichere|merk|merke|notier|notiere|halte)?\s*(?:mir\s+)?(?:diese\s+|eine\s+|neue\s+|offene\s+)?idee(?:\s+für\s+später|\s+fuer\s+spaeter|\s+fest)?\s*[:,-]?\s*(.+)$/i
+    },
+    {
+      type:"task_create",
+      regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+aufgabe\s*[:,-]?\s*(.+)$/i
+    },
+    {
+      type:"note_create",
+      regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+notiz\s*[:,-]?\s*(.+)$/i
+    },
+    {
+      type:"idea_create",
+      regex:/^(?:bitte\s+)?(?:merk|merke|speichere)\s+(?:dir\s+)?(?:das\s+)?als\s+(?:offene\s+)?idee\s*[:,-]?\s*(.+)$/i
+    }
+  ];
+
+  for(const pattern of patterns){
+    const match=cleaned.match(
+      pattern.regex
+    );
+
+    if(
+      match&&
+      cleanIntentContent(match[1])
+    ){
+      return {
+        type:pattern.type,
+        content:cleanIntentContent(
+          match[1]
+        )
+      };
+    }
   }
-  return{type:"unknown"};
+
+  if(
+    /^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+aufgaben\b/i
+      .test(lower)
+  ){
+    return {
+      type:"task_show"
+    };
+  }
+
+  if(
+    /^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+notizen\b/i
+      .test(lower)
+  ){
+    return {
+      type:"note_show"
+    };
+  }
+
+  if(
+    /^(zeige|zeig|nenne|lies)(\s+mir)?(\s+meine)?\s+(offenen?\s+)?ideen\b/i
+      .test(lower)
+  ){
+    return {
+      type:"idea_show"
+    };
+  }
+
+  const done=cleaned.match(
+    /^(?:aufgabe\s+)?(?:erledigt|abschließen|abschliessen)\s*[:,-]?\s*(\d+)$/i
+  );
+
+  if(done){
+    return {
+      type:"task_toggle",
+      number:Number(done[1])
+    };
+  }
+
+  const reopen=cleaned.match(
+    /^(?:aufgabe\s+)?(?:wieder\s+öffnen|wieder\s+oeffnen)\s*[:,-]?\s*(\d+)$/i
+  );
+
+  if(reopen){
+    return {
+      type:"task_toggle",
+      number:Number(reopen[1])
+    };
+  }
+
+  const taskDelete=cleaned.match(
+    /^(?:aufgabe\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i
+  );
+
+  if(taskDelete){
+    return {
+      type:"task_delete",
+      number:Number(taskDelete[1])
+    };
+  }
+
+  const noteDelete=cleaned.match(
+    /^(?:notiz\s+)?(?:löschen|loeschen)\s*[:,-]?\s*(\d+)$/i
+  );
+
+  if(noteDelete){
+    return {
+      type:"note_delete",
+      number:Number(noteDelete[1])
+    };
+  }
+
+  const ideaStatus=cleaned.match(
+    /^idee\s+(übernehmen|uebernehmen|zurückstellen|zurueckstellen|verwerfen)\s*[:,-]?\s*(\d+)$/i
+  );
+
+  if(ideaStatus){
+    const raw=ideaStatus[1]
+      .toLowerCase();
+
+    const status=
+      raw.includes("bernehmen")
+        ?"übernommen"
+        :raw.includes("stellen")
+          ?"zurückgestellt"
+          :"verworfen";
+
+    return {
+      type:"idea_status",
+      number:Number(ideaStatus[2]),
+      status
+    };
+  }
+
+  return {
+    type:"unknown"
+  };
 }
 
 function createEntry(type,text){
   const clean=text.trim();
-  if(!clean){showReply(type==="tasks"?"Welche Aufgabe soll ich speichern?":"Welche Notiz soll ich speichern?");return}
+
+  if(!clean){
+    showReply(
+      type==="tasks"
+        ?"Welche Aufgabe soll ich speichern?"
+        :"Welche Notiz soll ich speichern?"
+    );
+
+    return;
+  }
+
   const world=inferWorld(clean);
-  state[type].push({text:clean,done:false,createdAt:new Date().toISOString(),type:type==="tasks"?"task":"note",world});
+
+  state[type].push({
+    text:clean,
+    done:false,
+    createdAt:new Date().toISOString(),
+    type:type==="tasks"?"task":"note",
+    world
+  });
+
   state.settings.world=world;
-  save();renderAll();
-  showReply(type==="tasks"?"Erledigt, Sir. Die Aufgabe wurde gespeichert.":"Gespeichert. Die Notiz bleibt lokal erhalten.");
+
+  save();
+  renderAll();
+
+  showReply(
+    type==="tasks"
+      ?"Erledigt, Sir. Die Aufgabe wurde gespeichert."
+      :"Gespeichert. Die Notiz bleibt lokal erhalten."
+  );
 }
+
 function createIdea(text){
   const clean=text.trim();
-  if(!clean){showReply("Welche Idee soll ich für später festhalten?");return}
+
+  if(!clean){
+    showReply(
+      "Welche Idee soll ich für später festhalten?"
+    );
+
+    return;
+  }
+
   const world=inferWorld(clean);
-  state.ideas.push({title:clean,area:world,status:"offen",createdAt:new Date().toISOString()});
+
+  state.ideas.push({
+    title:clean,
+    area:world,
+    status:"offen",
+    createdAt:new Date().toISOString()
+  });
+
   state.settings.world=world;
-  save();renderAll();
-  showReply("Die Idee ist gespeichert und der Welt „"+world+"“ zugeordnet.");
+
+  save();
+  renderAll();
+
+  showReply(
+    "Die Idee ist gespeichert und der Welt „"+
+    world+
+    "“ zugeordnet."
+  );
 }
-function showList(type){
+
+  function showList(type){
   const data=state[type];
-  if(!data.length){showReply(type==="tasks"?"Du hast aktuell keine Aufgaben gespeichert.":"Du hast aktuell keine Notizen gespeichert.");return}
-  const title=type==="tasks"?"Aufgaben":"Notizen";
-  showReply(title+": "+data.map((x,i)=>(i+1)+". "+x.text).join(" · "),false);
+
+  if(!data.length){
+    showReply(
+      type==="tasks"
+        ?"Du hast aktuell keine Aufgaben gespeichert."
+        :"Du hast aktuell keine Notizen gespeichert."
+    );
+
+    return;
+  }
+
+  const title=
+    type==="tasks"
+      ?"Aufgaben"
+      :"Notizen";
+
+  showReply(
+    title+
+    ": "+
+    data
+      .map((x,i)=>(i+1)+". "+x.text)
+      .join(" · ")
+  );
 }
+
 function showIdeas(){
-  const data=state.ideas.filter(x=>x.status==="offen"||x.status==="zurückgestellt");
-  if(!data.length){showReply("Du hast aktuell keine offenen Ideen gespeichert.");return}
-  showReply("Offene Ideen: "+data.map((x,i)=>(i+1)+". "+x.title).join(" · "),false);
+  const data=state.ideas.filter(
+    x=>
+      x.status==="offen"||
+      x.status==="zurückgestellt"
+  );
+
+  if(!data.length){
+    showReply(
+      "Du hast aktuell keine offenen Ideen gespeichert."
+    );
+
+    return;
+  }
+
+  showReply(
+    "Offene Ideen: "+
+    data
+      .map((x,i)=>(i+1)+". "+x.title)
+      .join(" · ")
+  );
 }
+
 function toggleTask(index){
-  const task=state.tasks[index];if(!task){showReply("Diese Aufgabe gibt es nicht.");return}
-  task.done=!task.done;save();renderAll();
-  showReply(task.done?"Erledigt. Die Aufgabe ist abgeschlossen.":"Die Aufgabe ist wieder offen.");
+  const task=state.tasks[index];
+
+  if(!task){
+    showReply(
+      "Diese Aufgabe gibt es nicht."
+    );
+
+    return;
+  }
+
+  task.done=!task.done;
+
+  save();
+  renderAll();
+
+  showReply(
+    task.done
+      ?"Erledigt. Die Aufgabe ist abgeschlossen."
+      :"Die Aufgabe ist wieder offen."
+  );
 }
+
 function removeByIndex(type,index){
-  if(!state[type][index]){showReply("Diesen Eintrag gibt es nicht.");return}
-  state[type].splice(index,1);save();renderAll();showReply(type==="tasks"?"Die Aufgabe wurde gelöscht.":"Die Notiz wurde gelöscht.");
+  if(!state[type][index]){
+    showReply(
+      "Diesen Eintrag gibt es nicht."
+    );
+
+    return;
+  }
+
+  state[type].splice(index,1);
+
+  save();
+  renderAll();
+
+  showReply(
+    type==="tasks"
+      ?"Die Aufgabe wurde gelöscht."
+      :"Die Notiz wurde gelöscht."
+  );
 }
+
 function setIdeaStatus(index,status){
-  const idea=state.ideas[index];if(!idea){showReply("Diese Idee gibt es nicht.");return}
-  idea.status=status;save();renderAll();showReply("Die Idee wurde auf „"+status+"“ gesetzt.");
+  const idea=state.ideas[index];
+
+  if(!idea){
+    showReply(
+      "Diese Idee gibt es nicht."
+    );
+
+    return;
+  }
+
+  idea.status=status;
+
+  save();
+  renderAll();
+
+  showReply(
+    "Die Idee wurde auf „"+
+    status+
+    "“ gesetzt."
+  );
 }
+
 function help(){
-  return "Du kannst Aufgaben, Notizen und Ideen frei sprechen. Beispiele: Aufgabe PC-Angebote vergleichen. Notiz Kunde morgen anrufen. Idee neue Shadow-Grown-Videoreihe. Außerdem: Zeige Aufgaben, Fokusmodus, Welt Shadow Grown oder Verlauf.";
+  return "Du kannst Aufgaben, Notizen und Ideen frei sprechen. Beispiele: Aufgabe PC-Angebote vergleichen. Notiz Kunde morgen anrufen. Idee neue Shadow-Grown-Videoreihe. Außerdem: Zeige Aufgaben, Fokusmodus oder Welt Shadow Grown.";
 }
 
 function handle(raw){
-  const text=normalizeSpeechText(raw);if(!text)return;
-  logUser(text);setVisualState("thinking");
+  const text=normalizeSpeechText(raw);
+
+  if(!text){
+    return;
+  }
+
+  logUser(text);
+  setVisualState("thinking");
 
   const cleaned=stripWakeWord(text);
-  const lower=cleaned.toLowerCase().replace(/\s+/g," ").trim();
-  const inferred=inferWorld(lower);
-  if(inferred!==state.settings.world){state.settings.world=inferred;save();renderWorlds();updateStatus()}
 
-  const worldCommand=cleaned.match(/^(?:welt|wechsle zu|öffne|oeffne)\s+(.+)$/i);
+  const lower=cleaned
+    .toLowerCase()
+    .replace(/\s+/g," ")
+    .trim();
+
+  const inferred=inferWorld(lower);
+
+  if(inferred!==state.settings.world){
+    state.settings.world=inferred;
+
+    save();
+    renderWorlds();
+    updateStatus();
+  }
+
+  const worldCommand=cleaned.match(
+    /^(?:welt|wechsle zu|öffne|oeffne)\s+(.+)$/i
+  );
+
   if(worldCommand){
-    const wanted=worldCommand[1].trim().toLowerCase();
-    const found=WORLDS.find(w=>w.name.toLowerCase()===wanted||w.name.toLowerCase().includes(wanted));
-    if(found){setWorld(found.name);showReply("Die Welt „"+found.name+"“ ist jetzt aktiv.");return}
+    const wanted=worldCommand[1]
+      .trim()
+      .toLowerCase();
+
+    const found=WORLDS.find(
+      w=>
+        w.name.toLowerCase()===wanted||
+        w.name.toLowerCase().includes(wanted)
+    );
+
+    if(found){
+      setWorld(found.name);
+
+      showReply(
+        "Die Welt „"+
+        found.name+
+        "“ ist jetzt aktiv."
+      );
+
+      return;
+    }
   }
 
   const intent=parseIntent(cleaned);
-  if(intent.type==="task_create"){createEntry("tasks",intent.content);return}
-  if(intent.type==="note_create"){createEntry("notes",intent.content);return}
-  if(intent.type==="idea_create"){createIdea(intent.content);return}
-  if(intent.type==="task_show"){showList("tasks");return}
-  if(intent.type==="note_show"){showList("notes");return}
-  if(intent.type==="idea_show"){showIdeas();return}
-  if(intent.type==="task_toggle"){
-    if(!intent.number||intent.number<1||intent.number>state.tasks.length){showReply("Diese Aufgabennummer gibt es nicht.");return}
-    toggleTask(intent.number-1);return;
-  }
-  if(intent.type==="task_delete"){
-    if(!intent.number||intent.number<1||intent.number>state.tasks.length){showReply("Diese Aufgabennummer gibt es nicht.");return}
-    removeByIndex("tasks",intent.number-1);return;
-  }
-  if(intent.type==="note_delete"){
-    if(!intent.number||intent.number<1||intent.number>state.notes.length){showReply("Diese Notiznummer gibt es nicht.");return}
-    removeByIndex("notes",intent.number-1);return;
-  }
-  if(intent.type==="idea_status"){
-    if(!intent.number||intent.number<1||intent.number>state.ideas.length){showReply("Diese Ideennummer gibt es nicht.");return}
-    setIdeaStatus(intent.number-1,intent.status);return;
-  }
 
-  if(equalsAny(lower,["fokusmodus","fokusmodus starten","starte den fokusmodus"])){
-    state.settings.focusMode=true;save();updateStatus();
-    const open=state.tasks.find(x=>!x.done);
-    showReply(open?"Fokusmodus aktiv. Der nächste klare Schritt ist: "+open.text:"Fokusmodus aktiv. Nenne mir die eine Aufgabe, die jetzt Vorrang hat.");
+  if(intent.type==="task_create"){
+    createEntry(
+      "tasks",
+      intent.content
+    );
+
     return;
   }
-  if(equalsAny(lower,["fokusmodus beenden","beende den fokusmodus","fokusmodus aus"])){
-    state.settings.focusMode=false;save();updateStatus();showReply("Fokusmodus beendet.");return;
-  }
-  if(equalsAny(lower,["hilfe","befehle","was kannst du","was kannst du?"])){showReply(help(),false);return}
-  if(includesAny(lower,["hörst du mich","hoerst du mich","kannst du mich hören","kannst du mich hoeren"])){showReply("Ja, Mike. Ich höre dich und habe deine Sprache erkannt.");return}
-  if(includesAny(lower,["wer bist du","was bist du","was ist rhia"])){showReply("Ich bin RHIA – RH Intelligent Assistant. Deine loyale digitale Partnerin und das Assistenzsystem von RH Produktion.");return}
-  if(includesAny(lower,["welche version","aktueller stand","dein status","projektstand"])){showReply("RHIA Alpha v"+VERSION+" läuft. Der Chat arbeitet im Hintergrund, während du mich über Stimme und die zentrale Oberfläche bedienst.",false);return}
-  if(includesAny(lower,["hallo","hi","hey","guten morgen","guten tag","guten abend"])){showReply(state.settings.world==="Mike / Privat"?"Hallo Mike. Schön, dass du da bist.":"Willkommen zurück, Sir. Womit fangen wir an?");return}
-  if(includesAny(lower,["danke","vielen dank"])){showReply("Gern, Mike.");return}
 
-  showReply("Ich verstehe diesen freien Satz noch nicht sicher genug. Ich erfinde deshalb keine Antwort. Formuliere ihn als Aufgabe, Notiz, Idee oder Weltwechsel.",false);
+  if(intent.type==="note_create"){
+    createEntry(
+      "notes",
+      intent.content
+    );
+
+    return;
+  }
+
+  if(intent.type==="idea_create"){
+    createIdea(
+      intent.content
+    );
+
+    return;
+  }
+
+  if(intent.type==="task_show"){
+    showList("tasks");
+    return;
+  }
+
+  if(intent.type==="note_show"){
+    showList("notes");
+    return;
+  }
+
+  if(intent.type==="idea_show"){
+    showIdeas();
+    return;
+  }
+
+  if(intent.type==="task_toggle"){
+    if(
+      !intent.number||
+      intent.number<1||
+      intent.number>state.tasks.length
+    ){
+      showReply(
+        "Diese Aufgabennummer gibt es nicht."
+      );
+
+      return;
+    }
+
+    toggleTask(intent.number-1);
+    return;
+  }
+
+  if(intent.type==="task_delete"){
+    if(
+      !intent.number||
+      intent.number<1||
+      intent.number>state.tasks.length
+    ){
+      showReply(
+        "Diese Aufgabennummer gibt es nicht."
+      );
+
+      return;
+    }
+
+    removeByIndex(
+      "tasks",
+      intent.number-1
+    );
+
+    return;
+  }
+
+  if(intent.type==="note_delete"){
+    if(
+      !intent.number||
+      intent.number<1||
+      intent.number>state.notes.length
+    ){
+      showReply(
+        "Diese Notiznummer gibt es nicht."
+      );
+
+      return;
+    }
+
+    removeByIndex(
+      "notes",
+      intent.number-1
+    );
+
+    return;
+  }
+
+  if(intent.type==="idea_status"){
+    if(
+      !intent.number||
+      intent.number<1||
+      intent.number>state.ideas.length
+    ){
+      showReply(
+        "Diese Ideennummer gibt es nicht."
+      );
+
+      return;
+    }
+
+    setIdeaStatus(
+      intent.number-1,
+      intent.status
+    );
+
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "fokusmodus",
+    "fokusmodus starten",
+    "starte den fokusmodus"
+  ])){
+    state.settings.focusMode=true;
+
+    save();
+    updateStatus();
+
+    const open=state.tasks.find(
+      x=>!x.done
+    );
+
+    showReply(
+      open
+        ?"Fokusmodus aktiv. Der nächste klare Schritt ist: "+open.text
+        :"Fokusmodus aktiv. Nenne mir die eine Aufgabe, die jetzt Vorrang hat."
+    );
+
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "fokusmodus beenden",
+    "beende den fokusmodus",
+    "fokusmodus aus"
+  ])){
+    state.settings.focusMode=false;
+
+    save();
+    updateStatus();
+
+    showReply(
+      "Fokusmodus beendet."
+    );
+
+    return;
+  }
+
+  if(equalsAny(lower,[
+    "hilfe",
+    "befehle",
+    "was kannst du",
+    "was kannst du?"
+  ])){
+    showReply(help());
+    return;
+  }
+
+  if(includesAny(lower,[
+    "hörst du mich",
+    "hoerst du mich",
+    "kannst du mich hören",
+    "kannst du mich hoeren"
+  ])){
+    showReply(
+      "Ja, Mike. Ich höre dich und habe deine Sprache erkannt."
+    );
+
+    return;
+  }
+
+  if(includesAny(lower,[
+    "wer bist du",
+    "was bist du",
+    "was ist rhia"
+  ])){
+    showReply(
+      "Ich bin RHIA – RH Intelligent Assistant. Deine loyale digitale Partnerin und das Assistenzsystem von RH Produktion."
+    );
+
+    return;
+  }
+
+  if(includesAny(lower,[
+    "welche version",
+    "aktueller stand",
+    "dein status",
+    "projektstand"
+  ])){
+    showReply(
+      "RHIA Alpha v"+
+      VERSION+
+      " läuft. Der Kern reagiert beim Zuhören jetzt auf deine tatsächliche Lautstärke."
+    );
+
+    return;
+  }
+
+  if(includesAny(lower,[
+    "hallo",
+    "hi",
+    "hey",
+    "guten morgen",
+    "guten tag",
+    "guten abend"
+  ])){
+    showReply(
+      state.settings.world==="Mike / Privat"
+        ?"Hallo Mike. Schön, dass du da bist."
+        :"Willkommen zurück, Sir. Womit fangen wir an?"
+    );
+
+    return;
+  }
+
+  if(includesAny(lower,[
+    "danke",
+    "vielen dank"
+  ])){
+    showReply(
+      "Gern, Mike."
+    );
+
+    return;
+  }
+
+  showReply(
+    "Ich verstehe diesen freien Satz noch nicht sicher genug. Ich erfinde deshalb keine Antwort. Formuliere ihn als Aufgabe, Notiz, Idee oder Weltwechsel."
+  );
 }
 
-form.addEventListener("submit",e=>{
-  e.preventDefault();
-  const value=command.value;
-  command.value="";
-  handle(value);
-  command.focus();
-});
+form.addEventListener(
+  "submit",
+  e=>{
+    e.preventDefault();
 
-document.querySelectorAll(".nav button").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");
-    $("panel-"+btn.dataset.panel).classList.add("active");
+    const value=command.value;
+
+    command.value="";
+
+    handle(value);
+    command.focus();
+  }
+);
+
+document
+  .querySelectorAll(".nav button")
+  .forEach(btn=>{
+    btn.addEventListener(
+      "click",
+      ()=>{
+        document
+          .querySelectorAll(".nav button")
+          .forEach(
+            x=>x.classList.remove("active")
+          );
+
+        document
+          .querySelectorAll(".panel")
+          .forEach(
+            x=>x.classList.remove("active")
+          );
+
+        btn.classList.add("active");
+
+        $("panel-"+btn.dataset.panel)
+          .classList.add("active");
+      }
+    );
   });
-});
 
-$("clearHistory").addEventListener("click",()=>{
-  state.chat=[];save();renderHistory();lastUser.textContent="Verlauf gelöscht.";showReply("Der Hintergrundverlauf wurde gelöscht.",false);
-});
+$("clearHistory").addEventListener(
+  "click",
+  ()=>{
+    state.chat=[];
 
-const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+    save();
+    renderHistory();
+
+    lastUser.textContent=
+      "Verlauf gelöscht.";
+
+    showReply(
+      "Der Hintergrundverlauf wurde gelöscht."
+    );
+  }
+);
+
+voiceSwitch.addEventListener(
+  "click",
+  ()=>{
+    state.settings.browserVoice=
+      !state.settings.browserVoice;
+
+    save();
+    updateStatus();
+
+    showReply(
+      state.settings.browserVoice
+        ?"Browserstimme eingeschaltet."
+        :"Browserstimme ausgeschaltet."
+    );
+  }
+);
+
+const SpeechRecognition=
+  window.SpeechRecognition||
+  window.webkitSpeechRecognition;
+
 if(SpeechRecognition){
-  const recognition=new SpeechRecognition();
-  recognition.lang="de-DE";recognition.interimResults=false;recognition.continuous=false;
-  recognition.onstart=()=>{voiceButton.classList.add("listening");voiceButton.textContent="●";setVisualState("listening")};
-  recognition.onend=()=>{voiceButton.classList.remove("listening");voiceButton.textContent="🎤";if(!window.speechSynthesis?.speaking)setVisualState("idle")};
-  recognition.onresult=e=>{
-    const transcript=e.results?.[0]?.[0]?.transcript?.trim();
-    if(transcript){const corrected=normalizeSpeechText(transcript);command.value=corrected;handle(corrected);command.value=""}
+  const recognition=
+    new SpeechRecognition();
+
+  recognition.lang="de-DE";
+  recognition.interimResults=false;
+  recognition.continuous=false;
+
+  recognition.onstart=async()=>{
+    listeningActive=true;
+
+    voiceButton.classList.add(
+      "listening"
+    );
+
+    voiceButton.textContent="●";
+
+    setVisualState("listening");
+
+    await startAudioAnalysis();
   };
-  recognition.onerror=()=>{setVisualState("idle");showReply("Die Spracheingabe konnte gerade nicht verwendet werden. Du kannst den Befehl weiterhin eintippen.",false)};
-  voiceButton.onclick=()=>{try{window.speechSynthesis?.cancel();recognition.start()}catch{}};
+
+  recognition.onend=()=>{
+    listeningActive=false;
+
+    voiceButton.classList.remove(
+      "listening"
+    );
+
+    voiceButton.textContent="🎤";
+
+    if(!window.speechSynthesis?.speaking){
+      setVisualState("idle");
+    }
+  };
+
+  recognition.onresult=e=>{
+    const transcript=
+      e.results?.[0]?.[0]?.transcript?.trim();
+
+    if(transcript){
+      const corrected=
+        normalizeSpeechText(transcript);
+
+      command.value=corrected;
+
+      handle(corrected);
+
+      command.value="";
+    }
+  };
+
+  recognition.onerror=()=>{
+    listeningActive=false;
+
+    setVisualState("idle");
+
+    showReply(
+      "Die Spracheingabe konnte gerade nicht verwendet werden. Du kannst den Befehl weiterhin eintippen."
+    );
+  };
+
+  voiceButton.onclick=async()=>{
+    try{
+      window.speechSynthesis?.cancel();
+
+      await startAudioAnalysis();
+
+      recognition.start();
+    }catch{}
+  };
 }else{
   voiceButton.disabled=true;
-  voiceButton.title="Spracheingabe wird von diesem Browser nicht unterstützt";
+
+  voiceButton.title=
+    "Spracheingabe wird von diesem Browser nicht unterstützt";
 }
 
-/* Ruhiger orangefarbener Partikelkern */
+/* Dichte, frei schwebende Energieform */
+
 let particles=[];
-let visualMode="idle";
 let t=0;
 
 function resizeCanvas(){
-  const rect=canvas.getBoundingClientRect();
-  const dpr=Math.min(window.devicePixelRatio||1,2);
-  canvas.width=Math.floor(rect.width*dpr);
-  canvas.height=Math.floor(rect.height*dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const rect=
+    canvas.getBoundingClientRect();
+
+  const dpr=Math.min(
+    window.devicePixelRatio||1,
+    2
+  );
+
+  canvas.width=
+    Math.floor(rect.width*dpr);
+
+  canvas.height=
+    Math.floor(rect.height*dpr);
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
 }
+
+function randomGaussian(){
+  let u=0;
+  let v=0;
+
+  while(u===0){
+    u=Math.random();
+  }
+
+  while(v===0){
+    v=Math.random();
+  }
+
+  return Math.sqrt(
+    -2*Math.log(u)
+  )*Math.cos(
+    2*Math.PI*v
+  );
+}
+
 function makeParticles(){
   particles=[];
-  const count=window.innerWidth<600?180:300;
+
+  const count=
+    window.innerWidth<600
+      ?420
+      :760;
+
   for(let i=0;i<count;i++){
+    const gx=randomGaussian();
+    const gy=randomGaussian();
+
     particles.push({
-      angle:Math.random()*Math.PI*2,
-      radius:.18+Math.random()*.27,
-      drift:(Math.random()-.5)*.0008,
-      size:.7+Math.random()*1.8,
+      x:gx*.18,
+      y:gy*.15,
+      z:Math.random(),
+      size:.45+Math.random()*1.65,
       phase:Math.random()*Math.PI*2,
-      layer:.45+Math.random()*.55
+      speed:.002+Math.random()*.004,
+      heat:.55+Math.random()*.45
     });
   }
 }
+
 function currentMode(){
-  if(stage.classList.contains("state-listening"))return"listening";
-  if(stage.classList.contains("state-speaking"))return"speaking";
-  if(stage.classList.contains("state-thinking"))return"thinking";
-  return"idle";
+  if(
+    stage.classList.contains(
+      "state-listening"
+    )
+  ){
+    return "listening";
+  }
+
+  if(
+    stage.classList.contains(
+      "state-thinking"
+    )
+  ){
+    return "thinking";
+  }
+
+  if(
+    stage.classList.contains(
+      "state-speaking"
+    )
+  ){
+    return "speaking";
+  }
+
+  return "idle";
 }
+
 function animate(){
-  const rect=canvas.getBoundingClientRect();
-  const w=rect.width,h=rect.height,cx=w/2,cy=h/2,base=Math.min(w,h);
-  ctx.clearRect(0,0,w,h);
-  t+=.012;
+  updateMicLevel();
+
+  const rect=
+    canvas.getBoundingClientRect();
+
+  const w=rect.width;
+  const h=rect.height;
+  const cx=w/2;
+  const cy=h/2;
+  const base=Math.min(w,h);
+
+  ctx.clearRect(
+    0,
+    0,
+    w,
+    h
+  );
+
+  t+=.014;
+
   const mode=currentMode();
 
-  particles.forEach((p,i)=>{
-    p.angle+=p.drift+(mode==="thinking"?0.0012:0.00035);
+  const idleBreath=
+    .018*Math.sin(t*.9);
 
-    let compression=1;
-    let pulse=.012*Math.sin(t*1.1+p.phase);
+  const listenCompression=
+    .82-(micLevel*.23);
+
+  const speakPulse=
+    1+.035*Math.sin(t*3.4);
+
+  const thinkDrift=
+    .016*Math.sin(t*.8);
+
+  particles.forEach((p,i)=>{
+    p.phase+=p.speed;
+
+    let scale=1+idleBreath;
 
     if(mode==="listening"){
-      compression=.76+.025*Math.sin(t*2+p.phase);
-      pulse=.008*Math.sin(t*1.8+p.phase);
-    }else if(mode==="speaking"){
-      compression=1.02+.055*Math.sin(t*3.2+p.phase*.35);
-      pulse=.02*Math.sin(t*4.2+p.phase);
-    }else if(mode==="thinking"){
-      compression=.92;
-      pulse=.018*Math.sin(t*1.7+p.phase);
+      scale=listenCompression;
     }
 
-    const r=base*(p.radius+pulse)*compression;
-    const wobble=1+.035*Math.sin(t*.8+p.phase);
-    const x=cx+Math.cos(p.angle)*r*wobble;
-    const y=cy+Math.sin(p.angle)*r*(.86+.06*Math.sin(p.phase+t*.55));
-    const alpha=.28+.55*p.layer;
-    const hue=24+10*Math.sin(p.phase+t*.5);
+    if(mode==="speaking"){
+      scale=speakPulse;
+    }
+
+    if(mode==="thinking"){
+      scale=.94+thinkDrift;
+    }
+
+    const swirl=
+      mode==="thinking"
+        ?.19*Math.sin(
+          t*.45+p.phase
+        )
+        :.06*Math.sin(
+          t*.28+p.phase
+        );
+
+    const cos=Math.cos(swirl);
+    const sin=Math.sin(swirl);
+
+    const px=
+      p.x*cos-p.y*sin;
+
+    const py=
+      p.x*sin+p.y*cos;
+
+    const turbulence=
+      .012*Math.sin(
+        t*1.2+
+        p.phase+
+        i*.013
+      );
+
+    const x=
+      cx+
+      (px+turbulence)*
+      base*
+      scale;
+
+    const y=
+      cy+
+      (py+turbulence*.55)*
+      base*
+      scale;
+
+    const distance=
+      Math.sqrt(
+        px*px+
+        py*py
+      );
+
+    const coreGlow=
+      Math.max(
+        0,
+        1-distance*2.1
+      );
+
+    const alpha=
+      Math.min(
+        .92,
+        .18+
+        p.heat*.55+
+        coreGlow*.18
+      );
+
+    const hue=
+      22+
+      12*p.heat+
+      4*Math.sin(
+        p.phase+
+        t*.4
+      );
 
     ctx.beginPath();
-    ctx.fillStyle=`hsla(${hue},100%,62%,${alpha})`;
-    ctx.shadowBlur=7*p.layer;
-    ctx.shadowColor="rgba(255,123,27,.45)";
-    ctx.arc(x,y,p.size*(mode==="speaking"?1.12:1),0,Math.PI*2);
+
+    ctx.fillStyle=
+      `hsla(${hue},100%,${54+coreGlow*16}%,${alpha})`;
+
+    ctx.shadowBlur=
+      4+coreGlow*9;
+
+    ctx.shadowColor=
+      "rgba(255,119,25,.38)";
+
+    ctx.arc(
+      x,
+      y,
+      p.size*(.78+coreGlow*.55),
+      0,
+      Math.PI*2
+    );
+
     ctx.fill();
   });
 
   ctx.shadowBlur=0;
-  requestAnimationFrame(animate);
+
+  requestAnimationFrame(
+    animate
+  );
 }
 
-window.addEventListener("resize",resizeCanvas);
-resizeCanvas();makeParticles();animate();
+window.addEventListener(
+  "resize",
+  resizeCanvas
+);
+
+resizeCanvas();
+makeParticles();
+animate();
+
 renderAll();
 setVisualState("idle");
 command.focus();
 
-if(!state.chat.length){
-  replyText.textContent="Guten Abend, Mike. Ich bin bereit.";
-}else{
-  const last=state.chat.slice().reverse().find(x=>x.type==="rhia");
-  if(last)replyText.textContent=last.text;
+if(state.chat.length){
+  const last=state.chat
+    .slice()
+    .reverse()
+    .find(
+      x=>x.type==="rhia"
+    );
+
+  if(last){
+    replyText.textContent=
+      last.text;
+  }
 }
 </script>
 </body>
