@@ -271,12 +271,14 @@ small{
 <script>
 const KEYS={
   tasks:"rhia_tasks_v03",
-  notes:"rhia_notes_v03"
+  notes:"rhia_notes_v03",
+  chat:"rhia_chat_v04"
 };
 
 const state={
   tasks:load(KEYS.tasks),
-  notes:load(KEYS.notes)
+  notes:load(KEYS.notes),
+chat:load(KEYS.chat)
 };
 
 const messages=document.getElementById("messages");
@@ -293,19 +295,31 @@ function load(key){
 function save(){
   localStorage.setItem(KEYS.tasks,JSON.stringify(state.tasks));
   localStorage.setItem(KEYS.notes,JSON.stringify(state.notes));
+localStorage.setItem(KEYS.chat,JSON.stringify(state.chat));
+}
 }
 
-function message(text,type="rhia"){
+function message(text,type="rhia",store=trueI){
   const el=document.createElement("div");
   el.className="message "+type;
   el.textContent=text;
   messages.appendChild(el);
   messages.scrollTop=messages.scrollHeight;
+if(store){
+    state.chat.push({text:text,type:type});
+    save();
+  }
 }
 
 function render(){
   drawList("tasks");
   drawList("notes");
+
+  messages.innerHTML="";
+
+state.chat.forEach(msg=>{
+  message(msg.text,msg.type,false);
+});
 
   document.getElementById("taskCount").textContent=state.tasks.length;
   document.getElementById("noteCount").textContent=state.notes.length;
@@ -497,9 +511,11 @@ document.getElementById("form").addEventListener("submit",event=>{
 render();
 
 message(
-`RHIA Alpha v0.3 ist bereit, Mike.
+`RHIA Alpha v0.4 ist bereit, Mike.
 
-Du kannst jetzt lokale Aufgaben und Notizen speichern.`
+Chatverlauf, Aufgaben und Notizen werden lokal gespeichert.`,
+  "rhia",
+  false
 );
 </script>
 </body>
