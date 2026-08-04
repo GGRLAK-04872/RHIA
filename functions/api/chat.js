@@ -45,7 +45,7 @@ function localReply(message,world){
     "was kannst du alles","wie kannst du mich unterstützen",
     "wie kannst du mich unterstuetzen"
   ])){
-    return "Ich kann Aufgaben, Notizen, Ideen, bestätigte Erinnerungen, Welten, Farben, Fokusmodus, Spracheingabe und Gespräche verwalten. Bekannte Befehle beantworte ich lokal; nur freie Wissens- oder Kreativfragen leite ich an die KI weiter.";
+    return "Ich kann Aufgaben, Notizen, Ideen, bestätigte Erinnerungen, Welten, Farben, Fokusmodus, Spracheingabe und Gespräche verwalten. Bekannte Befehle beantworte ich lokal; nur freie Wissens- oder Kreativfragen leite ich nach deiner Kostenbestätigung an die KI weiter.";
   }
 
   if(includesAny(text,[
@@ -69,7 +69,7 @@ function localReply(message,world){
     return `Heute ist ${new Intl.DateTimeFormat("de-DE",{timeZone:"Europe/Berlin",weekday:"long",day:"2-digit",month:"long",year:"numeric"}).format(new Date())}.`;
   }
 
-  if(includesAny(text,["hörst du mich","hoerst du mich","kannst du mich hören","kannst du mich hoeren"])){ 
+  if(includesAny(text,["hörst du mich","hoerst du mich","kannst du mich hören","kannst du mich hoeren"])){
     return "Ja, Mike. Ich höre dich und habe deine Sprache erkannt.";
   }
 
@@ -82,6 +82,59 @@ function localReply(message,world){
   }
 
   return null;
+}
+
+const COST_MARKER="RHIA_KOSTENFREIGABE";
+
+function isYes(value){
+  const text=normalized(value);
+  return ["ja","ja bitte","mach das","mache das","weiter","fortfahren","bestätigen","bestaetigen","kosten bestätigen","kosten bestaetigen"].includes(text);
+}
+
+function isNo(value){
+  const text=normalized(value);
+  return ["nein","nein danke","abbrechen","abbruch","nicht machen","stopp","stop"].includes(text);
+}
+
+function findPendingQuestion(history){
+  if(!Array.isArray(history)||history.length<2)return null;
+  for(let i=history.length-1;i>=0;i--){
+    const entry=history[i];
+    if(entry?.role==="assistant"&&String(entry?.content||"").includes(COST_MARKER)){
+      for(let j=i-1;j>=0;j--){
+        if(history[j]?.role==="user")return clean(history[j].content,12000);
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+function estimateCost(message,history){
+  const historyChars=(Array.isArray(history)?history:[]).reduce((sum,item)=>sum+clean(item?.content,3000).length,0);
+  const inputTokens=Math.max(180,Math.ceil((clean(message).length+historyChars+1800)/3.5));
+  const expectedOutputTokens=350;
+  const upperOutputTokens=700;
+  const inputPricePerMillion=.25;
+  const outputPricePerMillion=2;
+  const expectedUsd=(inputTokens/1_000_000)*inputPricePerMillion+(expectedOutputTokens/1_000_000)*outputPricePerMillion;
+  const upperUsd=(inputTokens/1_000_000)*inputPricePerMillion+(upperOutputTokens/1_000_000)*outputPricePerMillion;
+  return {
+    expectedUsd,
+    upperUsd,
+    expectedCent:expectedUsd*100,
+    upperCent:upperUsd*100
+  };
+}
+
+function formatCent(value){
+  if(value<.01)return"unter 0,01 Cent";
+  return `${value.toLocaleString("de-DE",{minimumFractionDigits:2,maximumFractionDigits:3})} Cent`;
+}
+
+function costWarning(message,history){
+  const estimate=estimateCost(message,history);
+  return `${COST_MARKER}\nDiese Frage benötigt OpenAI-Credits. Geschätzte Kosten: etwa ${formatCent(estimate.expectedCent)}, voraussichtliche Obergrenze ungefähr ${formatCent(estimate.upperCent)}. Die tatsächlichen Kosten hängen von der Antwortlänge und dem Gesprächskontext ab. Soll ich die Anfrage kostenpflichtig ausführen? Antworte mit Ja oder Nein.`;
 }
 
 function memoryText(memories){
@@ -114,24 +167,46 @@ export async function onRequestPost(context){
   let body;
   try{body=await request.json()}catch{return json({ok:false,error:"Ungültige Anfrage."},400)}
 
-  const message=clean(body?.message);
-  if(!message)return json({ok:false,error:"Keine Nachricht übermittelt."},400);
+  const incomingMessage=clean(body?.message);
+  if(!incomingMessage)return json({ok:false,error:"Keine Nachricht übermittelt."},400);
 
-  const freeReply=localReply(message,body?.world);
-  if(freeReply){
-    return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true});
+  const history=Array.isArray(body?.history)?body.history.slice(-8):[];
+  const pendingQuestion=findPendingQuestion(history);
+
+  if(pendingQuestion&&isNo(incomingMessage)){
+    return json({ok:true,reply:"Abgebrochen. Es wurden keine OpenAI-Credits verwendet.",model:"local-zero-credit",local:true,cancelled:true});
+  }
+
+  let message=incomingMessage;
+  let approved=false;
+  if(pendingQuestion&&isYes(incomingMessage)){
+    message=pendingQuestion;
+    approved=true;
+  }
+
+  if(!approved){
+    const freeReply=localReply(message,body?.world);
+    if(freeReply){
+      return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true});
+    }
+
+    if(pendingQuestion){
+      return json({ok:true,reply:"Bitte antworte mit Ja, um die angekündigte kostenpflichtige Anfrage auszuführen, oder mit Nein, um sie abzubrechen.",model:"local-zero-credit",local:true});
+    }
+
+    return json({ok:true,reply:costWarning(message,history),model:"local-cost-check",local:true,requiresConfirmation:true});
   }
 
   if(!env.OPENAI_API_KEY){
     return json({ok:false,error:"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503);
   }
 
-  const history=Array.isArray(body?.history)?body.history.slice(-8):[];
+  const usableHistory=history.filter(entry=>!String(entry?.content||"").includes(COST_MARKER));
   const input=[
-    ...history.map(entry=>({
+    ...usableHistory.map(entry=>({
       role:entry?.role==="assistant"?"assistant":"user",
       content:clean(entry?.content,3000)
-    })).filter(entry=>entry.content),
+    })).filter(entry=>entry.content&&entry.content!==message),
     {role:"user",content:message}
   ];
 
@@ -161,7 +236,7 @@ export async function onRequestPost(context){
 
     const reply=outputText(payload);
     if(!reply)return json({ok:false,error:"Die KI hat keine Antwort geliefert."},502);
-    return json({ok:true,reply,model:payload?.model||env.OPENAI_MODEL||"configured",local:false});
+    return json({ok:true,reply,model:payload?.model||env.OPENAI_MODEL||"configured",local:false,approved:true});
   }catch(error){
     const timedOut=error?.name==="AbortError";
     return json({ok:false,error:timedOut?"Die Anfrage dauerte zu lange.":"Der KI-Dienst ist nicht erreichbar."},timedOut?504:502);
