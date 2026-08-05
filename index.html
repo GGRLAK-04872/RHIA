@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090306">
-<title>RHIA Alpha v0.15.4</title>
+<title>RHIA Alpha v0.15.5</title>
 <style>
 :root{--a:#8f1738;--b:#ff6d88;--c:#390817;--rgb:143,23,56;--bg:#050204;--panel:rgba(27,5,12,.82);--text:#fff7fa;--muted:#b99aa5;--line:rgba(255,109,136,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030102;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit}
@@ -31,11 +31,10 @@ header{padding:9px 15px}
 .menu{width:40px;height:40px}
 .stage{min-height:500px;place-items:start center;padding-top:50px}
 .stage{background:radial-gradient(circle at 50% 31%,rgba(var(--rgb),.12),transparent 42%)}
-#canvas{z-index:0;pointer-events:none}
-.core{width:min(66vw,295px);z-index:1;border-color:transparent;background:radial-gradient(circle,rgba(var(--rgb),.22) 0,rgba(var(--rgb),.09) 34%,rgba(var(--rgb),.025) 58%,transparent 72%);box-shadow:none;animation:organismBreath 5.4s ease-in-out infinite}
-.core:before{inset:-17%;border-color:rgba(var(--rgb),.26);border-style:dashed;box-shadow:0 0 24px rgba(var(--rgb),.08);animation-duration:11s}
-.core:after{inset:-29%;border-color:rgba(var(--rgb),.14);border-style:dotted;animation-duration:17s}
-.core>div{position:relative;z-index:2}
+#canvas{z-index:0;pointer-events:none;filter:saturate(1.15) contrast(1.06)}
+.core{width:min(66vw,295px);z-index:1;border-color:transparent;background:transparent;box-shadow:none;animation:organismBreath 5.4s ease-in-out infinite;transform-style:preserve-3d}
+.core:before,.core:after{display:none}
+.core>div{position:relative;z-index:2;transform:perspective(520px) translateZ(22px);filter:drop-shadow(0 8px 9px rgba(0,0,0,.65))}
 .core h1{font-size:clamp(32px,10vw,44px);letter-spacing:7px}
 .core p{margin-top:9px;font-size:11px;letter-spacing:3px;color:var(--b);text-shadow:0 0 14px rgba(var(--rgb),.75)}
 .listening .core{animation:organismListen 1.4s ease-in-out infinite}
@@ -78,11 +77,11 @@ footer{min-height:56px;gap:12px;padding:7px 14px}
 <header><div class="logo"><strong>RHIA</strong><span>RH INTELLIGENT ASSISTANT</span></div><div class="topstate"><i class="dot"></i><span id="topState">BEREIT</span></div><div class="headright"><div class="worldtop">WELT<b id="worldTop">ALLGEMEIN</b></div><button class="menu" id="menuBtn">☰</button></div></header>
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
-<footer><div class="version">ALPHA <b>V0.15.4</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
+<footer><div class="version">ALPHA <b>V0.15.5</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div><h3>Stimme</h3><div class="switches"><button id="voiceToggle">Browserstimme: aus</button><button id="voiceTest" type="button">Stimme testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div></div></div>
 <script>
 "use strict";
-const VERSION="0.15.4",API="/api/chat";
+const VERSION="0.15.5",API="/api/chat";
 const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",ideas:"rhia_ideas_v09",memories:"rhia_memories_v011",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
@@ -109,111 +108,179 @@ const cv=$("canvas"),cx=cv.getContext("2d"),TAU=Math.PI*2;
 let particles=[],filaments=[],nodes=[],links=[],visualRgb=[143,23,56],visualBright=[255,109,136],lastVisualMode="idle",burstStart=-1000;
 const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
 const random=(min,max)=>min+Math.random()*(max-min);
-const color=(rgb,alpha)=>`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.max(0,Math.min(1,alpha))})`;
+const clamp=(n,min=0,max=1)=>Math.max(min,Math.min(max,n));
+const color=(rgb,alpha)=>`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${clamp(alpha)})`;
 function hexRgb(hex){const n=parseInt(String(hex).replace("#",""),16);return[(n>>16)&255,(n>>8)&255,n&255]}
 function setVisualTheme(theme){visualRgb=theme[3].split(",").map(Number);visualBright=hexRgb(theme[1])}
 function visualMode(){const s=$("stage");return s.classList.contains("listening")?"listening":s.classList.contains("thinking")?"thinking":s.classList.contains("speaking")?"speaking":"idle"}
+function unitVector(){
+  const z=random(-1,1),a=random(0,TAU),s=Math.sqrt(1-z*z);
+  return{x:Math.cos(a)*s,y:z,z:Math.sin(a)*s};
+}
+function rotate3(point,rx,ry,rz){
+  let{x,y,z}=point,c=Math.cos(rx),s=Math.sin(rx),ny=y*c-z*s,nz=y*s+z*c;
+  y=ny;z=nz;c=Math.cos(ry);s=Math.sin(ry);const nx=x*c+z*s;nz=-x*s+z*c;x=nx;z=nz;
+  c=Math.cos(rz);s=Math.sin(rz);return{x:x*c-y*s,y:x*s+y*c,z};
+}
+function project3(point,g,R){
+  const perspective=3.4/(3.4-point.z*.62);
+  return{x:g.x+point.x*R*perspective,y:g.y+point.y*R*perspective,z:point.z,scale:perspective,depth:clamp((point.z+1.45)/2.9)};
+}
 function resize(){
   const rect=cv.getBoundingClientRect(),mobile=rect.width<=600,d=Math.min(devicePixelRatio||1,mobile?1.5:2);
   cv.width=Math.max(1,Math.round(rect.width*d));cv.height=Math.max(1,Math.round(rect.height*d));cx.setTransform(d,0,0,d,0,0);
-  particles=mobile?Array.from({length:240},()=>({
-    angle:random(0,TAU),radius:random(.36,1.43),speed:random(-.34,.34),flat:random(.69,1.02),
-    size:random(.35,1.75),phase:random(0,TAU),drift:random(.015,.075),spark:Math.random()>.86
+  particles=mobile?Array.from({length:315},()=>{
+    const v=unitVector(),outer=Math.random()>.79,radius=outer?random(1.05,1.48):(Math.random()>.28?random(.68,1.08):Math.cbrt(Math.random())*.82);
+    return{...v,radius,size:random(.34,1.58),phase:random(0,TAU),speed:random(-.075,.075),spark:outer||Math.random()>.9};
+  }):[];
+  filaments=mobile?Array.from({length:36},()=>({
+    start:random(0,TAU),span:Math.random()>.9?TAU:random(.72,4.35),radius:random(.38,1.2),
+    tiltX:random(-1.3,1.3),tiltY:random(-1.3,1.3),tiltZ:random(-1.3,1.3),
+    speed:random(-.12,.12),wobble:random(.045,.2),depth:random(.05,.27),
+    width:random(.34,1.34),alpha:random(.06,.22),phase:random(0,TAU),bright:Math.random()>.48,dashed:Math.random()>.68
   })):[];
-  filaments=mobile?Array.from({length:38},()=>({
-    angle:random(0,TAU),radius:random(.34,1.25),span:random(.22,1.75),flat:random(.62,1.02),
-    tilt:random(-.85,.85),speed:random(-.22,.22),width:random(.35,1.25),alpha:random(.045,.19),
-    phase:random(0,TAU)
-  })):[];
-  nodes=mobile?Array.from({length:52},()=>({
-    angle:random(0,TAU),radius:random(.42,1.2),flat:random(.72,1),phase:random(0,TAU),
-    speed:random(-.08,.08),size:random(.45,1.35)
-  })):[];
-  links=mobile?nodes.flatMap((_,i)=>i%2?[{a:i,b:(i+5+i%7)%nodes.length}]:[{a:i,b:(i+1)%nodes.length},{a:i,b:(i+9)%nodes.length}]):[];
+  nodes=mobile?Array.from({length:66},()=>{const v=unitVector();return{...v,radius:random(.7,1.08),phase:random(0,TAU),size:random(.42,1.18)}}):[];
+  links=[];
+  if(mobile){
+    const seen=new Set();
+    nodes.forEach((n,i)=>{
+      const nearest=nodes.map((o,j)=>({j,d:j===i?99:Math.hypot(n.x*n.radius-o.x*o.radius,n.y*n.radius-o.y*o.radius,n.z*n.radius-o.z*o.radius)})).sort((a,b)=>a.d-b.d).slice(0,i%3===0?2:1);
+      nearest.forEach(({j,d})=>{const key=i<j?i+":"+j:j+":"+i;if(d<.7&&!seen.has(key)){seen.add(key);links.push({a:i,b:j,alpha:random(.055,.14),bright:Math.random()>.84})}});
+    });
+  }
 }
 function modeTuning(mode){
   return{
-    idle:{speed:.42,energy:.62,pulse:.42,spread:1},
-    listening:{speed:1.05,energy:1.05,pulse:1.35,spread:1.045},
-    thinking:{speed:1.85,energy:1.16,pulse:2.1,spread:.985},
-    speaking:{speed:1.22,energy:1.12,pulse:3.2,spread:1.035}
+    idle:{speed:.45,energy:.76,pulse:.45,spread:1},
+    listening:{speed:1.02,energy:1.05,pulse:1.35,spread:1.045},
+    thinking:{speed:1.85,energy:1.18,pulse:2.1,spread:.985},
+    speaking:{speed:1.25,energy:1.14,pulse:3.2,spread:1.035}
   }[mode];
 }
 function coreGeometry(){
   const canvasRect=cv.getBoundingClientRect(),coreRect=document.querySelector(".core").getBoundingClientRect();
-  return{x:coreRect.left-canvasRect.left+coreRect.width/2,y:coreRect.top-canvasRect.top+coreRect.height/2,r:coreRect.width*.47};
+  return{x:coreRect.left-canvasRect.left+coreRect.width/2,y:coreRect.top-canvasRect.top+coreRect.height/2,r:coreRect.width*.455};
 }
-function drawAmbient(rect,time){
+function drawAmbient(rect,time){cx.globalCompositeOperation="source-over"}
+function drawDepthField(g,R,tune){
+  cx.save();cx.globalCompositeOperation="source-over";
+  cx.translate(g.x,g.y+R*1.17);cx.scale(1,.18);
+  const shadow=cx.createRadialGradient(0,0,R*.05,0,0,R*1.28);
+  shadow.addColorStop(0,"rgba(0,0,0,.72)");shadow.addColorStop(.42,color(visualRgb,.16*tune.energy));shadow.addColorStop(1,"rgba(0,0,0,0)");
+  cx.fillStyle=shadow;cx.beginPath();cx.arc(0,0,R*1.28,0,TAU);cx.fill();cx.restore();
+}
+function buildPrimitives(time,g,R,tune,motion){
+  const spin=time*.145*tune.speed*motion,rotation={x:-.31+Math.sin(time*.17)*.08,y:spin,z:.12+Math.sin(time*.13)*.055},items=[];
+  for(const p of particles){
+    const radius=p.radius*(1+Math.sin(time*.48+p.phase)*.022);
+    const base={x:p.x*radius,y:p.y*radius,z:p.z*radius};
+    const world=rotate3(base,rotation.x,rotation.y+time*p.speed*tune.speed*motion,rotation.z);
+    const pos=project3(world,g,R);
+    items.push({type:"point",...pos,size:p.size,alpha:p.spark?.56:.23,bright:p.spark,phase:p.phase});
+    if(p.spark&&Math.abs(p.speed)>.025){
+      const tailWorld=rotate3(base,rotation.x,rotation.y+time*p.speed*tune.speed*motion-p.speed*.42,rotation.z);
+      const tail=project3(tailWorld,g,R);
+      items.push({type:"line",a:tail,b:pos,z:(tail.z+pos.z)/2,width:.38,alpha:.075,bright:false});
+    }
+  }
+  const nodePositions=nodes.map(n=>{
+    const radius=n.radius*(1+Math.sin(time*.37+n.phase)*.018);
+    return project3(rotate3({x:n.x*radius,y:n.y*radius,z:n.z*radius},rotation.x,rotation.y,rotation.z),g,R);
+  });
+  for(const link of links){
+    const a=nodePositions[link.a],b=nodePositions[link.b];
+    items.push({type:"line",a,b,z:(a.z+b.z)/2,width:.42,alpha:link.alpha,bright:link.bright});
+  }
+  nodePositions.forEach((pos,i)=>items.push({type:"point",...pos,size:nodes[i].size,alpha:.31,bright:i%11===0,phase:nodes[i].phase}));
+  for(const f of filaments){
+    let previous=null;
+    const steps=Math.max(15,Math.round(f.span/TAU*42));
+    for(let i=0;i<=steps;i++){
+      const a=f.start+f.span*i/steps+time*f.speed*tune.speed*motion;
+      const radius=f.radius*(1+Math.sin(a*3.15+f.phase+time*.21)*f.wobble);
+      let point={x:Math.cos(a)*radius,y:Math.sin(a)*radius,z:Math.sin(a*2.05+f.phase)*f.depth};
+      point=rotate3(point,f.tiltX,f.tiltY,f.tiltZ);
+      point=rotate3(point,rotation.x,rotation.y,rotation.z);
+      const pos=project3(point,g,R);
+      if(previous&&(!f.dashed||i%7>1))items.push({type:"line",a:previous,b:pos,z:(previous.z+pos.z)/2,width:f.width,alpha:f.alpha,bright:f.bright&&i%5<3});
+      previous=pos;
+    }
+  }
+  return items.sort((a,b)=>a.z-b.z);
+}
+function drawPrimitive(item,tune){
+  const depth=clamp((item.z+1.5)/3),fade=.18+depth*.92,rgb=item.bright&&depth>.42?visualBright:visualRgb;
+  if(item.type==="line"){
+    cx.beginPath();cx.moveTo(item.a.x,item.a.y);cx.lineTo(item.b.x,item.b.y);
+    const intensity=item.bright?1.65:1;
+    cx.strokeStyle=color(rgb,item.alpha*fade*tune.energy*intensity);cx.lineWidth=item.width*(.62+(item.a.scale+item.b.scale)*.28);cx.stroke();return;
+  }
+  const flicker=.78+Math.sin(item.phase*2.3+performance.now()*.0021)*.22,size=item.size*item.scale*(.68+depth*.72);
+  if(item.bright&&depth>.48){
+    cx.beginPath();cx.fillStyle=color(visualBright,.105*tune.energy*depth);cx.arc(item.x,item.y,size*3.4,0,TAU);cx.fill();
+  }
+  cx.beginPath();cx.fillStyle=color(rgb,item.alpha*fade*flicker*tune.energy);cx.arc(item.x,item.y,size,0,TAU);cx.fill();
+}
+function drawSphereBody(g,R,tune){
   cx.globalCompositeOperation="source-over";
+  const body=cx.createRadialGradient(g.x-R*.32,g.y-R*.36,R*.04,g.x,g.y,R*1.08);
+  body.addColorStop(0,color(visualBright,.08*tune.energy));body.addColorStop(.24,color(visualRgb,.06*tune.energy));
+  body.addColorStop(.58,"rgba(20,2,8,.07)");body.addColorStop(.83,"rgba(4,0,2,.24)");body.addColorStop(1,color(visualRgb,.075*tune.energy));
+  cx.fillStyle=body;cx.beginPath();cx.arc(g.x,g.y,R*1.04,0,TAU);cx.fill();
+  const shade=cx.createRadialGradient(g.x+R*.58,g.y+R*.48,R*.05,g.x+R*.34,g.y+R*.29,R*1.18);
+  shade.addColorStop(0,"rgba(0,0,0,.34)");shade.addColorStop(.55,"rgba(0,0,0,.1)");shade.addColorStop(1,"rgba(0,0,0,0)");
+  cx.fillStyle=shade;cx.beginPath();cx.arc(g.x,g.y,R*1.04,0,TAU);cx.fill();
+  cx.globalCompositeOperation="lighter";
+  cx.save();cx.translate(g.x,g.y);cx.rotate(.21);cx.scale(1,.95);
+  cx.beginPath();cx.arc(0,0,R*1.02,Math.PI*.73,Math.PI*1.72);cx.strokeStyle=color(visualBright,.19*tune.energy);cx.lineWidth=1.1;cx.stroke();
+  cx.beginPath();cx.arc(0,0,R*1.025,-.19,Math.PI*.48);cx.strokeStyle=color(visualRgb,.055*tune.energy);cx.lineWidth=.7;cx.stroke();cx.restore();
+}
+function drawVortex(g,R,time,tune){
+  cx.globalCompositeOperation="lighter";
+  for(let arm=0;arm<4;arm++){
+    cx.beginPath();
+    for(let i=0;i<=42;i++){
+      const q=i/42,angle=arm*TAU/4+q*TAU*1.58-time*(.27+.045*tune.speed),radius=R*(.025+q*.43)*(1+Math.sin(q*12+arm)*.055);
+      const x=g.x+Math.cos(angle)*radius,y=g.y+Math.sin(angle)*radius*.55;
+      i?cx.lineTo(x,y):cx.moveTo(x,y);
+    }
+    cx.strokeStyle=color(arm===0?visualBright:visualRgb,(.12+arm*.018)*tune.energy);cx.lineWidth=arm===0?1.3:.75;cx.stroke();
+  }
+  const orb=R*(.17+Math.sin(time*(1.05+tune.pulse*.18))*.012);
+  const heart=cx.createRadialGradient(g.x-orb*.32,g.y-orb*.35,orb*.02,g.x,g.y,orb*1.8);
+  heart.addColorStop(0,color([255,247,250],.98));heart.addColorStop(.12,color(visualBright,.92));
+  heart.addColorStop(.44,color(visualRgb,.7));heart.addColorStop(1,color(visualRgb,0));
+  cx.fillStyle=heart;cx.beginPath();cx.arc(g.x,g.y,orb*1.8,0,TAU);cx.fill();
+}
+function drawStatusWaves(g,R,time,now,mode,tune){
+  cx.globalCompositeOperation="lighter";
+  if(mode!=="idle"){
+    const count=mode==="speaking"?3:2;
+    for(let i=0;i<count;i++){
+      const phase=(time*(mode==="thinking"?.72:.48)+i/count)%1,radius=R*(.68+phase*.82);
+      cx.save();cx.translate(g.x,g.y);cx.rotate(.18);cx.scale(1,.72);
+      cx.beginPath();cx.arc(0,0,radius,0,TAU);cx.strokeStyle=color(visualBright,(1-phase)*.09*tune.energy);cx.lineWidth=.8;cx.stroke();cx.restore();
+    }
+  }
+  const burst=(now-burstStart)/560;
+  if(burst>=0&&burst<1){
+    cx.save();cx.translate(g.x,g.y);cx.rotate(.18);cx.scale(1,.78);
+    cx.beginPath();cx.arc(0,0,R*(.32+burst*1.04),0,TAU);cx.strokeStyle=color(visualBright,(1-burst)*.46);cx.lineWidth=1.45;cx.stroke();cx.restore();
+  }
 }
 function drawOrganism(time,now){
   const mode=visualMode(),tune=modeTuning(mode),motion=reducedMotion?.12:1;
   if(mode!==lastVisualMode){lastVisualMode=mode;burstStart=now}
   const g=coreGeometry(),breath=1+Math.sin(time*(.72+tune.pulse*.12))*(.018+tune.pulse*.004),R=g.r*breath*tune.spread;
+  drawDepthField(g,R,tune);
+  const primitives=buildPrimitives(time,g,R,tune,motion),split=primitives.findIndex(item=>item.z>=0);
   cx.globalCompositeOperation="lighter";
-  let glow=cx.createRadialGradient(g.x,g.y,R*.04,g.x,g.y,R*1.78);
-  glow.addColorStop(0,color(visualBright,.18*tune.energy));glow.addColorStop(.25,color(visualRgb,.14*tune.energy));
-  glow.addColorStop(.68,color(visualRgb,.045*tune.energy));glow.addColorStop(1,color(visualRgb,0));
-  cx.fillStyle=glow;cx.beginPath();cx.arc(g.x,g.y,R*1.78,0,TAU);cx.fill();
-
-  for(const f of filaments){
-    const drift=time*f.speed*tune.speed*motion,start=f.angle+drift+Math.sin(time*.31+f.phase)*.11;
-    const radius=R*f.radius*(1+Math.sin(time*.55+f.phase)*.025);
-    cx.beginPath();cx.ellipse(g.x,g.y,radius,radius*f.flat,f.tilt+drift*.16,start,start+f.span);
-    cx.strokeStyle=color(Math.sin(f.phase+time)>.7?visualBright:visualRgb,f.alpha*tune.energy);
-    cx.lineWidth=f.width;cx.stroke();
-  }
-
-  const positions=nodes.map(n=>{
-    const angle=n.angle+time*n.speed*tune.speed*motion+Math.sin(time*.38+n.phase)*.055;
-    const radius=R*n.radius*(1+Math.sin(time*.7+n.phase)*.035);
-    return{x:g.x+Math.cos(angle)*radius,y:g.y+Math.sin(angle)*radius*n.flat,size:n.size,phase:n.phase};
-  });
-  cx.lineWidth=.42;
-  for(const link of links){
-    const a=positions[link.a],b=positions[link.b],distance=Math.hypot(a.x-b.x,a.y-b.y);
-    if(distance<R*.78){cx.beginPath();cx.moveTo(a.x,a.y);cx.lineTo(b.x,b.y);cx.strokeStyle=color(visualRgb,(1-distance/(R*.78))*.105*tune.energy);cx.stroke()}
-  }
-  for(const n of positions){
-    const flicker=.45+Math.sin(time*2+n.phase)*.25;
-    cx.beginPath();cx.fillStyle=color(visualBright,(.18+flicker*.24)*tune.energy);cx.arc(n.x,n.y,n.size,0,TAU);cx.fill();
-  }
-
-  for(let i=0;i<filaments.length;i+=2){
-    const f=filaments[i],angle=f.angle+time*f.speed*.28*tune.speed*motion;
-    const inner=R*(.48+(i%5)*.055),outer=R*(.91+(i%4)*.085),bend=(i%2?1:-1)*R*.13;
-    const x1=g.x+Math.cos(angle)*inner,y1=g.y+Math.sin(angle)*inner;
-    const x2=g.x+Math.cos(angle)*outer,y2=g.y+Math.sin(angle)*outer;
-    cx.beginPath();cx.moveTo(x1,y1);cx.quadraticCurveTo((x1+x2)/2-Math.sin(angle)*bend,(y1+y2)/2+Math.cos(angle)*bend,x2,y2);
-    cx.strokeStyle=color(visualRgb,.055*tune.energy);cx.lineWidth=.55;cx.stroke();
-  }
-
-  for(const p of particles){
-    const angle=p.angle+time*p.speed*tune.speed*motion,rad=R*p.radius*(1+Math.sin(time*p.drift+p.phase)*.035);
-    const px=g.x+Math.cos(angle)*rad,py=g.y+Math.sin(angle)*rad*p.flat;
-    const tail=angle-p.speed*.16*tune.speed,tx=g.x+Math.cos(tail)*rad,ty=g.y+Math.sin(tail)*rad*p.flat;
-    cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(px,py);cx.strokeStyle=color(visualRgb,.07*tune.energy);cx.lineWidth=Math.max(.25,p.size*.34);cx.stroke();
-    cx.beginPath();cx.fillStyle=color(p.spark?visualBright:visualRgb,(p.spark?.72:.24)*tune.energy);cx.arc(px,py,p.spark?p.size*1.25:p.size,0,TAU);cx.fill();
-  }
-
-  const orb=R*(.205+Math.sin(time*(1.05+tune.pulse*.18))*.012);
-  const heart=cx.createRadialGradient(g.x-orb*.28,g.y-orb*.3,orb*.02,g.x,g.y,orb*1.65);
-  heart.addColorStop(0,color([255,244,248],.98));heart.addColorStop(.13,color(visualBright,.88));
-  heart.addColorStop(.48,color(visualRgb,.72));heart.addColorStop(1,color(visualRgb,0));
-  cx.fillStyle=heart;cx.beginPath();cx.arc(g.x,g.y,orb*1.65,0,TAU);cx.fill();
-
-  if(mode!=="idle"){
-    const count=mode==="speaking"?3:2;
-    for(let i=0;i<count;i++){
-      const phase=(time*(mode==="thinking"?.72:.48)+i/count)%1,radius=R*(.62+phase*.95);
-      cx.beginPath();cx.arc(g.x,g.y,radius,0,TAU);cx.strokeStyle=color(visualBright,(1-phase)*.095*tune.energy);cx.lineWidth=.8;cx.stroke();
-    }
-  }
-  const burst=(now-burstStart)/520;
-  if(burst>=0&&burst<1){
-    cx.beginPath();cx.arc(g.x,g.y,R*(.34+burst*1.02),0,TAU);
-    cx.strokeStyle=color(visualBright,(1-burst)*.42);cx.lineWidth=1.4;cx.stroke();
-  }
+  const backEnd=split<0?primitives.length:split;
+  for(let i=0;i<backEnd;i++)drawPrimitive(primitives[i],tune);
+  drawSphereBody(g,R,tune);drawVortex(g,R,time,tune);
+  cx.globalCompositeOperation="lighter";
+  for(let i=backEnd;i<primitives.length;i++)drawPrimitive(primitives[i],tune);
+  drawStatusWaves(g,R,time,now,mode,tune);
   cx.globalCompositeOperation="source-over";
 }
 function anim(now=0){
