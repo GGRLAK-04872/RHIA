@@ -228,25 +228,38 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     @Override public void onResult(String hypothesis) {
-        showFinalText(hypothesis);
+        showRecognizedPreview(hypothesis);
     }
 
     @Override public void onFinalResult(String hypothesis) {
-        showFinalText(hypothesis);
-        runOnUiThread(this::stopSpeechService);
-    }
-
-    private void showFinalText(String hypothesis) {
         String text = extractText(hypothesis);
         runOnUiThread(() -> {
-            if (text.isBlank()) {
-                setDiagnostic("NICHTS VERSTANDEN · ERNEUT VERSUCHEN");
-                setState("error", "NICHTS VERSTANDEN");
-            } else {
-                setDiagnostic("TEXT · " + text);
-                setState("", "VERSTANDEN: " + text);
-            }
+            stopSpeechService();
+            deliverRecognizedText(text);
         });
+    }
+
+    private void showRecognizedPreview(String hypothesis) {
+        String text = extractText(hypothesis);
+        if (!text.isBlank()) {
+            runOnUiThread(() -> setDiagnostic("ERKANNT · " + text));
+        }
+    }
+
+    private void deliverRecognizedText(String text) {
+        if (text.isBlank()) {
+            setDiagnostic("NICHTS VERSTANDEN · ERNEUT VERSUCHEN");
+            setState("error", "NICHTS VERSTANDEN");
+            return;
+        }
+
+        setDiagnostic("TEXT · " + text + " · WIRD VERARBEITET");
+        setState("thinking", "RHIA VERARBEITET");
+        String quotedText = JSONObject.quote(text);
+        web.evaluateJavascript(
+                "(async function(){if(typeof handle!==\'function\')throw new Error(\'RHIA handle fehlt\');await handle(" +
+                        quotedText + ");})()",
+                result -> setDiagnostic("VERARBEITET · " + text));
     }
 
     @Override public void onError(Exception error) {
