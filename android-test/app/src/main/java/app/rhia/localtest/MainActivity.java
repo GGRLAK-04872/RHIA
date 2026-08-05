@@ -12,6 +12,9 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.speech.tts.TextToSpeech;
+
+import java.util.Locale;
 
 import org.vosk.Model;
 import org.vosk.Recognizer;
@@ -41,6 +44,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private boolean modelLoading = true;
     private boolean awaitingFinalResult;
     private String latestRecognizedText = "";
+    private TextToSpeech tts;
+    private boolean ttsReady;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -74,6 +79,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
         root.addView(diagnostic, diagnosticLayout);
 
         setContentView(root);
+        initNativeVoice();
         loadLatestApprovedUi();
         prepareOfflineModel();
     }
@@ -147,12 +153,15 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
                 "window.startSpeechRecognition=function(){};" +
                 "try{if(typeof state!=='undefined'&&state.settings){state.settings.browserVoice=true;if(typeof save==='function')save();if(typeof render==='function')render();}}catch(ignore){}" +
+                "window.browserSpeechSupported=function(){return true;};" +
+                "window.speakBrowserText=function(text,handlers){try{if(handlers&&handlers.onstart)handlers.onstart();RHIAAndroid.speakText(String(text||\'\'));setTimeout(function(){if(handlers&&handlers.onend)handlers.onend();},Math.max(1200,String(text||\'\').length*65));return true;}catch(error){if(handlers&&handlers.onerror)handlers.onerror({error:String(error)});return false;}};" +
                 "window.rhiaAcceptOfflineText=function(text){Promise.resolve(handle(text)).catch(function(error){console.error('RHIA offline handoff',error);});return true;};" +
                 "var mic=document.getElementById('mic');if(mic)mic.style.display='none';" +
                 "var stage=document.getElementById('stage');if(stage&&!stage.dataset.rhiaOffline){stage.dataset.rhiaOffline='1';stage.style.touchAction='manipulation';stage.addEventListener('click',function(event){if(event.target.closest&&event.target.closest('button'))return;RHIAAndroid.toggleOfflineListening();},false);}" +
                 "var oldButton=document.getElementById('speechInputTest');if(oldButton&&oldButton.parentNode){var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.textContent='Offline-Sprache testen';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();RHIAAndroid.toggleOfflineListening();},false);}" +
                 "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale deutsche Spracherkennung · App v" + BuildConfig.VERSION_NAME + "';" +
-                "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Keine Aufnahme wird hochgeladen';" +
+                "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Sprachausgabe bereit';" +
+                "var voiceTest=document.getElementById('voiceTest');if(voiceTest)voiceTest.onclick=function(event){event.preventDefault();RHIAAndroid.testLocalVoice();};" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
                 "})();";
         web.evaluateJavascript(script, null);
@@ -162,6 +171,47 @@ public final class MainActivity extends Activity implements RecognitionListener 
         @JavascriptInterface public void toggleOfflineListening() {
             runOnUiThread(MainActivity.this::toggleOfflineListening);
         }
+
+        @JavascriptInterface public void speakText(String text) {
+            runOnUiThread(() -> speakNative(text, "rhia-answer"));
+        }
+
+        @JavascriptInterface public void testLocalVoice() {
+            runOnUiThread(() -> {
+                if (speakNative("Sprachausgabe funktioniert, Sir.", "rhia-voice-test")) {
+                    setDiagnostic("SPRACHAUSGABE LÄUFT");
+                }
+            });
+        }
+    }
+
+    private void initNativeVoice() {
+        tts = new TextToSpeech(this, status -> {
+            if (status != TextToSpeech.SUCCESS) {
+                setDiagnostic("ANDROID-SPRACHAUSGABE KONNTE NICHT STARTEN");
+                return;
+            }
+            int language = tts.setLanguage(Locale.GERMANY);
+            ttsReady = language != TextToSpeech.LANG_MISSING_DATA
+                    && language != TextToSpeech.LANG_NOT_SUPPORTED;
+            if (ttsReady) {
+                tts.setSpeechRate(0.92f);
+                tts.setPitch(0.92f);
+            }
+        });
+    }
+
+    private boolean speakNative(String text, String utteranceId) {
+        if (!ttsReady || tts == null) {
+            setDiagnostic("ANDROID-SPRACHAUSGABE NICHT BEREIT");
+            setState("error", "SPRACHAUSGABE NICHT BEREIT");
+            return false;
+        }
+        String clean = text == null ? "" : text.trim();
+        if (clean.isBlank()) return false;
+        setState("speaking", "RHIA ANTWORTET");
+        return tts.speak(clean, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+                == TextToSpeech.SUCCESS;
     }
 
     private void toggleOfflineListening() {
@@ -271,8 +321,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private String normalizeRhiaName(String text) {
         if (text == null) return "";
-        return text.replaceAll(
+        String normalized = text.replaceAll(
                 "(?iu)\\b(?:rhia|ria|riha|rhea|rija|riah)\\b", "RHIA");
+        return normalized.replaceFirst("(?iu)^\\s*(?:ihr|hier)(?=\\s|$)", "RHIA");
     }
 
     private void deliverRecognizedText(String text) {
@@ -371,6 +422,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (model != null) {
             model.close();
             model = null;
+        }
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
         }
         web.removeJavascriptInterface("RHIAAndroid");
         web.destroy();
