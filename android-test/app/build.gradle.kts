@@ -1,3 +1,5 @@
+import java.net.URL
+
 plugins {
     id("com.android.application")
 }
@@ -40,7 +42,7 @@ val prepareGermanVoskModel by tasks.registering {
         val archive = layout.buildDirectory.file("vosk-model-small-de-0.15.zip").get().asFile
         archive.parentFile.mkdirs()
         if (!archive.isFile) {
-            java.net.URL("https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip")
+            URL("https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip")
                 .openStream().use { input ->
                     archive.outputStream().use { output -> input.copyTo(output) }
                 }
