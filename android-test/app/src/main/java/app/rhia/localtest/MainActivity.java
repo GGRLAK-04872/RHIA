@@ -39,6 +39,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private boolean listening;
     private boolean listenAfterPermission;
     private boolean modelLoading = true;
+    private boolean awaitingFinalResult;
+    private String latestRecognizedText = "";
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -144,6 +146,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
         String script = "javascript:(function(){" +
                 "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
                 "window.startSpeechRecognition=function(){};" +
+                "try{if(typeof state!=='undefined'&&state.settings){state.settings.browserVoice=true;if(typeof save==='function')save();if(typeof render==='function')render();}}catch(ignore){}" +
+                "window.rhiaAcceptOfflineText=function(text){Promise.resolve(handle(text)).catch(function(error){console.error('RHIA offline handoff',error);});return true;};" +
                 "var mic=document.getElementById('mic');if(mic)mic.style.display='none';" +
                 "var stage=document.getElementById('stage');if(stage&&!stage.dataset.rhiaOffline){stage.dataset.rhiaOffline='1';stage.style.touchAction='manipulation';stage.addEventListener('click',function(event){if(event.target.closest&&event.target.closest('button'))return;RHIAAndroid.toggleOfflineListening();},false);}" +
                 "var oldButton=document.getElementById('speechInputTest');if(oldButton&&oldButton.parentNode){var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.textContent='Offline-Sprache testen';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();RHIAAndroid.toggleOfflineListening();},false);}" +
@@ -187,6 +191,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
         }
 
         stopSpeechService();
+        awaitingFinalResult = false;
+        latestRecognizedText = "";
         try {
             Recognizer recognizer = new Recognizer(model, 16_000.0f);
             speechService = new SpeechService(recognizer, 16_000.0f);
@@ -207,9 +213,13 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void stopOfflineListening() {
         if (!listening) return;
         listening = false;
+        awaitingFinalResult = true;
         setDiagnostic("WIRD LOKAL AUSGEWERTET");
         setState("thinking", "LOKAL AUSWERTEN");
         if (speechService != null) speechService.stop();
+        web.postDelayed(() -> {
+            if (awaitingFinalResult) finishRecognition(latestRecognizedText);
+        }, 900L);
     }
 
     private void stopSpeechService() {
@@ -223,27 +233,46 @@ public final class MainActivity extends Activity implements RecognitionListener 
     @Override public void onPartialResult(String hypothesis) {
         String text = extractText(hypothesis);
         if (!text.isBlank()) {
-            runOnUiThread(() -> setDiagnostic("ERKANNT · " + text));
+            latestRecognizedText = text;
+            String displayText = normalizeRhiaName(text);
+            runOnUiThread(() -> setDiagnostic("ERKANNT · " + displayText));
         }
     }
 
     @Override public void onResult(String hypothesis) {
-        showRecognizedPreview(hypothesis);
+        String text = extractText(hypothesis);
+        if (!text.isBlank()) latestRecognizedText = text;
+        if (awaitingFinalResult) {
+            runOnUiThread(() -> finishRecognition(
+                    text.isBlank() ? latestRecognizedText : text));
+        } else if (!text.isBlank()) {
+            String displayText = normalizeRhiaName(text);
+            runOnUiThread(() -> setDiagnostic("ERKANNT · " + displayText));
+        }
     }
 
     @Override public void onFinalResult(String hypothesis) {
         String text = extractText(hypothesis);
-        runOnUiThread(() -> {
-            stopSpeechService();
-            deliverRecognizedText(text);
-        });
+        if (!text.isBlank()) latestRecognizedText = text;
+        runOnUiThread(() -> finishRecognition(
+                text.isBlank() ? latestRecognizedText : text));
     }
 
-    private void showRecognizedPreview(String hypothesis) {
-        String text = extractText(hypothesis);
-        if (!text.isBlank()) {
-            runOnUiThread(() -> setDiagnostic("ERKANNT · " + text));
+    private void finishRecognition(String text) {
+        if (!awaitingFinalResult && !listening) return;
+        awaitingFinalResult = false;
+        listening = false;
+        if (speechService != null) {
+            speechService.shutdown();
+            speechService = null;
         }
+        deliverRecognizedText(normalizeRhiaName(text));
+    }
+
+    private String normalizeRhiaName(String text) {
+        if (text == null) return "";
+        return text.replaceAll(
+                "(?iu)\\b(?:rhia|ria|riha|rhea|rija|riah)\\b", "RHIA");
     }
 
     private void deliverRecognizedText(String text) {
@@ -257,13 +286,21 @@ public final class MainActivity extends Activity implements RecognitionListener 
         setState("thinking", "RHIA VERARBEITET");
         String quotedText = JSONObject.quote(text);
         web.evaluateJavascript(
-                "(async function(){if(typeof handle!==\'function\')throw new Error(\'RHIA handle fehlt\');await handle(" +
-                        quotedText + ");})()",
-                result -> setDiagnostic("VERARBEITET · " + text));
+                "(function(){if(typeof window.rhiaAcceptOfflineText!==\'function\')return false;" +
+                        "return window.rhiaAcceptOfflineText(" + quotedText + ");})()",
+                result -> {
+                    if ("true".equals(result)) {
+                        setDiagnostic("ÜBERGEBEN · RHIA ANTWORTET");
+                    } else {
+                        setDiagnostic("ÜBERGABEFEHLER · RHIA-LOGIK NICHT BEREIT");
+                        setState("error", "ANTWORTLOGIK NICHT BEREIT");
+                    }
+                });
     }
 
     @Override public void onError(Exception error) {
         runOnUiThread(() -> {
+            awaitingFinalResult = false;
             stopSpeechService();
             setDiagnostic("ERKENNUNGSFEHLER · " + shortError(error));
             setState("error", "OFFLINE-ERKENNUNG FEHLGESCHLAGEN");
@@ -272,6 +309,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     @Override public void onTimeout() {
         runOnUiThread(() -> {
+            awaitingFinalResult = false;
             stopSpeechService();
             setDiagnostic("ZEIT ABGELAUFEN · ERNEUT VERSUCHEN");
             setState("", "OFFLINE BEREIT");
