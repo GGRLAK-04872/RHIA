@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090306">
-<title>RHIA Alpha v0.16.1</title>
+<title>RHIA Alpha v0.16.2</title>
 <style>
 :root{--a:#8f1738;--b:#ff6d88;--c:#390817;--rgb:143,23,56;--bg:#050204;--panel:rgba(27,5,12,.82);--text:#fff7fa;--muted:#b99aa5;--line:rgba(255,109,136,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030102;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit}
@@ -23,7 +23,7 @@ main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px;positio
 .drawer{position:fixed;inset:0 0 0 auto;width:min(430px,100%);background:#090307;border-left:1px solid var(--line);z-index:20;transform:translateX(100%);transition:.3s;padding:22px;overflow:auto}.drawer.open{transform:none}.drawerhead{display:flex;justify-content:space-between;align-items:center}.drawerhead button{border:1px solid var(--line);background:none;border-radius:50%;width:40px;height:40px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03)}.tabs button.active{background:var(--a)}.tab{display:none}.tab.active{display:block}.item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:11px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:rgba(255,255,255,.025)}.item.done .txt{text-decoration:line-through;color:var(--muted)}.actions button{border:0;background:none;color:var(--b);padding:5px}.empty{color:var(--muted);padding:16px 0}.switches button,.worlds button,.colors button{width:100%;margin:5px 0;padding:11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025);text-align:left}.worlds button.active,.colors button.active{background:rgba(var(--rgb),.22)}.speech-state{display:flex;align-items:center;gap:9px;margin:3px 3px 8px;color:var(--text);font-size:13px}.speech-state-dot{width:7px;height:7px;border-radius:50%;background:#84757b;box-shadow:0 0 0 transparent}.speech-state-dot[data-state="ready"]{background:#74d594;box-shadow:0 0 12px rgba(116,213,148,.65)}.speech-state-dot[data-state="active"]{background:var(--b);box-shadow:0 0 15px var(--b);animation:pulseSpeechDot 1s ease-in-out infinite}.speech-state-dot[data-state="error"]{background:#ff795f;box-shadow:0 0 12px rgba(255,121,95,.65)}@keyframes pulseSpeechDot{50%{opacity:.42;transform:scale(.72)}}.voice-hint,.voice-test-status{display:block;min-height:18px;margin:7px 3px 10px;color:var(--muted);font-size:12px;line-height:1.45}.voice-hint{margin-bottom:12px;color:#d3b6c0}
 footer{display:flex;justify-content:space-between;align-items:center;padding:0 28px;z-index:4;color:var(--muted);font-size:10px;letter-spacing:2px}.version b{color:var(--b)}.clock{text-align:right}.clock strong{display:block;color:var(--text);font-size:18px;letter-spacing:1px}.clock span{font-size:9px}
 @media(max-width:850px){.app{grid-template-rows:64px auto 40px}header{padding:12px 15px}.topstate{display:none}.worldtop{display:none}main{display:block}.stage{min-height:74vh}.panel{border-left:0;border-top:1px solid var(--line);padding:20px}.core{width:min(76vw,430px)}.answer{top:30px}.inputline{bottom:125px}.voicezone{bottom:20px}.stats{grid-template-columns:1fr 1fr;gap:0 16px}.stage:after{display:none}footer{padding:0 15px}}
-@media(max-width:600px){
+@media(max-width:600px),(hover:none) and (pointer:coarse) and (max-width:1600px){
 html,body{height:100%;overflow:hidden;background:#020102}
 body{overscroll-behavior:none}
 .app{display:block;width:100%;height:100dvh;min-height:100svh;background:radial-gradient(ellipse at 50% 39%,rgba(var(--rgb),.11),transparent 46%),linear-gradient(180deg,#030102,#010001)}
@@ -46,6 +46,13 @@ main{display:block;width:100%;height:100%;min-height:0}
 .mobile-menu-dot:active{background:rgba(var(--rgb),.18);transform:scale(.94)}
 .drawer{width:100%;padding:max(22px,env(safe-area-inset-top)) 20px max(28px,env(safe-area-inset-bottom));background:rgba(9,3,7,.985);-webkit-overflow-scrolling:touch}
 }
+@media(min-width:601px) and (hover:none) and (pointer:coarse) and (max-width:1600px){
+.core{top:40%;width:min(72vw,68dvh,720px)}
+.voicezone{bottom:max(24px,calc(env(safe-area-inset-bottom) + 18px))}
+.mic{width:84px;height:84px;font-size:34px}
+.mobile-menu-dot{width:46px;height:46px;top:max(16px,calc(env(safe-area-inset-top) + 10px));right:max(16px,calc(env(safe-area-inset-right) + 10px))}
+.drawer{width:min(480px,100%);border-left:1px solid var(--line)}
+}
 </style>
 </head>
 <body>
@@ -54,11 +61,11 @@ main{display:block;width:100%;height:100%;min-height:0}
 <header><div class="logo"><strong>RHIA</strong><span>RH INTELLIGENT ASSISTANT</span></div><div class="topstate"><i class="dot"></i><span id="topState">BEREIT</span></div><div class="headright"><div class="worldtop">WELT<b id="worldTop">ALLGEMEIN</b></div><button class="menu" id="menuBtn">☰</button></div></header>
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic" type="button" aria-label="Mikrofon aktivieren">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
-<footer><div class="version">ALPHA <b>V0.16.1</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
+<footer><div class="version">ALPHA <b>V0.16.2</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <script>
 "use strict";
-const VERSION="0.16.1",API="/api/chat";
+const VERSION="0.16.2",API="/api/chat";
 const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",ideas:"rhia_ideas_v09",memories:"rhia_memories_v011",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
@@ -110,9 +117,11 @@ $("voiceToggle").onclick=()=>{state.settings.browserVoice=!state.settings.browse
 $("voiceTest").onclick=testBrowserVoice;
 let menuHoldTimer=0;
 const cancelMenuHold=()=>{clearTimeout(menuHoldTimer);menuHoldTimer=0};
-$("stage").addEventListener("pointerdown",e=>{if(innerWidth>600||e.target.closest("#mic"))return;cancelMenuHold();menuHoldTimer=setTimeout(()=>openDrawerTab(),700)});
+const compactViewMedia=window.matchMedia?.("(max-width:600px), (hover:none) and (pointer:coarse) and (max-width:1600px)");
+const isCompactView=()=>compactViewMedia?.matches??innerWidth<=600;
+$("stage").addEventListener("pointerdown",e=>{if(!isCompactView()||e.target.closest("#mic"))return;cancelMenuHold();menuHoldTimer=setTimeout(()=>openDrawerTab(),700)});
 $("stage").addEventListener("pointerup",cancelMenuHold);$("stage").addEventListener("pointercancel",cancelMenuHold);$("stage").addEventListener("pointerleave",cancelMenuHold);
-$("stage").addEventListener("contextmenu",e=>{if(innerWidth<=600)e.preventDefault()});
+$("stage").addEventListener("contextmenu",e=>{if(isCompactView())e.preventDefault()});
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 if(SR){
   speechRecognizer=new SR();
@@ -156,7 +165,7 @@ function project3(point,g,R){
   return{x:g.x+point.x*R*perspective,y:g.y+point.y*R*perspective,z:point.z,scale:perspective,depth:clamp((point.z+1.45)/2.9)};
 }
 function resize(){
-  const rect=cv.getBoundingClientRect(),mobile=rect.width<=600,d=Math.min(devicePixelRatio||1,mobile?1.5:2);
+  const rect=cv.getBoundingClientRect(),mobile=isCompactView(),d=Math.min(devicePixelRatio||1,mobile?1.5:2);
   cv.width=Math.max(1,Math.round(rect.width*d));cv.height=Math.max(1,Math.round(rect.height*d));cx.setTransform(d,0,0,d,0,0);
   particles=mobile?Array.from({length:380},()=>{
     const v=unitVector(),outer=Math.random()>.76,radius=outer?random(1.02,1.56):(Math.random()>.25?random(.62,1.11):Math.cbrt(Math.random())*.86);
@@ -474,7 +483,7 @@ function drawOrganism(time,now){
 }
 function anim(now=0){
   const rect=cv.getBoundingClientRect();cx.clearRect(0,0,rect.width,rect.height);
-  const time=now*.001;if(rect.width<=600)drawOrganism(time,now);else drawAmbient(rect,time);
+  const time=now*.001;if(isCompactView())drawOrganism(time,now);else drawAmbient(rect,time);
   requestAnimationFrame(anim);
 }
 addEventListener("resize",resize);applyTheme(state.settings.colorTheme);resize();anim();render();
