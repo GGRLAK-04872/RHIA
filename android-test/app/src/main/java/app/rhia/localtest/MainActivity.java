@@ -25,17 +25,13 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.json.JSONObject;
 
 public final class MainActivity extends Activity implements RecognitionListener {
     private static final int MIC_PERMISSION = 41;
     private static final long MAX_LISTENING_MS = 10_000L;
     private static final String UI_URL = "https://ggrlak-04872.github.io/RHIA/";
     private static final String UI_FILE = "rhia-ui.html";
-    private static final Pattern JSON_TEXT =
-            Pattern.compile("\\\"text\\\"\\s*:\\s*\\\"((?:\\\\.|[^\\\"])*)\\\"");
-
     private WebView web;
     private TextView diagnostic;
     private Model model;
@@ -271,13 +267,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private String extractText(String json) {
         if (json == null) return "";
-        Matcher matcher = JSON_TEXT.matcher(json);
-        if (!matcher.find()) return "";
-        return matcher.group(1)
-                .replace("\\n", " ")
-                .replace("\\\"", "\\"")
-                .replace("\\\\", "\\")
-                .trim();
+        try {
+            return new JSONObject(json).optString("text", "").trim();
+        } catch (Exception ignored) {
+            return "";
+        }
     }
 
     private String shortError(Exception error) {
