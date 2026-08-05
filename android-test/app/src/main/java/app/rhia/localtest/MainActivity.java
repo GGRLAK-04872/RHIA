@@ -13,6 +13,11 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.content.Intent;
+import android.graphics.Color;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,6 +35,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private static final String UI_URL = "https://ggrlak-04872.github.io/RHIA/";
     private static final String UI_FILE = "rhia-ui.html";
     private WebView web;
+    private TextView diagnostic;
     private SpeechRecognizer recognizer;
     private TextToSpeech tts;
     private boolean ttsOfflineReady;
@@ -49,7 +55,20 @@ public final class MainActivity extends Activity implements RecognitionListener 
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) { installNativeBridge(); }
         });
-        setContentView(web);
+        FrameLayout root = new FrameLayout(this);
+        root.addView(web, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        diagnostic = new TextView(this);
+        diagnostic.setTextColor(Color.WHITE);
+        diagnostic.setBackgroundColor(0xdd5b1025);
+        diagnostic.setTextSize(13);
+        diagnostic.setGravity(Gravity.CENTER);
+        diagnostic.setPadding(16, 10, 16, 10);
+        diagnostic.setText("DIAGNOSE 0.11 · BEREIT");
+        FrameLayout.LayoutParams diagnosticLayout = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        root.addView(diagnostic, diagnosticLayout);
+        setContentView(root);
         initLocalVoice();
         loadLatestApprovedUi();
     }
@@ -107,6 +126,10 @@ public final class MainActivity extends Activity implements RecognitionListener 
         @JavascriptInterface public void testLocalVoice() { runOnUiThread(MainActivity.this::testLocalVoice); }
     }
 
+    private void setDiagnostic(String message) {
+        if (diagnostic != null) diagnostic.setText("DIAGNOSE 0.11 · " + message);
+    }
+
     private void setState(String mode, String message) {
         String safe = message.replace("\\", "\\\\").replace("'", "\\'");
         web.evaluateJavascript("window.rhiaAndroidState&&window.rhiaAndroidState('" + mode + "','" + safe + "')", null);
@@ -116,14 +139,17 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (recognitionInProgress) return;
         listeningRequested = true;
         recognitionInProgress = true;
+        setDiagnostic("START ANGEFORDERT");
         setState("thinking", "MIKROFON WIRD GESTARTET");
         if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
             recognitionInProgress = false;
+            setDiagnostic("FEHLER · ON-DEVICE-DIENST NICHT VERFÜGBAR");
             setState("error", "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT");
             return;
         }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             recognitionInProgress = false;
+            setDiagnostic("MIKROFON-BERECHTIGUNG ANGEFORDERT");
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION);
             return;
         }
@@ -151,6 +177,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (!listeningRequested) return;
         recognitionInProgress = true;
         setState("listening", "ZUHÖREN");
+        setDiagnostic("STARTLISTENING AUFGERUFEN");
         recognizer.startListening(germanRecognitionIntent());
     }
 
@@ -199,6 +226,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     @Override public void onResults(Bundle bundle) {
+        setDiagnostic("ERGEBNIS EMPFANGEN");
         recognitionInProgress = false;
         ArrayList<String> choices = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         boolean matched = choices != null && choices.stream().anyMatch(MainActivity::isWakeWord);
@@ -216,6 +244,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     @Override public void onError(int error) {
+        setDiagnostic("FEHLER · CODE " + error);
         if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
             setState("listening", "WEITER ZUHÖREN");
             continueListening(250);
@@ -237,9 +266,18 @@ public final class MainActivity extends Activity implements RecognitionListener 
         };
         setState("error", message);
     }
-    @Override public void onReadyForSpeech(Bundle params) { setState("listening", "JETZT SPRECHEN"); }
-    @Override public void onBeginningOfSpeech() { setState("listening", "SPRACHE ERKANNT"); }
-    @Override public void onEndOfSpeech() { setState("thinking", "LOKAL AUSWERTEN"); }
+    @Override public void onReadyForSpeech(Bundle params) {
+        setDiagnostic("BEREIT ZUM SPRECHEN");
+        setState("listening", "JETZT SPRECHEN");
+    }
+    @Override public void onBeginningOfSpeech() {
+        setDiagnostic("SPRACHBEGINN ERKANNT");
+        setState("listening", "SPRACHE ERKANNT");
+    }
+    @Override public void onEndOfSpeech() {
+        setDiagnostic("SPRACHENDE ERKANNT");
+        setState("thinking", "LOKAL AUSWERTEN");
+    }
     @Override public void onRmsChanged(float rmsdB) {}
     @Override public void onBufferReceived(byte[] buffer) {}
     @Override public void onPartialResults(Bundle partialResults) {
