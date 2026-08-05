@@ -3,14 +3,13 @@ package app.rhia.localtest;
 import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.content.Intent;
-import android.graphics.Color;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -23,20 +22,25 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-public final class MainActivity extends Activity implements RecognitionListener {
+public final class MainActivity extends Activity {
     private static final int MIC_PERMISSION = 41;
+    private static final long MAX_RECORDING_MS = 10_000L;
     private static final String UI_URL = "https://ggrlak-04872.github.io/RHIA/";
     private static final String UI_FILE = "rhia-ui.html";
+
     private WebView web;
     private TextView diagnostic;
-    private SpeechRecognizer recognizer;
-    private boolean recognitionInProgress;
-    private boolean diagnosticStartIssued;
+    private MediaRecorder recorder;
+    private MediaPlayer player;
+    private File recordingFile;
+    private boolean recording;
+    private boolean recordAfterPermission;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         getWindow().setStatusBarColor(0xff030102);
         getWindow().setNavigationBarColor(0xff030102);
+
         web = new WebView(this);
         web.setBackgroundColor(0xff030102);
         web.getSettings().setJavaScriptEnabled(true);
@@ -45,22 +49,24 @@ public final class MainActivity extends Activity implements RecognitionListener 
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 installNativeBridge();
-                web.postDelayed(MainActivity.this::startSingleDiagnostic, 500);
             }
         });
+
         FrameLayout root = new FrameLayout(this);
         root.addView(web, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
         diagnostic = new TextView(this);
         diagnostic.setTextColor(Color.WHITE);
         diagnostic.setBackgroundColor(0xdd5b1025);
         diagnostic.setTextSize(13);
         diagnostic.setGravity(Gravity.CENTER);
         diagnostic.setPadding(16, 10, 16, 10);
-        diagnostic.setText("DIAGNOSE " + BuildConfig.VERSION_NAME + " · BEREIT");
+        diagnostic.setText("AUFNAHMETEST " + BuildConfig.VERSION_NAME + " · RHIA ANTIPPEN");
         FrameLayout.LayoutParams diagnosticLayout = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
         root.addView(diagnostic, diagnosticLayout);
+
         setContentView(root);
         loadLatestApprovedUi();
     }
@@ -70,20 +76,29 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (cached.isFile()) loadUi(cached);
         new Thread(() -> {
             try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(UI_URL + "?android-ui=" + System.currentTimeMillis()).openConnection();
+                HttpURLConnection connection = (HttpURLConnection) new URL(
+                        UI_URL + "?android-ui=" + System.currentTimeMillis()).openConnection();
                 connection.setConnectTimeout(6000);
                 connection.setReadTimeout(9000);
                 connection.setRequestProperty("Accept", "text/html");
-                if (connection.getResponseCode() != 200) throw new IllegalStateException("HTTP " + connection.getResponseCode());
+                if (connection.getResponseCode() != 200) {
+                    throw new IllegalStateException("HTTP " + connection.getResponseCode());
+                }
                 byte[] bytes;
-                try (InputStream input = connection.getInputStream()) { bytes = input.readAllBytes(); }
+                try (InputStream input = connection.getInputStream()) {
+                    bytes = input.readAllBytes();
+                }
                 String html = new String(bytes, StandardCharsets.UTF_8);
                 if (!html.contains("RH INTELLIGENT ASSISTANT") || !html.contains("id=\"canvas\"")) {
                     throw new IllegalStateException("Ungültige RHIA-Oberfläche");
                 }
                 File temporary = new File(getFilesDir(), UI_FILE + ".new");
-                try (FileOutputStream output = new FileOutputStream(temporary)) { output.write(bytes); }
-                if (!temporary.renameTo(cached)) throw new IllegalStateException("Oberfläche konnte nicht gespeichert werden");
+                try (FileOutputStream output = new FileOutputStream(temporary)) {
+                    output.write(bytes);
+                }
+                if (!temporary.renameTo(cached)) {
+                    throw new IllegalStateException("Oberfläche konnte nicht gespeichert werden");
+                }
                 runOnUiThread(() -> loadUi(cached));
             } catch (Exception ignored) {
                 if (!cached.isFile()) runOnUiThread(() -> web.loadUrl(UI_URL));
@@ -93,133 +108,195 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private void loadUi(File file) {
         try {
-            String html = new String(java.nio.file.Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+            String html = new String(
+                    java.nio.file.Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
             web.loadDataWithBaseURL(UI_URL, html, "text/html", "UTF-8", UI_URL);
-        } catch (Exception ignored) { web.loadUrl(UI_URL); }
+        } catch (Exception ignored) {
+            web.loadUrl(UI_URL);
+        }
     }
 
     private void installNativeBridge() {
         String script = "javascript:(function(){" +
                 "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
-                "function bindNativeButton(id,action){var oldButton=document.getElementById(id);if(!oldButton||!oldButton.parentNode)return null;var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.removeAttribute('disabled');button.style.touchAction='manipulation';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();action();},false);return button;}" +
-                "window.startSpeechRecognition=function(){};window.testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};" +
+                "window.startSpeechRecognition=function(){};" +
                 "var mic=document.getElementById('mic');if(mic)mic.style.display='none';" +
-                "var inputTest=document.getElementById('speechInputTest');if(inputTest){inputTest.disabled=true;inputTest.textContent='Diagnose startet automatisch';}" +
+                "var stage=document.getElementById('stage');if(stage&&!stage.dataset.rhiaRecorder){stage.dataset.rhiaRecorder='1';stage.style.touchAction='manipulation';stage.addEventListener('click',function(event){if(event.target.closest&&event.target.closest('button'))return;RHIAAndroid.toggleRecording();},false);}" +
+                "var oldButton=document.getElementById('speechInputTest');if(oldButton&&oldButton.parentNode){var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.textContent='Audioaufnahme testen';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();RHIAAndroid.toggleRecording();},false);}" +
                 "var voiceTest=document.getElementById('voiceTest');if(voiceTest)voiceTest.disabled=true;" +
-                "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Einmaliger nativer Android-Test · App v" + BuildConfig.VERSION_NAME + "';" +
-                "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Sprachausgabe für Diagnose ausgeschaltet';" +
+                "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Direkte Audioaufnahme ohne Android-Spracherkennung · App v" + BuildConfig.VERSION_NAME + "';" +
+                "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Transkription folgt nach erfolgreichem Aufnahmetest';" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
                 "})();";
         web.evaluateJavascript(script, null);
     }
 
-    public final class AndroidBridge {}
+    public final class AndroidBridge {
+        @JavascriptInterface public void toggleRecording() {
+            runOnUiThread(MainActivity.this::toggleRecording);
+        }
+    }
 
     private void setDiagnostic(String message) {
-        if (diagnostic != null) diagnostic.setText("DIAGNOSE " + BuildConfig.VERSION_NAME + " · " + message);
+        if (diagnostic != null) {
+            diagnostic.setText("AUFNAHMETEST " + BuildConfig.VERSION_NAME + " · " + message);
+        }
     }
 
     private void setState(String mode, String message) {
         String safe = message.replace("\\", "\\\\").replace("'", "\\'");
-        web.evaluateJavascript("window.rhiaAndroidState&&window.rhiaAndroidState('" + mode + "','" + safe + "')", null);
+        web.evaluateJavascript(
+                "window.rhiaAndroidState&&window.rhiaAndroidState('" + mode + "','" + safe + "')",
+                null);
     }
 
-    private void startSingleDiagnostic() {
-        if (diagnosticStartIssued) return;
-        diagnosticStartIssued = true;
-        setDiagnostic("01 · EINMALIGER START");
-        startListening();
+    private void toggleRecording() {
+        if (recording) {
+            stopRecordingAndPlay();
+        } else {
+            startRecording();
+        }
     }
 
-    private void startListening() {
-        if (recognitionInProgress) {
-            setDiagnostic("ABBRUCH · INTERN BEREITS AKTIV");
-            return;
-        }
-        setDiagnostic("02 · VERFÜGBARKEIT PRÜFEN");
-        setState("thinking", "EINMALIGER SPRACHTEST");
-        if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
-            setDiagnostic("FEHLER · ON-DEVICE-DIENST NICHT VERFÜGBAR");
-            setState("error", "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT");
-            return;
-        }
-        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            setDiagnostic("03 · MIKROFON-BERECHTIGUNG");
+    private void startRecording() {
+        stopPlayback();
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED) {
+            recordAfterPermission = true;
+            setDiagnostic("MIKROFON-BERECHTIGUNG");
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION);
             return;
         }
-        setDiagnostic("04 · ERKENNER ERSTELLEN");
-        recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
-        recognizer.setRecognitionListener(this);
-        recognitionInProgress = true;
-        setDiagnostic("05 · STARTLISTENING EINMAL");
-        setState("listening", "JETZT SPRECHEN");
-        recognizer.startListening(germanRecognitionIntent());
+
+        try {
+            recordingFile = new File(getCacheDir(), "rhia-recording.m4a");
+            if (recordingFile.exists() && !recordingFile.delete()) {
+                throw new IllegalStateException("Alte Aufnahme konnte nicht ersetzt werden");
+            }
+
+            recorder = new MediaRecorder();
+            recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            recorder.setAudioEncodingBitRate(96_000);
+            recorder.setAudioSamplingRate(44_100);
+            recorder.setOutputFile(recordingFile.getAbsolutePath());
+            recorder.prepare();
+            recorder.start();
+            recording = true;
+
+            setDiagnostic("AUFNAHME LÄUFT · NOCHMAL TIPPEN ZUM STOPPEN");
+            setState("listening", "AUFNAHME LÄUFT");
+            web.postDelayed(() -> {
+                if (recording) stopRecordingAndPlay();
+            }, MAX_RECORDING_MS);
+        } catch (Exception error) {
+            releaseRecorder();
+            setDiagnostic("FEHLER BEIM AUFNAHMESTART");
+            setState("error", "AUFNAHME KONNTE NICHT STARTEN");
+        }
     }
 
-    private Intent germanRecognitionIntent() {
-        return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
-                .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+    private void stopRecordingAndPlay() {
+        if (!recording || recorder == null) return;
+
+        try {
+            recorder.stop();
+            long bytes = recordingFile != null && recordingFile.isFile()
+                    ? recordingFile.length() : 0L;
+            releaseRecorder();
+
+            if (bytes < 1000L) {
+                setDiagnostic("AUFNAHME ZU KURZ · ERNEUT VERSUCHEN");
+                setState("error", "AUFNAHME ZU KURZ");
+                return;
+            }
+
+            setDiagnostic("GESPEICHERT · " + (bytes / 1024L) + " KB · WIEDERGABE");
+            setState("speaking", "AUFNAHME WIRD ABGESPIELT");
+            playRecording();
+        } catch (RuntimeException error) {
+            releaseRecorder();
+            setDiagnostic("AUFNAHME ZU KURZ ODER UNGÜLTIG");
+            setState("error", "BITTE ETWAS LÄNGER SPRECHEN");
+        }
     }
 
-    private void releaseRecognizer() {
-        if (recognizer == null) return;
-        recognizer.cancel();
-        recognizer.destroy();
-        recognizer = null;
+    private void playRecording() {
+        stopPlayback();
+        try {
+            player = new MediaPlayer();
+            player.setDataSource(recordingFile.getAbsolutePath());
+            player.setOnCompletionListener(completed -> {
+                stopPlayback();
+                setDiagnostic("ERFOLG · RHIA ANTIPPEN FÜR NEUEN TEST");
+                setState("", "AUFNAHME FUNKTIONIERT");
+            });
+            player.setOnErrorListener((failed, what, extra) -> {
+                stopPlayback();
+                setDiagnostic("AUFNAHME GESPEICHERT · WIEDERGABE FEHLGESCHLAGEN");
+                setState("error", "WIEDERGABE FEHLGESCHLAGEN");
+                return true;
+            });
+            player.prepare();
+            player.start();
+        } catch (Exception error) {
+            stopPlayback();
+            setDiagnostic("AUFNAHME GESPEICHERT · WIEDERGABE FEHLGESCHLAGEN");
+            setState("error", "WIEDERGABE FEHLGESCHLAGEN");
+        }
     }
 
-    @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
+    private void releaseRecorder() {
+        recording = false;
+        if (recorder == null) return;
+        try {
+            recorder.reset();
+        } catch (RuntimeException ignored) {}
+        recorder.release();
+        recorder = null;
+    }
+
+    private void stopPlayback() {
+        if (player == null) return;
+        try {
+            if (player.isPlaying()) player.stop();
+        } catch (IllegalStateException ignored) {}
+        player.release();
+        player = null;
+    }
+
+    @Override public void onRequestPermissionsResult(
+            int code, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(code, permissions, results);
-        if (code == MIC_PERMISSION && results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
-            setDiagnostic("03 · BERECHTIGUNG ERTEILT");
-            startListening();
+        if (code != MIC_PERMISSION) return;
+
+        boolean granted = results.length > 0
+                && results[0] == PackageManager.PERMISSION_GRANTED;
+        if (granted && recordAfterPermission) {
+            recordAfterPermission = false;
+            startRecording();
         } else {
-            setDiagnostic("FEHLER · MIKROFONZUGRIFF FEHLT");
+            recordAfterPermission = false;
+            setDiagnostic("MIKROFONZUGRIFF FEHLT");
             setState("error", "MIKROFONZUGRIFF FEHLT");
         }
     }
 
-    @Override public void onResults(Bundle bundle) {
-        recognitionInProgress = false;
-        setDiagnostic("ERGEBNIS EMPFANGEN · TEST BEENDET");
-        setState("", "DIAGNOSE BEENDET");
+    @Override protected void onPause() {
+        if (recording) {
+            try {
+                recorder.stop();
+            } catch (RuntimeException ignored) {}
+            releaseRecorder();
+        }
+        stopPlayback();
+        super.onPause();
     }
-
-    @Override public void onError(int error) {
-        recognitionInProgress = false;
-        setDiagnostic("FEHLER · CODE " + error + " · TEST BEENDET");
-        setState("error", "ANDROID-FEHLER · CODE " + error);
-    }
-
-    @Override public void onReadyForSpeech(Bundle params) {
-        setDiagnostic("06 · BEREIT ZUM SPRECHEN");
-        setState("listening", "JETZT SPRECHEN");
-    }
-
-    @Override public void onBeginningOfSpeech() {
-        setDiagnostic("07 · SPRACHBEGINN ERKANNT");
-        setState("listening", "SPRACHE ERKANNT");
-    }
-
-    @Override public void onEndOfSpeech() {
-        setDiagnostic("08 · SPRACHENDE ERKANNT");
-        setState("thinking", "LOKAL AUSWERTEN");
-    }
-
-    @Override public void onRmsChanged(float rmsdB) {}
-    @Override public void onBufferReceived(byte[] buffer) {}
-    @Override public void onPartialResults(Bundle partialResults) {
-        setDiagnostic("07 · TEILERGEBNIS EMPFANGEN");
-    }
-    @Override public void onEvent(int eventType, Bundle params) {}
 
     @Override protected void onDestroy() {
-        releaseRecognizer();
+        releaseRecorder();
+        stopPlayback();
         web.removeJavascriptInterface("RHIAAndroid");
         web.destroy();
         super.onDestroy();
