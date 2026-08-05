@@ -1,4 +1,4 @@
-# RHIA Android Hybrid Test v0.5
+# RHIA Android Hybrid Test v0.7
 
 Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprachzentrum.
 
@@ -13,6 +13,7 @@ Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprach
 - Ab Android 13 prüft sie, ob das deutsche On-Device-Modell installiert ist, und stößt bei Bedarf dessen lokalen Modelldownload an.
 - Android-Fehler 11 wird als getrennter lokaler Sprachdienst erkannt; RHIA verbindet den Dienst einmal automatisch neu.
 - Mikrofontaste und Stimmtest werden in der App ausschließlich an Android weitergeleitet; Browser-Sprachfunktionen werden dort nicht mehr ausgelöst.
+- Die Mikrofontaste reagiert in Android-WebViews direkt auf Pointer- und Touch-Ende; eine kurze Entprellung verhindert Doppelstarts.
 - Ein Antippen löst nur noch einen Erkennungsstart aus; weitere Startsignale werden bis zum Ergebnis ignoriert.
 - Die App zeigt ihre native Versionsnummer bei der lokalen Spracherkennung an; Release-Titel und App lesen dieselbe zentrale Versionsnummer, damit sie bei Updates übereinstimmen.
 - Bei erkanntem „Rhia“ antwortet sie mit „Ja, Sir?“.
