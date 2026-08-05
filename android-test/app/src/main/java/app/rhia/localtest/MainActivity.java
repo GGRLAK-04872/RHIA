@@ -288,6 +288,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
         setState("error", message);
     }
     @Override public void onReadyForSpeech(Bundle params) {
+        busyRetryAttempted = false;
         setDiagnostic("BEREIT ZUM SPRECHEN");
         setState("listening", "JETZT SPRECHEN");
     }
