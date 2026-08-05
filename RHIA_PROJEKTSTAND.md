@@ -34,6 +34,36 @@ Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sort
 
 ## Aktueller verbindlicher Stand
 
+### 05.08.2026 – Audioänderung getestet; Android-App-Updates vereinfachen
+
+**Bereich:** Android-App / Sprachzentrum / Aktualisierung
+
+**Änderung:**
+
+- Der lokale Android-Sprachdienst verbindet sich bei Fehler 11 einmal neu.
+- Die Android-Testversion wurde auf **v0.3** erhöht.
+- Mike hat Änderungen am Audio beziehungsweise Sprachzentrum erfolgreich in einer neu installierten APK getestet.
+- Neue feste Anforderung: Android-/Audioänderungen dürfen künftig nicht mehr das Deinstallieren der alten App und die manuelle Installation einer weiteren App erfordern.
+- RHIA soll online nach einer freigegebenen neuen App-Version suchen, diese herunterladen und als normales Android-Update anbieten.
+- Reine Änderungen der zentralen Web-Oberfläche werden weiterhin ohne neue APK automatisch übernommen.
+
+**Test:**
+
+- Die neue App-Version wurde installiert.
+- Der Sprach-/Audiotest wurde von Mike durchgeführt und hat funktioniert.
+- Beim Wechsel auf die neue APK musste die alte App deinstalliert werden; dieser Ablauf ist als zu aufwändig abgelehnt.
+
+**Offen:**
+
+- Einen stabilen, versionsübergreifenden Signierschlüssel für alle künftigen APKs festlegen. Ohne identische Signatur behandelt Android einen neuen Build nicht als Update derselben App.
+- Einen sicheren Update-Mechanismus in RHIA einbauen: Versionsprüfung, Download einer freigegebenen APK und Übergabe an Androids Installationsbestätigung.
+- Prüfen, ob der aktuelle GitHub-Build bei jedem Lauf eine neue Debug-Signatur erzeugt; das wäre die wahrscheinliche Ursache für die nötige Deinstallation.
+- Android verlangt bei selbst verteilten APKs weiterhin eine sichtbare Bestätigung durch Mike; eine heimliche Installation ist nicht vorgesehen.
+
+**Nächster Schritt:**
+
+Den Android-Build dauerhaft signieren und danach den RHIA-App-Updater einbauen. Für die einmalige Umstellung auf die stabile Signatur kann noch eine letzte Neuinstallation nötig sein; anschließend sollen neue Versionen als Update über die bestehende RHIA-App installiert werden und ihre lokalen Daten behalten.
+
 ### 05.08.2026 – Android-App und gemeinsame Oberfläche
 
 **Bereich:** Android-App / Optik / Sprachzentrum
