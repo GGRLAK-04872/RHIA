@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090306">
-<title>RHIA Alpha v0.15.2</title>
+<title>RHIA Alpha v0.15.3</title>
 <style>
 :root{--a:#8f1738;--b:#ff6d88;--c:#390817;--rgb:143,23,56;--bg:#050204;--panel:rgba(27,5,12,.82);--text:#fff7fa;--muted:#b99aa5;--line:rgba(255,109,136,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030102;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit}
@@ -23,6 +23,43 @@ main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px;positio
 .drawer{position:fixed;inset:0 0 0 auto;width:min(430px,100%);background:#090307;border-left:1px solid var(--line);z-index:20;transform:translateX(100%);transition:.3s;padding:22px;overflow:auto}.drawer.open{transform:none}.drawerhead{display:flex;justify-content:space-between;align-items:center}.drawerhead button{border:1px solid var(--line);background:none;border-radius:50%;width:40px;height:40px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03)}.tabs button.active{background:var(--a)}.tab{display:none}.tab.active{display:block}.item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:11px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:rgba(255,255,255,.025)}.item.done .txt{text-decoration:line-through;color:var(--muted)}.actions button{border:0;background:none;color:var(--b);padding:5px}.empty{color:var(--muted);padding:16px 0}.switches button,.worlds button,.colors button{width:100%;margin:5px 0;padding:11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025);text-align:left}.worlds button.active,.colors button.active{background:rgba(var(--rgb),.22)}.voice-test-status{display:block;min-height:18px;margin:7px 3px 0;color:var(--muted);font-size:12px;line-height:1.4}
 footer{display:flex;justify-content:space-between;align-items:center;padding:0 28px;z-index:4;color:var(--muted);font-size:10px;letter-spacing:2px}.version b{color:var(--b)}.clock{text-align:right}.clock strong{display:block;color:var(--text);font-size:18px;letter-spacing:1px}.clock span{font-size:9px}
 @media(max-width:850px){.app{grid-template-rows:64px auto 40px}header{padding:12px 15px}.topstate{display:none}.worldtop{display:none}main{display:block}.stage{min-height:74vh}.panel{border-left:0;border-top:1px solid var(--line);padding:20px}.core{width:min(76vw,430px)}.answer{top:30px}.inputline{bottom:125px}.voicezone{bottom:20px}.stats{grid-template-columns:1fr 1fr;gap:0 16px}.stage:after{display:none}footer{padding:0 15px}}
+@media(max-width:600px){
+.app{grid-template-rows:60px auto 56px}
+header{padding:9px 15px}
+.logo strong{font-size:20px;letter-spacing:4px}
+.logo span{font-size:8px;letter-spacing:2.4px;margin-top:4px}
+.menu{width:40px;height:40px}
+.stage{min-height:500px;place-items:start center;padding-top:50px}
+.core{width:min(64vw,285px)}
+.core h1{font-size:clamp(32px,10vw,44px);letter-spacing:7px}
+.core p{margin-top:9px;font-size:11px;letter-spacing:3px}
+.answer{top:14px;width:calc(100% - 30px);padding:12px 14px;z-index:6}
+.answerText{font-size:14px}
+.inputline{bottom:126px;width:calc(100% - 32px);opacity:.32}
+.inputline input{min-width:0;padding:10px 12px}
+.inputline button{padding:0 14px}
+.voicezone{bottom:16px;width:100%}
+.wake{margin-bottom:9px;font-size:10px;letter-spacing:1.7px}
+.voicebar{gap:10px}
+.wave{width:min(22vw,88px);height:28px}
+.mic{width:76px;height:76px;font-size:31px}
+.panel{padding:22px 18px 24px}
+.greeting{margin-bottom:18px}
+.greeting h2{margin:17px 0;font-size:22px}
+.stats{gap:0 12px}
+.stat{grid-template-columns:36px minmax(0,1fr) auto;gap:8px;padding:12px 0}
+.icon{width:36px;height:36px;border-radius:11px}
+.stat span{font-size:10px;letter-spacing:.7px;white-space:nowrap}
+.stat b{font-size:17px}
+.panelbottom{margin-top:22px;padding-top:18px}
+.miniWave{margin-top:18px}
+footer{min-height:56px;gap:12px;padding:7px 14px}
+.version{flex:1;min-width:0;font-size:9px;line-height:1.35;letter-spacing:1.8px}
+.version span{font-size:8px;letter-spacing:1.4px;white-space:nowrap}
+.clock{flex:0 0 auto}
+.clock strong{font-size:17px}
+.clock span{font-size:8px;letter-spacing:1.1px;white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -30,11 +67,11 @@ footer{display:flex;justify-content:space-between;align-items:center;padding:0 2
 <header><div class="logo"><strong>RHIA</strong><span>RH INTELLIGENT ASSISTANT</span></div><div class="topstate"><i class="dot"></i><span id="topState">BEREIT</span></div><div class="headright"><div class="worldtop">WELT<b id="worldTop">ALLGEMEIN</b></div><button class="menu" id="menuBtn">☰</button></div></header>
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
-<footer><div class="version">ALPHA <b>V0.15.2</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
+<footer><div class="version">ALPHA <b>V0.15.3</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div><h3>Stimme</h3><div class="switches"><button id="voiceToggle">Browserstimme: aus</button><button id="voiceTest" type="button">Stimme testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div></div></div>
 <script>
 "use strict";
-const VERSION="0.15.2",API="/api/chat";
+const VERSION="0.15.3",API="/api/chat";
 const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",ideas:"rhia_ideas_v09",memories:"rhia_memories_v011",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
