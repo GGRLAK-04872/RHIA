@@ -184,4 +184,44 @@ public final class MainActivity extends Activity implements RecognitionListener 
         }
     }
 
+    @Override public void onResults(Bundle bundle) {
+        recognitionInProgress = false;
+        setDiagnostic("ERGEBNIS EMPFANGEN · TEST BEENDET");
+        setState("", "DIAGNOSE BEENDET");
+    }
 
+    @Override public void onError(int error) {
+        recognitionInProgress = false;
+        setDiagnostic("FEHLER · CODE " + error + " · TEST BEENDET");
+        setState("error", "ANDROID-FEHLER · CODE " + error);
+    }
+
+    @Override public void onReadyForSpeech(Bundle params) {
+        setDiagnostic("06 · BEREIT ZUM SPRECHEN");
+        setState("listening", "JETZT SPRECHEN");
+    }
+
+    @Override public void onBeginningOfSpeech() {
+        setDiagnostic("07 · SPRACHBEGINN ERKANNT");
+        setState("listening", "SPRACHE ERKANNT");
+    }
+
+    @Override public void onEndOfSpeech() {
+        setDiagnostic("08 · SPRACHENDE ERKANNT");
+        setState("thinking", "LOKAL AUSWERTEN");
+    }
+
+    @Override public void onRmsChanged(float rmsdB) {}
+    @Override public void onBufferReceived(byte[] buffer) {}
+    @Override public void onPartialResults(Bundle partialResults) {
+        setDiagnostic("07 · TEILERGEBNIS EMPFANGEN");
+    }
+    @Override public void onEvent(int eventType, Bundle params) {}
+
+    @Override protected void onDestroy() {
+        releaseRecognizer();
+        web.removeJavascriptInterface("RHIAAndroid");
+        web.destroy();
+        super.onDestroy();
+    }
+}
