@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
+import android.speech.RecognitionSupport;
+import android.speech.RecognitionSupportCallback;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -23,7 +25,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 
 public final class MainActivity extends Activity implements RecognitionListener {
     private static final int MIC_PERMISSION = 41;
@@ -34,6 +38,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private TextToSpeech tts;
     private boolean ttsOfflineReady;
     private boolean reconnectAttempted;
+    private boolean recognitionInProgress;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -88,9 +93,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void installNativeBridge() {
         String script = "javascript:(function(){if(window.__rhiaAndroid)return;window.__rhiaAndroid=true;" +
                 "function nativeTap(e){var target=e.target&&e.target.closest?e.target.closest('#mic,#voiceTest'):null;if(!target)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(target.id==='mic')RHIAAndroid.startLocalListening();else RHIAAndroid.testLocalVoice();}" +
-                "document.addEventListener('pointerdown',nativeTap,true);document.addEventListener('click',nativeTap,true);" +
+                "document.addEventListener('click',nativeTap,true);" +
                 "var mic=document.getElementById('mic');if(mic){mic.disabled=false;mic.removeAttribute('disabled');}" +
-                "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit';" +
+                "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit · App v" + BuildConfig.VERSION_NAME + "';" +
                 "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Stimme bereit zum Test';" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
                 "})();";
@@ -108,42 +113,78 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     private void startListening() {
+        if (recognitionInProgress) return;
+        recognitionInProgress = true;
         if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
+            recognitionInProgress = false;
             setState("error", "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT");
             return;
         }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            recognitionInProgress = false;
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION);
             return;
         }
-        if (recognizer != null) recognizer.destroy();
-        recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
-        recognizer.setRecognitionListener(this);
         reconnectAttempted = false;
-        startRecognizerSession();
+        checkGermanModelAndListen();
     }
 
-    private Intent localGermanIntent() {
+    private Intent germanRecognitionIntent() {
         return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "de-DE")
-                .putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true)
                 .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
     }
 
-    private void startRecognizerSession() {
-        setState("listening", "ZUHÖREN");
-        recognizer.startListening(localGermanIntent());
+    private void checkGermanModelAndListen() {
+        recreateRecognizer();
+        if (android.os.Build.VERSION.SDK_INT < 33) {
+            beginLocalRecognition();
+            return;
+        }
+        Executor mainExecutor = getMainExecutor();
+        recognizer.checkRecognitionSupport(germanRecognitionIntent(), mainExecutor, new RecognitionSupportCallback() {
+            @Override public void onSupportResult(RecognitionSupport support) {
+                List<String> installed = support.getInstalledOnDeviceLanguages();
+                if (containsGerman(installed)) {
+                    beginLocalRecognition();
+                    return;
+                }
+                List<String> supported = support.getSupportedOnDeviceLanguages();
+                if (containsGerman(supported)) {
+                    setState("thinking", "DEUTSCH LOKAL VORBEREITEN");
+                    recognizer.triggerModelDownload(germanRecognitionIntent());
+                    web.postDelayed(MainActivity.this::checkGermanModelAndListen, 2500);
+                    return;
+                }
+                recognitionInProgress = false;
+                setState("error", "DEUTSCHE OFFLINE-ERKENNUNG NICHT VERFÜGBAR");
+            }
+
+            @Override public void onError(int error) {
+                // Manche Samsung-Dienste unterstützen die Diagnose nicht, obwohl
+                // die eigentliche On-Device-Erkennung funktioniert.
+                beginLocalRecognition();
+            }
+        });
     }
 
-    private void reconnectLocalRecognizer() {
+    private static boolean containsGerman(List<String> languages) {
+        if (languages == null) return false;
+        return languages.stream().anyMatch(language ->
+                language != null && language.toLowerCase(Locale.ROOT).startsWith("de"));
+    }
+
+    private void recreateRecognizer() {
         if (recognizer != null) recognizer.destroy();
         recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
         recognizer.setRecognitionListener(this);
-        setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
-        web.postDelayed(this::startRecognizerSession, 450);
+    }
+
+    private void beginLocalRecognition() {
+        setState("listening", "ZUHÖREN");
+        recognizer.startListening(germanRecognitionIntent());
     }
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
@@ -180,6 +221,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     @Override public void onResults(Bundle bundle) {
+        recognitionInProgress = false;
         ArrayList<String> choices = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         boolean matched = choices != null && choices.stream().anyMatch(MainActivity::isWakeWord);
         if (matched) {
@@ -194,15 +236,18 @@ public final class MainActivity extends Activity implements RecognitionListener 
     @Override public void onError(int error) {
         if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED && !reconnectAttempted) {
             reconnectAttempted = true;
-            reconnectLocalRecognizer();
+            setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
+            web.postDelayed(() -> {
+                recreateRecognizer();
+                beginLocalRecognition();
+            }, 600);
             return;
         }
+        recognitionInProgress = false;
         String message = switch (error) {
             case SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "NICHTS ERKANNT";
-            case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE ->
-                    "DEUTSCHES OFFLINE-SPRACHMODELL FEHLT";
-            case SpeechRecognizer.ERROR_SERVER_DISCONNECTED ->
-                    "LOKALER SPRACHDIENST NICHT VERBUNDEN · ERNEUT TIPPEN";
+            case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT";
+            case SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> "LOKALER SPRACHDIENST GETRENNT · ERNEUT TIPPEN";
             default -> "LOKALER SPRACHTEST FEHLGESCHLAGEN · CODE " + error;
         };
         setState("error", message);
