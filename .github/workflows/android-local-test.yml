@@ -36,4 +36,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="android-test-${{ github.run_number }}"
-          gh release create "$TAG" RHIA-Android-Test.apk             --repo "${{ github.repository }}"             --title "RHIA Android Hybrid Test v0.2 (Build ${{ github.run_number }})"             --notes "Leitet Mikrofontaste und Stimmtest ausschließlich an Android weiter, damit keine Browser-Sprachfunktionen mehr dazwischenfunken."
+          gh release create "$TAG" RHIA-Android-Test.apk             --repo "${{ github.repository }}"             --title "RHIA Android Hybrid Test v0.4 (Build ${{ github.run_number }})"             --notes "Leitet Mikrofontaste und Stimmtest ausschließlich an Android weiter, damit keine Browser-Sprachfunktionen mehr dazwischenfunken."
