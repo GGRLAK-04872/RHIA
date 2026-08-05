@@ -92,9 +92,13 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private void installNativeBridge() {
         String script = "javascript:(function(){if(window.__rhiaAndroid)return;window.__rhiaAndroid=true;" +
+                "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
+                "try{startSpeechRecognition=function(testMode){if(testMode)RHIAAndroid.startLocalListening();else RHIAAndroid.startLocalListening();};testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};}catch(ignore){}" +
                 "function nativeTap(e){var target=e.target&&e.target.closest?e.target.closest('#mic,#voiceTest'):null;if(!target)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(target.id==='mic')RHIAAndroid.startLocalListening();else RHIAAndroid.testLocalVoice();}" +
                 "document.addEventListener('click',nativeTap,true);" +
-                "var mic=document.getElementById('mic');if(mic){mic.disabled=false;mic.removeAttribute('disabled');}" +
+                "var mic=document.getElementById('mic');if(mic){mic.onclick=null;mic.disabled=false;mic.removeAttribute('disabled');}" +
+                "var speechTest=document.getElementById('speechInputTest');if(speechTest){speechTest.onclick=function(e){e.preventDefault();RHIAAndroid.startLocalListening();};speechTest.disabled=false;speechTest.removeAttribute('disabled');}" +
+                "var voiceTest=document.getElementById('voiceTest');if(voiceTest)voiceTest.onclick=null;" +
                 "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit · App v" + BuildConfig.VERSION_NAME + "';" +
                 "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Stimme bereit zum Test';" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
@@ -134,6 +138,10 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
                 .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+                .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 4000L)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
+                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
     }
 
@@ -252,12 +260,15 @@ public final class MainActivity extends Activity implements RecognitionListener 
         };
         setState("error", message);
     }
-    @Override public void onReadyForSpeech(Bundle params) { setState("listening", "ZUHÖREN"); }
+    @Override public void onReadyForSpeech(Bundle params) { setState("listening", "JETZT SPRECHEN"); }
     @Override public void onBeginningOfSpeech() { setState("listening", "SPRACHE ERKANNT"); }
     @Override public void onEndOfSpeech() { setState("thinking", "LOKAL AUSWERTEN"); }
     @Override public void onRmsChanged(float rmsdB) {}
     @Override public void onBufferReceived(byte[] buffer) {}
-    @Override public void onPartialResults(Bundle partialResults) {}
+    @Override public void onPartialResults(Bundle partialResults) {
+        ArrayList<String> choices = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        if (choices != null && !choices.isEmpty()) setState("listening", "SPRACHE WIRD ERKANNT");
+    }
     @Override public void onEvent(int eventType, Bundle params) {}
 
     @Override protected void onDestroy() {
