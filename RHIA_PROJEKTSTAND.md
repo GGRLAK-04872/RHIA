@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 05.08.2026  
+**Letzte Aktualisierung:** 05.08.2026, 15:07 Uhr  
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -33,6 +33,37 @@ Format:
 Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sortieren und später Fragen wie „Was haben wir am 05.08.2026 geändert?“ beantworten kann. Vermutungen dürfen nicht als getestete Ergebnisse eingetragen werden.
 
 ## Aktueller verbindlicher Stand
+
+### 05.08.2026, 15:07 Uhr – Baustein 3.1: situationsgerechte Ausdrucksweise
+
+**Bereich:** Persönlichkeit / Antwortlogik / Online-KI
+
+**Änderung:**
+
+- RHIA beantwortet die konkrete Frage zuerst und stellt sich nur noch vor, wenn ausdrücklich nach ihrer Identität gefragt wird.
+- Für Befindensfragen wie „Wie geht es dir?“ wurde eine passende natürliche Antwort ergänzt.
+- Diese häufige Befindensfrage wird lokal und ohne OpenAI-Kosten beantwortet.
+- Die zentrale Online-Persönlichkeitsanweisung wurde gegen allgemeine, unpassende Standardsätze präzisiert.
+- Keine neue APK erforderlich; die Änderung wird zentral über die veröffentlichte RHIA-Oberfläche beziehungsweise Cloudflare-Funktion übernommen.
+
+**Technischer Test:**
+
+- Live-Endpunkt `https://rhia.pages.dev/api/chat` mit vier getrennten Fragen geprüft.
+- „Wie geht es dir?“ → passende Befindensantwort, `local-zero-credit`.
+- „Wer bist du?“ → RHIA-Vorstellung.
+- „Was kannst du?“ → Funktionsübersicht.
+- „Hallo RHIA“ → Begrüßung.
+- Alle vier Tests bestanden; die veröffentlichte Funktion liefert HTTP 200.
+
+**Offen:**
+
+- Mike testet die neue Antwort einmal in der Android-App.
+- Danach folgt Baustein 3.2: zentrales, datiertes und geräteübergreifendes RHIA-Gedächtnis mit Zugriffsschutz, Löschung und Export.
+
+**Nächster Schritt:**
+
+In der vorhandenen RHIA-App „Rhia, wie geht es dir?“ sagen. Nach bestätigter passender Antwort wird das zentrale Gedächtnis geplant und umgesetzt.
+
 
 ### 05.08.2026, 14:35 Uhr – Punkt 1: Ist-Stand geprüft und abgesichert
 
