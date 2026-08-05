@@ -113,7 +113,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
                     bytes = input.readAllBytes();
                 }
                 String html = new String(bytes, StandardCharsets.UTF_8);
-                if (!html.contains("RH INTELLIGENT ASSISTANT") || !html.contains("id=\\"canvas\\"")) {
+                if (!html.contains("RH INTELLIGENT ASSISTANT") || !html.contains("id=\"canvas\"")) {
                     throw new IllegalStateException("Ungültige RHIA-Oberfläche");
                 }
                 File temporary = new File(getFilesDir(), UI_FILE + ".new");
