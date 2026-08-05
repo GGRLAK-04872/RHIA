@@ -10,7 +10,7 @@ Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprach
 - Spätere reine Optikänderungen werden beim nächsten App-Start automatisch übernommen.
 - Sie verwendet ab Android 12 ausschließlich `createOnDeviceSpeechRecognizer`.
 - Wenn keine lokale deutsche Erkennung vorhanden ist, bricht sie sichtbar ab, statt online auszuweichen.
-- Bei erkanntem „Rhia“ antwortet sie mit „Ja, Sir?“.
+- Mikrofontaste und Stimmtest werden in der App ausschließlich an Android weitergeleitet; Browser-Sprachfunktionen werden dort nicht mehr ausgelöst.\n- Bei erkanntem „Rhia“ antwortet sie mit „Ja, Sir?“.
 - Für die Ausgabe wird nur eine installierte TTS-Stimme akzeptiert, die keine Netzwerkverbindung benötigt.
 
 ## Testablauf
