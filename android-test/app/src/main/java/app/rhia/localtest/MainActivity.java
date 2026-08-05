@@ -7,10 +7,6 @@ import android.os.Bundle;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.Voice;
-import android.speech.tts.UtteranceProgressListener;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.content.Intent;
@@ -26,10 +22,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Locale;
 
 public final class MainActivity extends Activity implements RecognitionListener {
     private static final int MIC_PERMISSION = 41;
@@ -38,8 +30,6 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private WebView web;
     private TextView diagnostic;
     private SpeechRecognizer recognizer;
-    private TextToSpeech tts;
-    private boolean ttsOfflineReady;
     private boolean recognitionInProgress;
     private boolean diagnosticStartIssued;
 
@@ -183,14 +173,6 @@ public final class MainActivity extends Activity implements RecognitionListener 
         recognizer = null;
     }
 
-     private void beginLocalRecognition() {
-        if (!listeningRequested) return;
-        recognitionInProgress = true;
-        setState("listening", "ZUHÖREN");
-        setDiagnostic("STARTLISTENING AUFGERUFEN");
-        recognizer.startListening(germanRecognitionIntent());
-    }
-
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(code, permissions, results);
         if (code == MIC_PERMISSION && results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
@@ -202,50 +184,4 @@ public final class MainActivity extends Activity implements RecognitionListener 
         }
     }
 
-    private void initLocalVoice() {
-        tts = new TextToSpeech(this, result -> {
-            if (result != TextToSpeech.SUCCESS) return;
-            tts.setLanguage(Locale.GERMANY);
-            Voice offline = tts.getVoices().stream().filter(v -> !v.isNetworkConnectionRequired())
-                    .filter(v -> v.getLocale().getLanguage().equals(Locale.GERMAN.getLanguage()))
-                    .min(Comparator.comparing(Voice::getName)).orElse(null);
-            if (offline == null) return;
-            tts.setVoice(offline);
-            tts.setSpeechRate(.92f);
-            tts.setPitch(.88f);
-            ttsOfflineReady = true;
-            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                @Override public void onStart(String utteranceId) {}
-                @Override public void onError(int error) {
-        recognitionInProgress = false;
-        setDiagnostic("FEHLER · CODE " + error + " · TEST BEENDET");
-        setState("error", "ANDROID-FEHLER · CODE " + error);
-    }
-    @Override public void onReadyForSpeech(Bundle params) {
-        setDiagnostic("BEREIT ZUM SPRECHEN");
-        setState("listening", "JETZT SPRECHEN");
-    }
-    @Override public void onBeginningOfSpeech() {
-        setDiagnostic("SPRACHBEGINN ERKANNT");
-        setState("listening", "SPRACHE ERKANNT");
-    }
-    @Override public void onEndOfSpeech() {
-        setDiagnostic("SPRACHENDE ERKANNT");
-        setState("thinking", "LOKAL AUSWERTEN");
-    }
-    @Override public void onRmsChanged(float rmsdB) {}
-    @Override public void onBufferReceived(byte[] buffer) {}
-    @Override public void onPartialResults(Bundle partialResults) {
-        ArrayList<String> choices = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-        if (choices != null && !choices.isEmpty()) setState("listening", "SPRACHE WIRD ERKANNT");
-    }
-    @Override public void onEvent(int eventType, Bundle params) {}
 
-    @Override protected void onDestroy() {
-        releaseRecognizer();
-        if (tts != null) tts.shutdown();
-        web.removeJavascriptInterface("RHIAAndroid");
-        web.destroy();
-        super.onDestroy();
-    }
-}
