@@ -6,7 +6,18 @@ class BodyInjector {
   if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
 
   const synth = window.speechSynthesis;
+  let lastSpoken = "";
+  let speakTimer = null;
   let speakingToken = 0;
+
+  function voiceEnabled() {
+    try {
+      const settings = JSON.parse(localStorage.getItem("rhia_settings_v010") || "{}");
+      return settings.browserVoice === true;
+    } catch {
+      return false;
+    }
+  }
 
   function chooseGermanVoice() {
     const voices = synth.getVoices() || [];
@@ -18,7 +29,7 @@ class BodyInjector {
 
   function speakReliable(text, attempt = 0) {
     const cleanText = String(text || "").replace("RHIA_KOSTENFREIGABE", "").trim();
-    if (!cleanText) return;
+    if (!cleanText || !voiceEnabled()) return;
 
     const token = ++speakingToken;
     synth.cancel();
@@ -33,43 +44,43 @@ class BodyInjector {
     const voice = chooseGermanVoice();
     if (voice) utterance.voice = voice;
 
-    utterance.onend = () => {
-      if (token === speakingToken && typeof window.setMode === "function") window.setMode("idle");
-    };
-
     utterance.onerror = () => {
       if (token !== speakingToken) return;
-      if (attempt < 2) {
-        setTimeout(() => speakReliable(cleanText, attempt + 1), 250);
-      } else if (typeof window.setMode === "function") {
-        window.setMode("idle");
-      }
+      if (attempt < 2) setTimeout(() => speakReliable(cleanText, attempt + 1), 500);
     };
 
     setTimeout(() => {
       if (token === speakingToken) synth.speak(utterance);
-    }, attempt === 0 ? 80 : 220);
+    }, attempt === 0 ? 150 : 350);
   }
 
-  const install = () => {
-    if (typeof window.say !== "function" || window.say.__rhiaSpeechPatched) return;
+  function scheduleSpeech(text) {
+    const cleanText = String(text || "").trim();
+    if (!cleanText || cleanText === lastSpoken) return;
+    lastSpoken = cleanText;
+    clearTimeout(speakTimer);
 
-    const originalSay = window.say;
-    const patchedSay = function(text) {
-      originalSay(text, false);
-      speakReliable(text);
-    };
-    patchedSay.__rhiaSpeechPatched = true;
-    window.say = patchedSay;
-  };
+    // Android beendet die Spracheingabe oft erst kurz nach der Texterkennung.
+    // Deshalb startet die Ausgabe bewusst verzögert.
+    speakTimer = setTimeout(() => speakReliable(cleanText), 900);
+  }
 
-  synth.addEventListener?.("voiceschanged", install);
-  document.addEventListener("click", () => synth.resume(), { once: true, capture: true });
-  document.addEventListener("touchstart", () => synth.resume(), { once: true, capture: true, passive: true });
+  function installObserver() {
+    const target = document.getElementById("answerText");
+    if (!target || target.dataset.rhiaSpeechObserved === "1") return;
 
-  install();
-  setTimeout(install, 150);
-  setTimeout(install, 700);
+    target.dataset.rhiaSpeechObserved = "1";
+    const observer = new MutationObserver(() => scheduleSpeech(target.textContent));
+    observer.observe(target, { childList: true, characterData: true, subtree: true });
+  }
+
+  document.addEventListener("click", () => synth.resume(), { capture: true });
+  document.addEventListener("touchstart", () => synth.resume(), { capture: true, passive: true });
+  synth.addEventListener?.("voiceschanged", installObserver);
+
+  installObserver();
+  setTimeout(installObserver, 200);
+  setTimeout(installObserver, 900);
 })();
 </script>
 `, { html: true });
