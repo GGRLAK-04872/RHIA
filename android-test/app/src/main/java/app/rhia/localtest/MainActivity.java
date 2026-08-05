@@ -40,6 +40,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private TextToSpeech tts;
     private boolean ttsOfflineReady;
     private boolean reconnectAttempted;
+    private boolean busyRetryAttempted;
     private boolean recognitionInProgress;
     private boolean listeningRequested;
 
@@ -64,7 +65,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
         diagnostic.setTextSize(13);
         diagnostic.setGravity(Gravity.CENTER);
         diagnostic.setPadding(16, 10, 16, 10);
-        diagnostic.setText("DIAGNOSE 0.11 · BEREIT");
+        diagnostic.setText("DIAGNOSE " + BuildConfig.VERSION_NAME + " · BEREIT");
         FrameLayout.LayoutParams diagnosticLayout = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
         root.addView(diagnostic, diagnosticLayout);
@@ -127,7 +128,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     private void setDiagnostic(String message) {
-        if (diagnostic != null) diagnostic.setText("DIAGNOSE 0.11 · " + message);
+        if (diagnostic != null) diagnostic.setText("DIAGNOSE " + BuildConfig.VERSION_NAME + " · " + message);
     }
 
     private void setState(String mode, String message) {
@@ -154,8 +155,13 @@ public final class MainActivity extends Activity implements RecognitionListener 
             return;
         }
         reconnectAttempted = false;
-        recreateRecognizer();
-        beginLocalRecognition();
+        busyRetryAttempted = false;
+        releaseRecognizer();
+        web.postDelayed(() -> {
+            if (!listeningRequested) return;
+            recreateRecognizer();
+            beginLocalRecognition();
+        }, 500);
     }
 
     private Intent germanRecognitionIntent() {
@@ -167,8 +173,15 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
     }
 
+    private void releaseRecognizer() {
+        if (recognizer == null) return;
+        recognizer.cancel();
+        recognizer.destroy();
+        recognizer = null;
+    }
+
     private void recreateRecognizer() {
-        if (recognizer != null) recognizer.destroy();
+        releaseRecognizer();
         recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
         recognizer.setRecognitionListener(this);
     }
@@ -184,11 +197,12 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void continueListening(long delayMillis) {
         recognitionInProgress = false;
         if (!listeningRequested) return;
+        releaseRecognizer();
         web.postDelayed(() -> {
             if (!listeningRequested) return;
             recreateRecognizer();
             beginLocalRecognition();
-        }, delayMillis);
+        }, Math.max(delayMillis, 500));
     }
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
@@ -250,6 +264,12 @@ public final class MainActivity extends Activity implements RecognitionListener 
             continueListening(250);
             return;
         }
+        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY && !busyRetryAttempted) {
+            busyRetryAttempted = true;
+            setState("thinking", "SPRACHERKENNUNG WIRD FREIGEGEBEN");
+            continueListening(900);
+            return;
+        }
         if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED && !reconnectAttempted) {
             reconnectAttempted = true;
             setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
@@ -261,12 +281,14 @@ public final class MainActivity extends Activity implements RecognitionListener 
         String message = switch (error) {
             case SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "NICHTS ERKANNT";
             case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT";
+            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "SPRACHERKENNUNG NOCH BELEGT · ERNEUT TIPPEN";
             case SpeechRecognizer.ERROR_SERVER_DISCONNECTED -> "LOKALER SPRACHDIENST GETRENNT · ERNEUT TIPPEN";
             default -> "LOKALER SPRACHTEST FEHLGESCHLAGEN · CODE " + error;
         };
         setState("error", message);
     }
     @Override public void onReadyForSpeech(Bundle params) {
+        busyRetryAttempted = false;
         setDiagnostic("BEREIT ZUM SPRECHEN");
         setState("listening", "JETZT SPRECHEN");
     }
@@ -288,7 +310,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     @Override protected void onDestroy() {
         listeningRequested = false;
-        if (recognizer != null) recognizer.destroy();
+        releaseRecognizer();
         if (tts != null) tts.shutdown();
         web.removeJavascriptInterface("RHIAAndroid");
         web.destroy();
