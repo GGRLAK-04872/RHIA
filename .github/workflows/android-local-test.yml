@@ -1,0 +1,39 @@
+name: Build RHIA Android Local Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android-test/**"
+      - ".github/workflows/android-local-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+      - name: Build debug APK
+        run: gradle :app:assembleDebug
+      - name: Prepare APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk ../RHIA-Android-Test.apk
+      - name: Publish test release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="android-test-${{ github.run_number }}"
+          gh release create "$TAG" RHIA-Android-Test.apk             --repo "${{ github.repository }}"             --title "RHIA Android Local Test v0.1 (Build ${{ github.run_number }})"             --notes "Erster nativer RHIA-Test: echte On-Device-Spracherkennung, keine Internet-Berechtigung."
