@@ -26,6 +26,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.9"
+      - name: Read app version
+        run: |
+          APP_VERSION=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts)
+          test -n "$APP_VERSION"
+          echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
       - name: Build debug APK
         run: gradle :app:assembleDebug
       - name: Prepare APK
@@ -36,4 +41,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="android-test-${{ github.run_number }}"
-          gh release create "$TAG" RHIA-Android-Test.apk             --repo "${{ github.repository }}"             --title "RHIA Android Hybrid Test v0.4 (Build ${{ github.run_number }})"             --notes "Leitet Mikrofontaste und Stimmtest ausschließlich an Android weiter, damit keine Browser-Sprachfunktionen mehr dazwischenfunken."
+          gh release create "$TAG" RHIA-Android-Test.apk \
+            --repo "${{ github.repository }}" \
+            --title "RHIA Android Hybrid Test v${APP_VERSION} (Build ${{ github.run_number }})" \
+            --notes "Verhindert den doppelten Mikrofonstart und hält die lokale Erkennung nach einem Antippen stabil aktiv. Die Versionsnummer wird zentral aus der App-Konfiguration übernommen."
