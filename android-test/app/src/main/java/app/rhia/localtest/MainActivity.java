@@ -87,7 +87,11 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private void installNativeBridge() {
         String script = "javascript:(function(){if(window.__rhiaAndroid)return;window.__rhiaAndroid=true;" +
-                "var mic=document.getElementById('mic');if(mic)mic.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();RHIAAndroid.startLocalListening();},true);" +
+                "function nativeTap(e){var target=e.target&&e.target.closest?e.target.closest('#mic,#voiceTest'):null;if(!target)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();if(target.id==='mic')RHIAAndroid.startLocalListening();else RHIAAndroid.testLocalVoice();}" +
+                "document.addEventListener('pointerdown',nativeTap,true);document.addEventListener('click',nativeTap,true);" +
+                "var mic=document.getElementById('mic');if(mic){mic.disabled=false;mic.removeAttribute('disabled');}" +
+                "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit';" +
+                "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Stimme bereit zum Test';" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
                 "})();";
         web.evaluateJavascript(script, null);
@@ -95,6 +99,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     public final class AndroidBridge {
         @JavascriptInterface public void startLocalListening() { runOnUiThread(MainActivity.this::startListening); }
+        @JavascriptInterface public void testLocalVoice() { runOnUiThread(MainActivity.this::testLocalVoice); }
     }
 
     private void setState(String mode, String message) {
@@ -156,6 +161,16 @@ public final class MainActivity extends Activity implements RecognitionListener 
                     .min(Comparator.comparing(Voice::getName)).orElse(null);
             if (offline != null) { tts.setVoice(offline); tts.setSpeechRate(.92f); tts.setPitch(.88f); ttsOfflineReady = true; }
         });
+    }
+
+    private void testLocalVoice() {
+        if (!ttsOfflineReady) {
+            setState("error", "LOKALE DEUTSCHE STIMME FEHLT");
+            return;
+        }
+        setState("speaking", "SPRACHAUSGABE LÄUFT");
+        tts.speak("Sprachausgabe funktioniert, Sir.", TextToSpeech.QUEUE_FLUSH, null, "rhia-voice-test");
+        web.postDelayed(() -> setState("", "BEREIT"), 2400);
     }
 
     private static boolean isWakeWord(String raw) {
