@@ -1,9 +1,47 @@
 class BodyInjector {
   element(element) {
     element.append(`
+<style>
+#rhiaVoiceTestButton{
+  position:fixed;
+  left:18px;
+  bottom:58px;
+  z-index:9999;
+  border:1px solid rgba(255,109,136,.45);
+  border-radius:999px;
+  padding:10px 14px;
+  background:rgba(35,5,14,.92);
+  color:#fff7fa;
+  font:600 13px Arial,sans-serif;
+  box-shadow:0 0 24px rgba(143,23,56,.22);
+}
+#rhiaVoiceTestStatus{
+  position:fixed;
+  left:18px;
+  bottom:24px;
+  z-index:9999;
+  color:#d9b8c3;
+  font:12px Arial,sans-serif;
+  background:rgba(5,1,3,.82);
+  padding:6px 9px;
+  border-radius:8px;
+  max-width:70vw;
+}
+</style>
+<button id="rhiaVoiceTestButton" type="button">🔊 Stimme testen</button>
+<div id="rhiaVoiceTestStatus">Bereit für Sprachtest</div>
 <script>
 (() => {
-  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
+  const button = document.getElementById("rhiaVoiceTestButton");
+  const status = document.getElementById("rhiaVoiceTestStatus");
+
+  if (!button || !status) return;
+
+  if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+    status.textContent = "Sprachausgabe wird von diesem Browser nicht unterstützt";
+    button.disabled = true;
+    return;
+  }
 
   const synth = window.speechSynthesis;
   let lastSpoken = "";
@@ -27,9 +65,9 @@ class BodyInjector {
       || null;
   }
 
-  function speakReliable(text, attempt = 0) {
+  function speakDirect(text, force = false, attempt = 0) {
     const cleanText = String(text || "").replace("RHIA_KOSTENFREIGABE", "").trim();
-    if (!cleanText || !voiceEnabled()) return;
+    if (!cleanText || (!force && !voiceEnabled())) return;
 
     const token = ++speakingToken;
     synth.cancel();
@@ -44,14 +82,28 @@ class BodyInjector {
     const voice = chooseGermanVoice();
     if (voice) utterance.voice = voice;
 
-    utterance.onerror = () => {
-      if (token !== speakingToken) return;
-      if (attempt < 2) setTimeout(() => speakReliable(cleanText, attempt + 1), 500);
+    status.textContent = voice
+      ? "Starte Stimme: " + voice.name
+      : "Starte Standardstimme";
+
+    utterance.onstart = () => {
+      status.textContent = "Sprachausgabe läuft";
+    };
+
+    utterance.onend = () => {
+      status.textContent = "Sprachausgabe beendet";
+    };
+
+    utterance.onerror = event => {
+      status.textContent = "Sprachfehler: " + (event.error || "unbekannt");
+      if (token === speakingToken && attempt < 2) {
+        setTimeout(() => speakDirect(cleanText, force, attempt + 1), 500);
+      }
     };
 
     setTimeout(() => {
       if (token === speakingToken) synth.speak(utterance);
-    }, attempt === 0 ? 150 : 350);
+    }, attempt === 0 ? 100 : 350);
   }
 
   function scheduleSpeech(text) {
@@ -59,10 +111,7 @@ class BodyInjector {
     if (!cleanText || cleanText === lastSpoken) return;
     lastSpoken = cleanText;
     clearTimeout(speakTimer);
-
-    // Android beendet die Spracheingabe oft erst kurz nach der Texterkennung.
-    // Deshalb startet die Ausgabe bewusst verzögert.
-    speakTimer = setTimeout(() => speakReliable(cleanText), 900);
+    speakTimer = setTimeout(() => speakDirect(cleanText, false), 900);
   }
 
   function installObserver() {
@@ -73,6 +122,11 @@ class BodyInjector {
     const observer = new MutationObserver(() => scheduleSpeech(target.textContent));
     observer.observe(target, { childList: true, characterData: true, subtree: true });
   }
+
+  button.addEventListener("click", () => {
+    status.textContent = "Sprachtest wird gestartet";
+    speakDirect("Sprachausgabe funktioniert, Sir.", true);
+  });
 
   document.addEventListener("click", () => synth.resume(), { capture: true });
   document.addEventListener("touchstart", () => synth.resume(), { capture: true, passive: true });
