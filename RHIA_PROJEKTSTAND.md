@@ -34,6 +34,40 @@ Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sort
 
 ## Aktueller verbindlicher Stand
 
+### 05.08.2026, 14:35 Uhr – Punkt 1: Ist-Stand geprüft und abgesichert
+
+**Bereich:** Sprachzentrum / Online-KI / Gedächtnis / Android-App
+
+**Änderung:**
+
+- Keine Funktionsänderung vorgenommen; zuerst wurde der tatsächlich veröffentlichte Stand geprüft.
+- Der Android-Code verwendet echte On-Device-Spracherkennung für Deutsch und eine installierte Offline-TTS-Stimme.
+- Die Android-App lädt die gemeinsame RHIA-Oberfläche und behält eine lokale Kopie.
+- Der Code für freie Online-KI-Antworten und eine zentrale RHIA-Persönlichkeit ist bereits vorhanden.
+- Die bisherige Behauptung, das zentrale RHIA-Gedächtnis sei schon vorhanden, wurde korrigiert: Erinnerungen liegen aktuell nur im jeweiligen Browser-/App-Speicher und werden nicht geräteübergreifend synchronisiert.
+- Die frühere Updater-Priorität wird zurückgestellt. Persönlichkeit, Wörter, Ausdruck und Erinnerungen sollen als kleine zentrale Daten aktualisiert werden; dafür ist keine neue APK vorgesehen.
+
+**Test:**
+
+- GitHub-Repository, neueste Commits, `index.html`, Android-Code, Manifest, Build-Konfiguration, Cloudflare-Funktionen und Worker-Konfiguration wurden abgeglichen.
+- Die veröffentlichte Oberfläche unter `https://ggrlak-04872.github.io/RHIA/` antwortet mit HTTP 200.
+- Der von der Oberfläche verwendete relative Endpunkt `/api/chat` ergibt auf GitHub Pages HTTP 404. Freie Online-KI-Antworten sind über diese veröffentlichte Adresse damit nicht funktionsfähig.
+- Lokale Befehle bleiben davon unabhängig verfügbar.
+- Es wurde keine neue APK gebaut und nichts auf dem Tablet verändert.
+
+**Offen:**
+
+- Die tatsächlich veröffentlichte Cloudflare-Worker- oder Pages-Backend-Adresse eindeutig bestimmen und mit der gemeinsamen Oberfläche verbinden.
+- Zulässige Web-Herkunft (CORS) konsistent auf die echte RHIA-Adresse einstellen.
+- Danach einen automatisierten Test für lokale Antwort, Kostenfreigabe, Online-KI-Antwort und Offline-Rückfall durchführen.
+- Anschließend ein kleines zentrales, datiertes RHIA-Gedächtnis mit geräteübergreifender Synchronisierung entwickeln.
+- Für persönliche Daten sind vor Speicherung Zugriffsschutz, Nutzeridentität und Lösch-/Exportmöglichkeit festzulegen.
+
+**Nächster Schritt:**
+
+Baustein 2 beginnt mit der funktionsfähigen und getesteten Verbindung der gemeinsamen RHIA-Oberfläche zum bereits vorhandenen Online-KI-Backend. Erst nach bestandenem Test wird das zentrale Gedächtnis ergänzt.
+
+
 ### 05.08.2026 – Audioänderung getestet; Android-App-Updates vereinfachen
 
 **Bereich:** Android-App / Sprachzentrum / Aktualisierung
