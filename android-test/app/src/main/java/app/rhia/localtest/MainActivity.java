@@ -9,6 +9,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
+import android.speech.tts.UtteranceProgressListener;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -39,10 +40,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private SpeechRecognizer recognizer;
     private TextToSpeech tts;
     private boolean ttsOfflineReady;
-    private boolean reconnectAttempted;
-    private boolean busyRetryAttempted;
     private boolean recognitionInProgress;
     private boolean listeningRequested;
+    private boolean startupGreetingStarted;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -111,9 +111,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
         String script = "javascript:(function(){" +
                 "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
                 "function bindNativeButton(id,action){var oldButton=document.getElementById(id);if(!oldButton||!oldButton.parentNode)return null;var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.removeAttribute('disabled');button.style.touchAction='manipulation';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();action();},false);return button;}" +
-                "window.startSpeechRecognition=function(){RHIAAndroid.startLocalListening();};window.testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};" +
-                "bindNativeButton('mic',function(){RHIAAndroid.startLocalListening();});" +
-                "bindNativeButton('speechInputTest',function(){RHIAAndroid.startLocalListening();});" +
+                "window.startSpeechRecognition=function(){};window.testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};" +
+                "var mic=document.getElementById('mic');if(mic)mic.style.display='none';" +
+                "var restart=bindNativeButton('speechInputTest',function(){RHIAAndroid.restartLocalListening();});if(restart)restart.textContent='Zuhören neu starten';" +
                 "bindNativeButton('voiceTest',function(){RHIAAndroid.testLocalVoice();});" +
                 "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit · App v" + BuildConfig.VERSION_NAME + "';" +
                 "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Stimme bereit zum Test';" +
@@ -123,7 +123,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     public final class AndroidBridge {
-        @JavascriptInterface public void startLocalListening() { runOnUiThread(MainActivity.this::startListening); }
+        @JavascriptInterface public void restartLocalListening() { runOnUiThread(MainActivity.this::restartListening); }
         @JavascriptInterface public void testLocalVoice() { runOnUiThread(MainActivity.this::testLocalVoice); }
     }
 
@@ -139,29 +139,34 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void startListening() {
         if (recognitionInProgress) return;
         listeningRequested = true;
-        recognitionInProgress = true;
         setDiagnostic("START ANGEFORDERT");
-        setState("thinking", "MIKROFON WIRD GESTARTET");
+        setState("thinking", "SPRACHERKENNUNG WIRD GESTARTET");
         if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
-            recognitionInProgress = false;
             setDiagnostic("FEHLER · ON-DEVICE-DIENST NICHT VERFÜGBAR");
             setState("error", "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT");
             return;
         }
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            recognitionInProgress = false;
             setDiagnostic("MIKROFON-BERECHTIGUNG ANGEFORDERT");
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MIC_PERMISSION);
             return;
         }
-        reconnectAttempted = false;
-        busyRetryAttempted = false;
-        releaseRecognizer();
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
+            recognizer.setRecognitionListener(this);
+        }
+        beginLocalRecognition();
+    }
+
+    private void restartListening() {
+        listeningRequested = false;
+        recognitionInProgress = false;
+        if (recognizer != null) recognizer.cancel();
+        setState("thinking", "ZUHÖREN WIRD NEU GESTARTET");
         web.postDelayed(() -> {
-            if (!listeningRequested) return;
-            recreateRecognizer();
-            beginLocalRecognition();
-        }, 500);
+            listeningRequested = true;
+            startListening();
+        }, 800);
     }
 
     private Intent germanRecognitionIntent() {
@@ -180,13 +185,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
         recognizer = null;
     }
 
-    private void recreateRecognizer() {
-        releaseRecognizer();
-        recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
-        recognizer.setRecognitionListener(this);
-    }
-
-    private void beginLocalRecognition() {
+     private void beginLocalRecognition() {
         if (!listeningRequested) return;
         recognitionInProgress = true;
         setState("listening", "ZUHÖREN");
@@ -197,12 +196,10 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private void continueListening(long delayMillis) {
         recognitionInProgress = false;
         if (!listeningRequested) return;
-        releaseRecognizer();
         web.postDelayed(() -> {
-            if (!listeningRequested) return;
-            recreateRecognizer();
+            if (!listeningRequested || recognitionInProgress) return;
             beginLocalRecognition();
-        }, Math.max(delayMillis, 500));
+        }, Math.max(delayMillis, 650));
     }
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
@@ -219,7 +216,31 @@ public final class MainActivity extends Activity implements RecognitionListener 
             Voice offline = tts.getVoices().stream().filter(v -> !v.isNetworkConnectionRequired())
                     .filter(v -> v.getLocale().getLanguage().equals(Locale.GERMAN.getLanguage()))
                     .min(Comparator.comparing(Voice::getName)).orElse(null);
-            if (offline != null) { tts.setVoice(offline); tts.setSpeechRate(.92f); tts.setPitch(.88f); ttsOfflineReady = true; }
+            if (offline == null) return;
+            tts.setVoice(offline);
+            tts.setSpeechRate(.92f);
+            tts.setPitch(.88f);
+            ttsOfflineReady = true;
+            tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                @Override public void onStart(String utteranceId) {}
+                @Override public void onError(String utteranceId) {
+                    runOnUiThread(() -> setDiagnostic("SPRACHAUSGABE FEHLGESCHLAGEN"));
+                }
+                @Override public void onDone(String utteranceId) {
+                    if (!"rhia-app-ready".equals(utteranceId) && !"rhia-wake".equals(utteranceId)) return;
+                    runOnUiThread(() -> {
+                        setState("thinking", "SPRACHERKENNUNG WIRD GESTARTET");
+                        web.postDelayed(MainActivity.this::startListening, 700);
+                    });
+                }
+            });
+            if (!startupGreetingStarted) {
+                startupGreetingStarted = true;
+                listeningRequested = false;
+                setState("speaking", "ICH BIN BEREIT, SIR");
+                setDiagnostic("BEGRÜSSUNG LÄUFT");
+                tts.speak("Ich bin bereit, Sir.", TextToSpeech.QUEUE_FLUSH, null, "rhia-app-ready");
+            }
         });
     }
 
@@ -245,12 +266,14 @@ public final class MainActivity extends Activity implements RecognitionListener 
         ArrayList<String> choices = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         boolean matched = choices != null && choices.stream().anyMatch(MainActivity::isWakeWord);
         if (matched) {
+            listeningRequested = false;
             setState("speaking", "JA, SIR?");
-            if (ttsOfflineReady) tts.speak("Ja, Sir?", TextToSpeech.QUEUE_FLUSH, null, "rhia-wake");
-            web.postDelayed(() -> {
-                setState("listening", "ZUHÖREN");
-                continueListening(0);
-            }, 1800);
+            if (recognizer != null) recognizer.cancel();
+            if (ttsOfflineReady) {
+                tts.speak("Ja, Sir?", TextToSpeech.QUEUE_FLUSH, null, "rhia-wake");
+            } else {
+                web.postDelayed(this::restartListening, 800);
+            }
         } else {
             setState("listening", "WEITER ZUHÖREN");
             continueListening(250);
@@ -264,16 +287,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
             continueListening(250);
             return;
         }
-        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY && !busyRetryAttempted) {
-            busyRetryAttempted = true;
-            setState("thinking", "SPRACHERKENNUNG WIRD FREIGEGEBEN");
-            continueListening(900);
-            return;
-        }
-        if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED && !reconnectAttempted) {
-            reconnectAttempted = true;
-            setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
-            continueListening(600);
+        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY) {
+            listeningRequested = false;
+            setState("error", "SPRACHERKENNUNG BELEGT · IM MENÜ NEU STARTEN");
             return;
         }
         recognitionInProgress = false;
@@ -288,7 +304,6 @@ public final class MainActivity extends Activity implements RecognitionListener 
         setState("error", message);
     }
     @Override public void onReadyForSpeech(Bundle params) {
-        busyRetryAttempted = false;
         setDiagnostic("BEREIT ZUM SPRECHEN");
         setState("listening", "JETZT SPRECHEN");
     }
