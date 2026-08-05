@@ -56,6 +56,7 @@ val prepareGermanVoskModel by tasks.registering {
             includeEmptyDirs = false
         }
         check(marker.isFile) { "Das deutsche Vosk-Modell wurde nicht korrekt entpackt." }
+        modelRoot.file("uuid").asFile.writeText("rhia-vosk-small-de-0.15")
     }
 }
 
