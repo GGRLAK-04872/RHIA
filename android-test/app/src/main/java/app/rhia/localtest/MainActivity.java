@@ -35,6 +35,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private boolean ttsOfflineReady;
     private boolean reconnectAttempted;
     private boolean recognitionInProgress;
+    private boolean listeningRequested;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -113,6 +114,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     private void startListening() {
         if (recognitionInProgress) return;
+        listeningRequested = true;
         recognitionInProgress = true;
         setState("thinking", "MIKROFON WIRD GESTARTET");
         if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(this)) {
@@ -136,9 +138,6 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
                 .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                 .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 4000L)
-                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
-                .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
     }
 
@@ -149,8 +148,20 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     private void beginLocalRecognition() {
+        if (!listeningRequested) return;
+        recognitionInProgress = true;
         setState("listening", "ZUHÖREN");
         recognizer.startListening(germanRecognitionIntent());
+    }
+
+    private void continueListening(long delayMillis) {
+        recognitionInProgress = false;
+        if (!listeningRequested) return;
+        web.postDelayed(() -> {
+            if (!listeningRequested) return;
+            recreateRecognizer();
+            beginLocalRecognition();
+        }, delayMillis);
     }
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
@@ -194,23 +205,30 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (matched) {
             setState("speaking", "JA, SIR?");
             if (ttsOfflineReady) tts.speak("Ja, Sir?", TextToSpeech.QUEUE_FLUSH, null, "rhia-wake");
-            web.postDelayed(() -> setState("", "BEREIT"), 1800);
+            web.postDelayed(() -> {
+                setState("listening", "ZUHÖREN");
+                continueListening(0);
+            }, 1800);
         } else {
-            setState("error", choices == null || choices.isEmpty() ? "NICHTS ERKANNT" : "NICHT RHIA ERKANNT");
+            setState("listening", "WEITER ZUHÖREN");
+            continueListening(250);
         }
     }
 
     @Override public void onError(int error) {
+        if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+            setState("listening", "WEITER ZUHÖREN");
+            continueListening(250);
+            return;
+        }
         if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED && !reconnectAttempted) {
             reconnectAttempted = true;
             setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
-            web.postDelayed(() -> {
-                recreateRecognizer();
-                beginLocalRecognition();
-            }, 600);
+            continueListening(600);
             return;
         }
         recognitionInProgress = false;
+        listeningRequested = false;
         String message = switch (error) {
             case SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "NICHTS ERKANNT";
             case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT";
@@ -231,6 +249,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     @Override public void onEvent(int eventType, Bundle params) {}
 
     @Override protected void onDestroy() {
+        listeningRequested = false;
         if (recognizer != null) recognizer.destroy();
         if (tts != null) tts.shutdown();
         web.removeJavascriptInterface("RHIAAndroid");
