@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090306">
-<title>RHIA Alpha v0.16.3</title>
+<title>RHIA Alpha v0.20</title>
 <style>
 :root{--a:#8f1738;--b:#ff6d88;--c:#390817;--rgb:143,23,56;--bg:#050204;--panel:rgba(27,5,12,.82);--text:#fff7fa;--muted:#b99aa5;--line:rgba(255,109,136,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030102;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit}
@@ -65,7 +65,7 @@ main{display:block;width:100%;height:100%;min-height:0}
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <script>
 "use strict";
-const VERSION="0.16.3",API="/api/chat";
+const VERSION="0.20",API="/api/chat";
 const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",ideas:"rhia_ideas_v09",memories:"rhia_memories_v011",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
@@ -97,6 +97,7 @@ function local(text){
   if(m=l.match(/^(?:rhia[ ,]*)?(?:notiz|speichere eine notiz)[: ]+(.+)/)){state.notes.push({text:m[1],createdAt:new Date().toISOString(),world:state.settings.world});save();render();say("Natürlich, Sir. Die Notiz ist gespeichert.");return true}
   if(m=l.match(/^(?:rhia[ ,]*)?(?:idee|speichere eine idee)[: ]+(.+)/)){state.ideas.push({title:m[1],status:"offen",createdAt:new Date().toISOString(),area:state.settings.world});save();render();say("Jawohl, Sir. Die Idee ist gespeichert.");return true}
   if(/wer bist du|was bist du|stell dich vor/.test(l)){say("Ich bin RHIA – RH Intelligent Assistant. Ihre loyale digitale Partnerin und das Assistenzsystem von RH Produktion, Sir.");return true}
+  if(/wie geht es dir|wie gehts dir|wie geht.s dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir/.test(l)){say("Mir geht es gut, Sir. Ich bin bereit – was machen wir heute?");return true}
   if(/welche version|deine version/.test(l)){say("Ich laufe aktuell als RHIA Alpha Version "+VERSION+", Sir.");return true}
   if(/wie spät|wie viel uhr/.test(l)){say("Es ist "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr, Sir.");return true}
   if(/welches datum|welcher tag ist heute/.test(l)){say("Heute ist "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})+", Sir.");return true}
