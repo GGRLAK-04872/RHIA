@@ -5,8 +5,6 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.speech.RecognitionListener;
-import android.speech.RecognitionSupport;
-import android.speech.RecognitionSupportCallback;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
@@ -25,9 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 
 public final class MainActivity extends Activity implements RecognitionListener {
     private static final int MIC_PERMISSION = 41;
@@ -91,14 +87,13 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     private void installNativeBridge() {
-        String script = "javascript:(function(){if(window.__rhiaAndroid)return;window.__rhiaAndroid=true;" +
+        String script = "javascript:(function(){" +
                 "try{if(typeof speechRecognizer!=='undefined'&&speechRecognizer){speechRecognizer.abort();speechRecognizer=null;}if(typeof recognitionActive!=='undefined')recognitionActive=false;}catch(ignore){}" +
-                "try{startSpeechRecognition=function(testMode){if(testMode)RHIAAndroid.startLocalListening();else RHIAAndroid.startLocalListening();};testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};}catch(ignore){}" +
-                "var lastNativeTap=0;function nativeTap(e){var target=e.target&&e.target.closest?e.target.closest('#mic,#speechInputTest,#voiceTest'):null;if(!target)return;e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();var now=Date.now();if(now-lastNativeTap<600)return;lastNativeTap=now;if(target.id==='voiceTest')RHIAAndroid.testLocalVoice();else RHIAAndroid.startLocalListening();}" +
-                "document.addEventListener('click',nativeTap,true);" +
-                "var mic=document.getElementById('mic');if(mic){mic.onclick=null;mic.disabled=false;mic.removeAttribute('disabled');mic.style.touchAction='manipulation';mic.addEventListener('pointerup',nativeTap,true);mic.addEventListener('touchend',nativeTap,true);mic.addEventListener('contextmenu',function(e){e.preventDefault();},true);}" +
-                "var speechTest=document.getElementById('speechInputTest');if(speechTest){speechTest.onclick=function(e){e.preventDefault();RHIAAndroid.startLocalListening();};speechTest.disabled=false;speechTest.removeAttribute('disabled');}" +
-                "var voiceTest=document.getElementById('voiceTest');if(voiceTest)voiceTest.onclick=null;" +
+                "function bindNativeButton(id,action){var oldButton=document.getElementById(id);if(!oldButton||!oldButton.parentNode)return null;var button=oldButton.cloneNode(true);oldButton.parentNode.replaceChild(button,oldButton);button.disabled=false;button.removeAttribute('disabled');button.style.touchAction='manipulation';button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();action();},false);return button;}" +
+                "window.startSpeechRecognition=function(){RHIAAndroid.startLocalListening();};window.testBrowserVoice=function(){RHIAAndroid.testLocalVoice();};" +
+                "bindNativeButton('mic',function(){RHIAAndroid.startLocalListening();});" +
+                "bindNativeButton('speechInputTest',function(){RHIAAndroid.startLocalListening();});" +
+                "bindNativeButton('voiceTest',function(){RHIAAndroid.testLocalVoice();});" +
                 "var inputStatus=document.getElementById('speechInputStatus');if(inputStatus)inputStatus.textContent='Lokale Android-Spracherkennung bereit · App v" + BuildConfig.VERSION_NAME + "';" +
                 "var voiceStatus=document.getElementById('voiceTestStatus');if(voiceStatus)voiceStatus.textContent='Lokale Android-Stimme bereit zum Test';" +
                 "window.rhiaAndroidState=function(mode,text){var s=document.getElementById('stage');if(s)s.className='stage '+mode;var c=document.getElementById('coreState');if(c)c.textContent=text;var t=document.getElementById('topState');if(t)t.textContent=text;};" +
@@ -131,7 +126,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
             return;
         }
         reconnectAttempted = false;
-        checkGermanModelAndListen();
+        recreateRecognizer();
+        beginLocalRecognition();
     }
 
     private Intent germanRecognitionIntent() {
@@ -144,45 +140,6 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
                 .putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1800L)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
-    }
-
-    private void checkGermanModelAndListen() {
-        recreateRecognizer();
-        if (android.os.Build.VERSION.SDK_INT < 33) {
-            beginLocalRecognition();
-            return;
-        }
-        Executor mainExecutor = getMainExecutor();
-        recognizer.checkRecognitionSupport(germanRecognitionIntent(), mainExecutor, new RecognitionSupportCallback() {
-            @Override public void onSupportResult(RecognitionSupport support) {
-                List<String> installed = support.getInstalledOnDeviceLanguages();
-                if (containsGerman(installed)) {
-                    beginLocalRecognition();
-                    return;
-                }
-                List<String> supported = support.getSupportedOnDeviceLanguages();
-                if (containsGerman(supported)) {
-                    setState("thinking", "DEUTSCH LOKAL VORBEREITEN");
-                    recognizer.triggerModelDownload(germanRecognitionIntent());
-                    web.postDelayed(MainActivity.this::checkGermanModelAndListen, 2500);
-                    return;
-                }
-                recognitionInProgress = false;
-                setState("error", "DEUTSCHE OFFLINE-ERKENNUNG NICHT VERFÜGBAR");
-            }
-
-            @Override public void onError(int error) {
-                // Manche Samsung-Dienste unterstützen die Diagnose nicht, obwohl
-                // die eigentliche On-Device-Erkennung funktioniert.
-                beginLocalRecognition();
-            }
-        });
-    }
-
-    private static boolean containsGerman(List<String> languages) {
-        if (languages == null) return false;
-        return languages.stream().anyMatch(language ->
-                language != null && language.toLowerCase(Locale.ROOT).startsWith("de"));
     }
 
     private void recreateRecognizer() {
@@ -198,6 +155,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
         super.onRequestPermissionsResult(code, permissions, results);
+        recognitionInProgress = false;
         if (code == MIC_PERMISSION && results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) startListening();
         else setState("error", "MIKROFONZUGRIFF FEHLT");
     }
