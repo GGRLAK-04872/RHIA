@@ -33,6 +33,7 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private SpeechRecognizer recognizer;
     private TextToSpeech tts;
     private boolean ttsOfflineReady;
+    private boolean reconnectAttempted;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -113,13 +114,31 @@ public final class MainActivity extends Activity implements RecognitionListener 
         if (recognizer != null) recognizer.destroy();
         recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
         recognizer.setRecognitionListener(this);
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        reconnectAttempted = false;
+        startRecognizerSession();
+    }
+
+    private Intent localGermanIntent() {
+        return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "de-DE")
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "de-DE")
+                .putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true)
                 .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
                 .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5);
+    }
+
+    private void startRecognizerSession() {
         setState("listening", "ZUHÖREN");
-        recognizer.startListening(intent);
+        recognizer.startListening(localGermanIntent());
+    }
+
+    private void reconnectLocalRecognizer() {
+        if (recognizer != null) recognizer.destroy();
+        recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(this);
+        recognizer.setRecognitionListener(this);
+        setState("thinking", "LOKALEN SPRACHDIENST NEU VERBINDEN");
+        web.postDelayed(this::startRecognizerSession, 450);
     }
 
     @Override public void onRequestPermissionsResult(int code, String[] permissions, int[] results) {
@@ -158,9 +177,17 @@ public final class MainActivity extends Activity implements RecognitionListener 
     }
 
     @Override public void onError(int error) {
+        if (error == SpeechRecognizer.ERROR_SERVER_DISCONNECTED && !reconnectAttempted) {
+            reconnectAttempted = true;
+            reconnectLocalRecognizer();
+            return;
+        }
         String message = switch (error) {
             case SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "NICHTS ERKANNT";
-            case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> "DEUTSCHES OFFLINE-SPRACHPAKET FEHLT";
+            case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE ->
+                    "DEUTSCHES OFFLINE-SPRACHMODELL FEHLT";
+            case SpeechRecognizer.ERROR_SERVER_DISCONNECTED ->
+                    "LOKALER SPRACHDIENST NICHT VERBUNDEN · ERNEUT TIPPEN";
             default -> "LOKALER SPRACHTEST FEHLGESCHLAGEN · CODE " + error;
         };
         setState("error", message);
