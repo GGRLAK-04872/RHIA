@@ -6,6 +6,11 @@ android {
     namespace = "app.rhia.localtest"
     compileSdk = 35
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     defaultConfig {
         applicationId = "app.rhia.localtest"
         minSdk = 31
