@@ -19,7 +19,46 @@ android {
         applicationId = "app.rhia.localtest"
         minSdk = 31
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.15"
+        versionCode = 16
+        versionName = "0.16"
     }
+}
+
+dependencies {
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
+    implementation("com.alphacephei:vosk-android:0.3.75@aar")
+}
+
+val prepareGermanVoskModel by tasks.registering {
+    val modelRoot = layout.projectDirectory.dir("src/main/assets/model-de")
+    outputs.dir(modelRoot)
+
+    doLast {
+        val marker = modelRoot.file("am/final.mdl").asFile
+        if (marker.isFile) return@doLast
+
+        val archive = layout.buildDirectory.file("vosk-model-small-de-0.15.zip").get().asFile
+        archive.parentFile.mkdirs()
+        if (!archive.isFile) {
+            java.net.URL("https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip")
+                .openStream().use { input ->
+                    archive.outputStream().use { output -> input.copyTo(output) }
+                }
+        }
+
+        delete(modelRoot)
+        copy {
+            from(zipTree(archive))
+            into(modelRoot)
+            eachFile {
+                path = path.substringAfter("/", path)
+            }
+            includeEmptyDirs = false
+        }
+        check(marker.isFile) { "Das deutsche Vosk-Modell wurde nicht korrekt entpackt." }
+    }
+}
+
+tasks.named("preBuild") {
+    dependsOn(prepareGermanVoskModel)
 }
