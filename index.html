@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#090306">
-<title>RHIA Alpha v0.24</title>
+<title>RHIA Alpha v0.25</title>
 <style>
 :root{--a:#8f1738;--b:#ff6d88;--c:#390817;--rgb:143,23,56;--bg:#050204;--panel:rgba(27,5,12,.82);--text:#fff7fa;--muted:#b99aa5;--line:rgba(255,109,136,.16)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#030102;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit}
@@ -61,11 +61,11 @@ main{display:block;width:100%;height:100%;min-height:0}
 <header><div class="logo"><strong>RHIA</strong><span>RH INTELLIGENT ASSISTANT</span></div><div class="topstate"><i class="dot"></i><span id="topState">BEREIT</span></div><div class="headright"><div class="worldtop">WELT<b id="worldTop">ALLGEMEIN</b></div><button class="menu" id="menuBtn">☰</button></div></header>
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic" type="button" aria-label="Mikrofon aktivieren">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
-<footer><div class="version">ALPHA <b>V0.24</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
+<footer><div class="version">ALPHA <b>V0.25</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <script>
 "use strict";
-const VERSION="0.24",API="/api/chat";
+const VERSION="0.25",API="/api/chat";
 const DEFAULT_PROFILE=Object.freeze({
   assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
   user:{name:"Mike",formalAddress:"Sir"},
@@ -76,6 +76,11 @@ const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA",
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:load(K.chat,[]),ideas:load(K.ideas,[]),memories:load(K.memories,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot",profile:DEFAULT_PROFILE},load(K.settings,{}))};
 const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.chat,JSON.stringify(state.chat));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));localStorage.setItem(K.memories,JSON.stringify(state.memories));localStorage.setItem(K.settings,JSON.stringify(state.settings))};
+const MEMORY_CATEGORIES=Object.freeze(["Profil","Projekte","Vorlieben","Entscheidungen","Erinnerungen"]);
+function normalizeMemoryCategory(value){const key=String(value||"").toLocaleLowerCase("de-DE");return({"profil":"Profil","projekt":"Projekte","projekte":"Projekte","vorliebe":"Vorlieben","vorlieben":"Vorlieben","entscheidung":"Entscheidungen","entscheidungen":"Entscheidungen","erinnerung":"Erinnerungen","erinnerungen":"Erinnerungen"}[key]||"Erinnerungen")}
+function normalizeMemoryItem(item,index=0){if(typeof item==="string")return{id:"memory-migrated-"+index,text:cleanMemoryText(item),category:"Erinnerungen",createdAt:new Date(0).toISOString()};return{id:item.id||"memory-migrated-"+index,text:cleanMemoryText(item.text),category:normalizeMemoryCategory(item.category),createdAt:item.createdAt||new Date(0).toISOString()}}
+const normalizedMemories=state.memories.map(normalizeMemoryItem).filter(item=>item.text);
+if(JSON.stringify(normalizedMemories)!==JSON.stringify(state.memories)){state.memories=normalizedMemories;save()}
 let recognitionActive=false,pendingAutomaticSpeech="",automaticSpeechTimer=0,speechRecognizer=null,speechTestMode=false,speechRecognitionError="",pendingMemoryDeletion=null;
 function browserSpeechSupported(){return "speechSynthesis" in window&&"SpeechSynthesisUtterance" in window}
 function setSpeechInputStatus(message,status="idle"){const label=$("speechInputStatus"),dot=$("speechInputDot");if(label)label.textContent=message;if(dot)dot.dataset.state=status}
@@ -109,27 +114,42 @@ function identityReply(kind){
 }
 const cleanMemoryText=value=>String(value||"").trim().replace(/[.!?]+$/g,"").replace(/\s+/g," ").slice(0,500);
 const comparableMemoryText=value=>cleanMemoryText(value).toLocaleLowerCase("de-DE");
-function remember(text){
-  const memory=cleanMemoryText(text);
-  if(memory.length<2){say("Was genau soll ich mir merken, Sir?");return true}
-  const existing=state.memories.find(item=>comparableMemoryText(typeof item==="string"?item:item.text)===comparableMemoryText(memory));
-  if(existing){say("Das habe ich bereits gespeichert, Sir: "+memory+".");return true}
-  state.memories.push({id:(globalThis.crypto?.randomUUID?.()||"memory-"+Date.now()),text:memory,category:"Erinnerung",createdAt:new Date().toISOString()});
-  save();render();say("Ich habe mir dauerhaft gemerkt: "+memory+".");return true;
+function parseMemoryInput(value){
+  let text=cleanMemoryText(value).replace(/^(?:,?\s*dass\s+)/i,""),category="";
+  const explicit=text.match(/^(?:als|unter|in|im|für|fuer|zu|zum|zur)?\s*(profil|projekte?|vorlieben?|entscheidungen?|erinnerungen?)\s*[:,;-]?\s*(?:dass\s+)?(.+)$/i);
+  if(explicit){category=normalizeMemoryCategory(explicit[1]);text=cleanMemoryText(explicit[2])}
+  if(!category){
+    if(/^(?:mein name ist|ich heiße|ich heisse|ich bin \d+|ich wohne|ich arbeite)/i.test(text))category="Profil";
+    else if(/^(?:zum projekt|projekt\s+|bei rhia|bei shadow grown|bei rh produktion)/i.test(text))category="Projekte";
+    else if(/^(?:mein lieblings|ich mag|ich bevorzuge|mir gefällt|mir gefaellt|ich möchte lieber|ich moechte lieber)/i.test(text))category="Vorlieben";
+    else if(/^(?:wir haben entschieden|ich habe entschieden|die entscheidung ist|verbindlich gilt|wir legen fest)/i.test(text))category="Entscheidungen";
+    else category="Erinnerungen";
+  }
+  return{category,text};
 }
-function recallMemories(){
-  if(!state.memories.length){say("Ich habe noch keine persönlichen Erinnerungen gespeichert, Sir.");return true}
-  const recent=state.memories.slice(-5).map(item=>cleanMemoryText(typeof item==="string"?item:item.text));
-  const prefix=state.memories.length===1?"Ich habe mir gemerkt: ":`Von ${state.memories.length} Erinnerungen sind die neuesten: `;
+function remember(value){
+  const parsed=parseMemoryInput(value),memory=parsed.text;
+  if(memory.length<2){say("Was genau soll ich mir merken, Sir?");return true}
+  const existing=state.memories.find(item=>comparableMemoryText(item.text)===comparableMemoryText(memory)&&normalizeMemoryCategory(item.category)===parsed.category);
+  if(existing){say("Das ist bereits unter "+parsed.category+" gespeichert, Sir: "+memory+".");return true}
+  state.memories.push({id:(globalThis.crypto?.randomUUID?.()||"memory-"+Date.now()),text:memory,category:parsed.category,createdAt:new Date().toISOString()});
+  save();render();say("Unter "+parsed.category+" habe ich dauerhaft gespeichert: "+memory+".");return true;
+}
+function recallMemories(category=""){
+  const wanted=category?normalizeMemoryCategory(category):"",items=wanted?state.memories.filter(item=>normalizeMemoryCategory(item.category)===wanted):state.memories;
+  if(!items.length){say(wanted?"Unter "+wanted+" habe ich noch nichts gespeichert, Sir.":"Ich habe noch keine persönlichen Informationen gespeichert, Sir.");return true}
+  const recent=items.slice(-5).map(item=>cleanMemoryText(item.text));
+  const label=wanted||"allen fünf Bereichen";
+  const prefix=items.length===1?"Unter "+label+" habe ich gespeichert: ":"Unter "+label+" sind die neuesten "+items.length+" Einträge: ";
   say(prefix+recent.join("; ")+".");return true;
 }
 function requestMemoryDeletion(query){
   const needle=comparableMemoryText(query);
-  const matches=state.memories.filter(item=>{const text=comparableMemoryText(typeof item==="string"?item:item.text);return text===needle||text.includes(needle)||needle.includes(text)});
-  if(!matches.length){say("Dazu habe ich keine passende Erinnerung gefunden, Sir.");return true}
-  if(matches.length>1){say("Ich habe mehrere passende Erinnerungen gefunden. Bitte sagen Sie genauer, welche ich vergessen soll.");return true}
-  const item=matches[0];pendingMemoryDeletion={id:item.id||null,text:cleanMemoryText(typeof item==="string"?item:item.text)};
-  say("Soll ich diese Erinnerung wirklich löschen: "+pendingMemoryDeletion.text+"?");return true;
+  const matches=state.memories.filter(item=>{const text=comparableMemoryText(item.text);return text===needle||text.includes(needle)||needle.includes(text)});
+  if(!matches.length){say("Dazu habe ich keine passende gespeicherte Information gefunden, Sir.");return true}
+  if(matches.length>1){say("Ich habe mehrere passende Einträge gefunden. Bitte sagen Sie genauer, welchen ich vergessen soll.");return true}
+  const item=matches[0];pendingMemoryDeletion={id:item.id,text:cleanMemoryText(item.text),category:normalizeMemoryCategory(item.category)};
+  say("Soll ich diesen Eintrag aus "+pendingMemoryDeletion.category+" wirklich löschen: "+pendingMemoryDeletion.text+"?");return true;
 }
 function resolveMemoryDeletion(answer){
   if(!pendingMemoryDeletion)return false;
@@ -137,10 +157,10 @@ function resolveMemoryDeletion(answer){
   const no=/^(nein|abbrechen|nicht löschen|nicht loeschen)$/.test(answer);
   if(!yes&&!no){say("Bitte sagen Sie Ja zum Löschen oder Nein zum Abbrechen, Sir.");return true}
   const pending=pendingMemoryDeletion;pendingMemoryDeletion=null;
-  if(no){say("In Ordnung, Sir. Die Erinnerung bleibt gespeichert.");return true}
-  const index=state.memories.findIndex(item=>(pending.id&&item.id===pending.id)||comparableMemoryText(typeof item==="string"?item:item.text)===comparableMemoryText(pending.text));
-  if(index<0){say("Die Erinnerung ist nicht mehr vorhanden, Sir.");return true}
-  state.memories.splice(index,1);save();render();say("Die Erinnerung wurde gelöscht, Sir.");return true;
+  if(no){say("In Ordnung, Sir. Der Eintrag bleibt gespeichert.");return true}
+  const index=state.memories.findIndex(item=>item.id===pending.id);
+  if(index<0){say("Der Eintrag ist nicht mehr vorhanden, Sir.");return true}
+  state.memories.splice(index,1);save();render();say("Der Eintrag wurde aus "+pending.category+" gelöscht, Sir.");return true;
 }
 function local(text){
   const l=text.toLowerCase().trim();let m;
@@ -152,9 +172,14 @@ function local(text){
   if(m=l.match(/^(?:rhia[ ,]*)?(?:aufgabe|erstelle eine aufgabe)[: ]+(.+)/)){state.tasks.push({text:m[1],done:false,createdAt:new Date().toISOString(),world:state.settings.world});save();render();say("Jawohl, Sir. Die Aufgabe ist gespeichert.");return true}
   if(m=l.match(/^(?:rhia[ ,]*)?(?:notiz|speichere eine notiz)[: ]+(.+)/)){state.notes.push({text:m[1],createdAt:new Date().toISOString(),world:state.settings.world});save();render();say("Natürlich, Sir. Die Notiz ist gespeichert.");return true}
   if(m=l.match(/^(?:rhia[ ,]*)?(?:idee|speichere eine idee)[: ]+(.+)/)){state.ideas.push({title:m[1],status:"offen",createdAt:new Date().toISOString(),area:state.settings.world});save();render();say("Jawohl, Sir. Die Idee ist gespeichert.");return true}
-  if(m=text.match(/^(?:rhia[ ,]*)?(?:merke dir(?: bitte)?(?:,)?(?: dass)?|speichere als erinnerung(?:,)?(?: dass)?)\s+(.+)/i))return remember(m[1]);
-  if(/^(?:rhia[ ,]*)?(?:was hast du dir gemerkt|was weißt du noch|welche erinnerungen hast du)(?:\?)?$/i.test(text))return recallMemories();
-  if(m=text.match(/^(?:rhia[ ,]*)?(?:vergiss(?: bitte)?(?:,)?(?: dass)?|lösche (?:bitte )?(?:die )?erinnerung(?:,)?(?: dass)?)\s+(.+)/i))return requestMemoryDeletion(m[1]);
+  if(m=text.match(/^(?:rhia[ ,]*)?(?:merke dir(?: bitte)?(?:,)?(?: dass)?|speichere(?: bitte)?(?: als erinnerung)?(?:,)?(?: dass)?)\s+(.+)/i))return remember(m[1]);
+  if(/^(?:rhia[ ,]*)?(?:was hast du dir gemerkt|was weißt du noch|welche informationen hast du gespeichert)(?:\?)?$/i.test(text))return recallMemories();
+  if(/^(?:rhia[ ,]*)?(?:was steht in meinem profil|was weißt du aus meinem profil)(?:\?)?$/i.test(text))return recallMemories("Profil");
+  if(/^(?:rhia[ ,]*)?(?:welche projekte kennst du|was weißt du über meine projekte)(?:\?)?$/i.test(text))return recallMemories("Projekte");
+  if(/^(?:rhia[ ,]*)?(?:welche vorlieben kennst du|was sind meine vorlieben)(?:\?)?$/i.test(text))return recallMemories("Vorlieben");
+  if(/^(?:rhia[ ,]*)?(?:welche entscheidungen hast du gespeichert|was haben wir entschieden)(?:\?)?$/i.test(text))return recallMemories("Entscheidungen");
+  if(/^(?:rhia[ ,]*)?(?:welche erinnerungen hast du|was ist unter erinnerungen gespeichert)(?:\?)?$/i.test(text))return recallMemories("Erinnerungen");
+  if(m=text.match(/^(?:rhia[ ,]*)?(?:vergiss(?: bitte)?(?:,)?(?: dass)?|lösche (?:bitte )?(?:den |die )?(?:eintrag|erinnerung)(?:,)?(?: dass)?)\s+(.+)/i))return requestMemoryDeletion(m[1]);
   if(/wie heißt du|wie heisst du|was ist dein name/.test(l)){say(identityReply("assistant-name"));return true}
   if(/wer bist du|was bist du|stell dich vor/.test(l)){say(identityReply("assistant"));return true}
   if(/wer bin ich|wie heiße ich|wie heisse ich/.test(l)){say(identityReply("user"));return true}
@@ -167,7 +192,7 @@ function local(text){
   return false;
 }
 const WAKE_WORDS="rhia|ria|riha|rhea|rija|riah",WAKE_MISRECOGNITIONS="maria|ihr|hier|wir|kurier|urea";
-function isLocalCommandStart(text){return /^(?:merke dir|speichere als erinnerung|was hast du dir gemerkt|was weißt du noch|welche erinnerungen hast du|vergiss|lösche (?:bitte )?(?:die )?erinnerung|wer bist du|was bist du|stell dich vor|wer bin ich|wie heiße ich|wie heisse ich|kennst du mich|was weißt du über mich|was weisst du über mich|wie heißt du|wie heisst du|was ist dein name|wie geht es dir|wie gehts dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir|guten morgen|guten tag|guten abend|hallo|welche version|deine version|wie spät|wie viel uhr|welches datum|welcher tag ist heute|öffne|zeige|aufgabe|erstelle eine aufgabe|notiz|speichere eine notiz|idee|speichere eine idee)\b/i.test(text)}
+function isLocalCommandStart(text){return /^(?:merke dir|speichere|was hast du dir gemerkt|was weißt du noch|welche informationen hast du gespeichert|was steht in meinem profil|was weißt du aus meinem profil|welche projekte kennst du|was weißt du über meine projekte|welche vorlieben kennst du|was sind meine vorlieben|welche entscheidungen hast du gespeichert|was haben wir entschieden|welche erinnerungen hast du|was ist unter erinnerungen gespeichert|vergiss|lösche (?:bitte )?(?:den |die )?(?:eintrag|erinnerung)|wer bist du|was bist du|stell dich vor|wer bin ich|wie heiße ich|wie heisse ich|kennst du mich|was weißt du über mich|was weisst du über mich|wie heißt du|wie heisst du|was ist dein name|wie geht es dir|wie gehts dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir|guten morgen|guten tag|guten abend|hallo|welche version|deine version|wie spät|wie viel uhr|welches datum|welcher tag ist heute|öffne|zeige|aufgabe|erstelle eine aufgabe|notiz|speichere eine notiz|idee|speichere eine idee)\b/i.test(text)}
 function normalizeSpokenCommand(raw){
   const spoken=String(raw||"").trim().replace(/\s+/g," ");
   const leading=spoken.match(new RegExp("^\\s*(?:hey\\s+)?("+WAKE_WORDS+"|"+WAKE_MISRECOGNITIONS+")[\\s,.:;-]+(.+)$","i"));
