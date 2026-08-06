@@ -44,4 +44,4 @@ jobs:
           gh release create "$TAG" RHIA-Android-Test.apk \
             --repo "${{ github.repository }}" \
             --title "RHIA Android Hybrid Test v${APP_VERSION} (Build ${{ github.run_number }})" \
-            --notes "Verhindert den doppelten Mikrofonstart und hält die lokale Erkennung nach einem Antippen stabil aktiv. Die Versionsnummer wird zentral aus der App-Konfiguration übernommen."
+            --notes "Beschleunigt und stabilisiert die native Android-Sprachausgabe. Der Antwortstatus folgt echten TTS-Rückmeldungen; nicht verstandene Befehle erhalten nach spätestens 2,5 Sekunden eine hörbare Rückmeldung."
