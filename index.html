@@ -112,8 +112,8 @@ function identityReply(kind){
   if(kind==="user")return `Sie sind ${u.name}. Für mich sind Sie ${u.formalAddress}, und ich unterstütze Sie bei ${p.projects.join(", ") }.`;
   return `Ja. Sie sind ${u.name}, ${u.formalAddress}. Ich kenne Ihre zentralen Projekte: ${p.projects.join(", ")}.`;
 }
-const cleanMemoryText=value=>String(value||"").trim().replace(/[.!?]+$/g,"").replace(/\s+/g," ").slice(0,500);
-const comparableMemoryText=value=>cleanMemoryText(value).toLocaleLowerCase("de-DE");
+function cleanMemoryText(value){return String(value||"").trim().replace(/[.!?]+$/g,"").replace(/\s+/g," ").slice(0,500)}
+function comparableMemoryText(value){return cleanMemoryText(value).toLocaleLowerCase("de-DE")}
 function parseMemoryInput(value){
   let text=cleanMemoryText(value).replace(/^(?:,?\s*dass\s+)/i,""),category="";
   const explicit=text.match(/^(?:als|unter|in|im|für|fuer|zu|zum|zur)?\s*(profil|projekte?|vorlieben?|entscheidungen?|erinnerungen?)\s*[:,;-]?\s*(?:dass\s+)?(.+)$/i);
