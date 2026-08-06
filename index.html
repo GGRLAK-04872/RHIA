@@ -61,12 +61,12 @@ main{display:block;width:100%;height:100%;min-height:0}
 <header><div class="logo"><strong>RHIA</strong><span>RH INTELLIGENT ASSISTANT</span></div><div class="topstate"><i class="dot"></i><span id="topState">BEREIT</span></div><div class="headright"><div class="worldtop">WELT<b id="worldTop">ALLGEMEIN</b></div><button class="menu" id="menuBtn">☰</button></div></header>
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic" type="button" aria-label="Mikrofon aktivieren">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
-<footer><div class="version">ALPHA <b>V0.25</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
+<footer><div class="version">ALPHA <b>V0.26</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <script>
 "use strict";
 // RHIA backend transfer scope approved on 2026-08-06; paid AI remains separately gated.
-const VERSION="0.25",API="https://rhia.pages.dev/api/chat";
+const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge";
 const DEFAULT_PROFILE=Object.freeze({
   assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
   user:{name:"Mike",formalAddress:"Sir"},
@@ -76,6 +76,17 @@ const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",idea
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:load(K.chat,[]),ideas:load(K.ideas,[]),memories:load(K.memories,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot",profile:DEFAULT_PROFILE},load(K.settings,{}))};
+let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null;
+async function loadCentralKnowledge(){try{const response=await fetch(KNOWLEDGE_API,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);const payload=await response.json();if(!Array.isArray(payload?.knowledge?.facts))throw Error("Ungültiges Wissensformat");centralKnowledge=payload.knowledge}catch(error){console.error("RHIA central knowledge error",error)}}
+async function saveCentralKnowledge(change){
+  const ownerToken=localStorage.getItem("rhia_owner_token_v1")||prompt("Bitte geben Sie einmalig Ihren RHIA-Besitzerschlüssel ein:")||"";
+  if(!ownerToken)throw Error("Besitzerfreigabe abgebrochen");
+  localStorage.setItem("rhia_owner_token_v1",ownerToken);
+  const response=await fetch(KNOWLEDGE_API,{method:"POST",headers:{"content-type":"application/json","x-rhia-owner-token":ownerToken},body:JSON.stringify(change)});
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok){if(response.status===401)localStorage.removeItem("rhia_owner_token_v1");throw Error(payload.error||"Speichern fehlgeschlagen")}
+  await loadCentralKnowledge();return payload;
+}
 const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.chat,JSON.stringify(state.chat));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));localStorage.setItem(K.memories,JSON.stringify(state.memories));localStorage.setItem(K.settings,JSON.stringify(state.settings))};
 const MEMORY_CATEGORIES=Object.freeze(["Profil","Projekte","Vorlieben","Entscheidungen","Erinnerungen"]);
 function normalizeMemoryCategory(value){const key=String(value||"").toLocaleLowerCase("de-DE");return({"profil":"Profil","projekt":"Projekte","projekte":"Projekte","vorliebe":"Vorlieben","vorlieben":"Vorlieben","entscheidung":"Entscheidungen","entscheidungen":"Entscheidungen","erinnerung":"Erinnerungen","erinnerungen":"Erinnerungen"}[key]||"Erinnerungen")}
@@ -183,9 +194,7 @@ function local(text){
   if(m=text.match(/^(?:rhia[ ,]*)?(?:vergiss(?: bitte)?(?:,)?(?: dass)?|lösche (?:bitte )?(?:den |die )?(?:eintrag|erinnerung)(?:,)?(?: dass)?)\s+(.+)/i))return requestMemoryDeletion(m[1]);
   if(/wie heißt du|wie heisst du|was ist dein name/.test(l)){say(identityReply("assistant-name"));return true}
   if(/wer bist du|was bist du|stell dich vor/.test(l)){say(identityReply("assistant"));return true}
-  if(/wer bin ich|wie heiße ich|wie heisse ich/.test(l)){say(identityReply("user"));return true}
-  if(/was ist mein künstlername|wie lautet mein künstlername|wie heiße ich als (?:rapper|künstler)|wie heisse ich als (?:rapper|künstler)/.test(l)){say("Ihr Künstlername ist Shadow Grown, Sir.");return true}
-  if(/wer ist shadow grown|was ist shadow grown/.test(l)){say("Shadow Grown ist Ihr Künstlername und Ihre Künstlerfigur für Ihre Musik und die kreative Welt von RH Produktion, Sir.");return true}
+  if(/^(?:wer bin ich|wie heiße ich|wie heisse ich)[.!? ]*$/.test(l)){say(identityReply("user"));return true}
   if(/kennst du mich|was weißt du über mich|was weisst du über mich/.test(l)){say(identityReply("knows-user"));return true}
   if(/wie geht es dir|wie gehts dir|wie geht.s dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir/.test(l)){say("Mir geht es gut, "+profile().user.formalAddress+". Ich bin bereit – was machen wir heute?");return true}
   if(/^(guten morgen|guten tag|guten abend|hallo)(?:[.!? ,]*)$/.test(l)){say("Guten Tag, "+profile().user.formalAddress+". Ich bin bereit.");return true}
@@ -208,7 +217,44 @@ function normalizeSpokenCommand(raw){
   if(trailingGreeting)text=trailingGreeting[1];
   return text.trim();
 }
-async function handle(raw){const spoken=String(raw||"").trim();if(new RegExp("^(?:hey\\s+)?(?:"+WAKE_WORDS+")[.!? ,]*$","i").test(spoken)){say("Ja, Sir?");return}const text=normalizeSpokenCommand(spoken);if(!text){say("Ja, Sir?");return}state.chat.push({type:"user",text,createdAt:new Date().toISOString()});save();setMode("thinking");if(local(text))return;const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);try{const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:text,world:state.settings.world,memories:state.memories,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))}),signal:controller.signal});const p=await r.json();if(!r.ok||!p.ok)throw Error(p.error||"Fehler");say(p.reply)}catch(e){console.error("RHIA request error",e);const message=e?.name==="AbortError"?"Die KI-Verbindung hat zu lange gebraucht, Sir. Bitte versuchen Sie es gleich noch einmal.":navigator.onLine===false?"Keine Internetverbindung, Sir. Lokale Funktionen bleiben verfügbar.":"Die KI-Verbindung ist gerade nicht erreichbar, Sir. Ihre Frage wurde verstanden.";say(message)}finally{clearTimeout(timeout)}}
+function proposedKnowledge(text){
+  const match=String(text).match(/^(?:rhia[ ,]*)?(?:merke dir dauerhaft|speichere dauerhaft|lerne dauerhaft|korrigiere dauerhaft)(?:,?\s+dass)?\s+(.+)/i);
+  if(!match)return null;
+  const statement=match[1].trim().replace(/[.!?]+$/g,"");
+  if(statement.length<3)return null;
+  const subjectMatch=statement.match(/^(.{2,100}?)\s+(?:ist|sind|heißt|heisst|gehört|gehoert|arbeitet|darf|hat)\b/i);
+  const subject=subjectMatch?.[1]?.trim()||state.settings.world||"Allgemein";
+  const sameSubject=(centralKnowledge.facts||[]).filter(item=>String(item?.subject||"").toLocaleLowerCase("de-DE")===subject.toLocaleLowerCase("de-DE"));
+  return{...(sameSubject.length===1?{id:sameSubject[0].id}:{}),subject,statement};
+}
+const confirms=text=>/^(?:ja|jawohl|bestätigt|speichern|dauerhaft speichern)(?:[.! ]*)$/i.test(text);
+const rejects=text=>/^(?:nein|abbrechen|nicht speichern)(?:[.! ]*)$/i.test(text);
+async function handle(raw){
+  const spoken=String(raw||"").trim();
+  if(new RegExp("^(?:hey\\s+)?(?:"+WAKE_WORDS+")[.!? ,]*$","i").test(spoken)){say("Ja, Sir?");return}
+  const text=normalizeSpokenCommand(spoken);if(!text){say("Ja, Sir?");return}
+  state.chat.push({type:"user",text,createdAt:new Date().toISOString()});save();setMode("thinking");
+  if(pendingKnowledge){
+    if(rejects(text)){pendingKnowledge=null;say("Verstanden, Sir. Ich habe die Information nicht gespeichert.");return}
+    if(confirms(text)){
+      const change=pendingKnowledge;pendingKnowledge=null;
+      try{await saveCentralKnowledge(change);say("Bestätigt, Sir. Die Information ist jetzt dauerhaft in meinem zentralen Gedächtnis gespeichert.")}
+      catch(error){console.error("RHIA knowledge write error",error);say("Ich konnte die Information noch nicht zentral speichern, Sir. "+error.message+".")}
+      return;
+    }
+    say("Bitte antworten Sie zuerst mit Ja oder Nein: Soll ich die vorgeschlagene Information dauerhaft speichern, Sir?");return;
+  }
+  const proposal=proposedKnowledge(text);
+  if(proposal){pendingKnowledge=proposal;say(`Soll ich diese Information dauerhaft speichern, Sir: „${proposal.statement}“? Bitte antworten Sie mit Ja oder Nein.`);return}
+  if(local(text))return;
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
+  try{
+    const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:text,world:state.settings.world,memories:state.memories,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))}),signal:controller.signal});
+    const p=await r.json();if(!r.ok||!p.ok)throw Error(p.error||"Fehler");say(p.reply)
+  }catch(e){
+    console.error("RHIA request error",e);const message=e?.name==="AbortError"?"Die KI-Verbindung hat zu lange gebraucht, Sir. Bitte versuchen Sie es gleich noch einmal.":navigator.onLine===false?"Keine Internetverbindung, Sir. Lokale Funktionen bleiben verfügbar.":"Die KI-Verbindung ist gerade nicht erreichbar, Sir. Ihre Frage wurde verstanden.";say(message)
+  }finally{clearTimeout(timeout)}
+}
 function render(){const activeIdeas=state.ideas.filter(x=>x.status!=="verworfen");$("taskCount").textContent=state.tasks.length;$("noteCount").textContent=state.notes.length;$("ideaCount").textContent=activeIdeas.length;$("memoryCount").textContent=state.memories.length;$("worldTop").textContent=$("worldSide").textContent=state.settings.world.toUpperCase();$("colorSide").textContent=state.settings.colorTheme.toUpperCase();renderList("tasks",state.tasks,x=>x.text);renderList("notes",state.notes,x=>x.text);renderList("ideas",activeIdeas,x=>x.title);$("voiceToggle").textContent="Sprachausgabe: "+(state.settings.browserVoice?"an":"aus");$("voiceToggle").setAttribute("aria-pressed",String(state.settings.browserVoice));$("worlds").innerHTML=worlds.map(w=>`<button class="${w===state.settings.world?'active':''}" data-world="${w}">${w}</button>`).join("");$("colors").innerHTML=Object.keys(themes).map(c=>`<button class="${c===state.settings.colorTheme?'active':''}" data-color="${c}">${c}</button>`).join("");document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{state.settings.world=b.dataset.world;save();render()});document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{applyTheme(b.dataset.color);save();render()})}
 function renderList(type,data,label){const el=$("tab-"+type);el.innerHTML=data.length?data.map((x,i)=>`<div class="item ${x.done?'done':''}"><div class="txt">${escapeHtml(label(x))}</div><div class="actions">${type==='tasks'?`<button data-toggle="${i}">✓</button>`:''}<button data-del="${type}:${i}">×</button></div></div>`).join(""):"<div class='empty'>Noch keine Einträge.</div>";el.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{state.tasks[+b.dataset.toggle].done=!state.tasks[+b.dataset.toggle].done;save();render()});el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const [t,i]=b.dataset.del.split(":");state[t].splice(+i,1);save();render()})}
 const escapeHtml=s=>String(s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -256,7 +302,7 @@ if(SR){
   $("speechInputTest").disabled=true;
   setSpeechInputStatus("Spracherkennung wird von diesem Browser nicht unterstützt.","error");
 }
-function tick(){const d=new Date();$("clock").textContent=d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});$("date").textContent=d.toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();const h=d.getHours();$("dayGreeting").textContent=(h<11?"GUTEN MORGEN":h<18?"GUTEN TAG":"GUTEN ABEND")+", SIR"}tick();setInterval(tick,10000);
+function tick(){const d=new Date();$("clock").textContent=d.toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});$("date").textContent=d.toLocaleDateString("de-DE",{day:"2-digit",month:"long",year:"numeric"}).toUpperCase();const h=d.getHours();$("dayGreeting").textContent=(h<11?"GUTEN MORGEN":h<18?"GUTEN TAG":"GUTEN ABEND")+", SIR"}loadCentralKnowledge();tick();setInterval(tick,10000);
 const cv=$("canvas"),cx=cv.getContext("2d"),TAU=Math.PI*2;
 let particles=[],filaments=[],wisps=[],membranes=[],nodes=[],links=[],visualRgb=[143,23,56],visualBright=[255,109,136],lastVisualMode="idle",burstStart=-1000;
 const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
