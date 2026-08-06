@@ -34,6 +34,46 @@ Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sort
 
 ## Aktueller verbindlicher Stand
 
+### 06.08.2026, 13:30 Uhr – v0.26 begonnen: falsche Identitätsannahme entfernt
+
+**Bereich:** KI-Kern / zentrales Wissen / Datenqualität
+
+**Bestätigte Korrektur:**
+
+- Mike ist Gründer und Verantwortlicher von RH Produktion.
+- Shadow Grown ist ein eigenständiger Künstler und Mitarbeiter von RH Produktion.
+- Mike und Shadow Grown dürfen von RHIA nicht automatisch als dieselbe Person behandelt werden.
+
+**Änderung:**
+
+- Die falschen vorbereiteten Antworten zu Mikes angeblichem Künstlernamen wurden aus Oberfläche und Backend entfernt.
+- Die falsche Identitätszuordnung wurde aus der KI-Anweisung entfernt.
+- `knowledge/rhia-core.json` wurde als geprüfter Grundbestand für bestätigte Fakten angelegt. Jeder Eintrag besitzt Kennung, Subjekt, Aussage, Bestätigungsstatus, Quelle und Datum.
+- Das KI-Backend lädt das verbindliche Wissen selbst aus dem zentralen Cloudflare-KV-Speicher `RHIA_KNOWLEDGE`. Die Oberfläche kann der KI keine eigenen angeblichen Zentralfakten mehr unterschieben.
+- Der neue Endpunkt `/api/knowledge` liest das zentrale Wissen geräteübergreifend und schreibt neue bestätigte Fakten nur mit dem serverseitig geprüften Besitzerschlüssel `RHIA_OWNER_TOKEN`.
+- Der Sprach-/Textbefehl „Merke dir dauerhaft, dass …“ erzeugt zunächst nur einen Vorschlag. Erst ein anschließendes „Ja“ löst den geschützten Speichervorgang aus; „Nein“ verwirft ihn.
+- Das KI-Backend formuliert Antworten aus bestätigtem Wissen; es enthält keinen fertigen Antwortsatz für „Wer ist Shadow Grown?“.
+- OpenAI-Anfragen verwenden ausdrücklich `store: false`; RHIA behandelt den Gesprächszustand nicht als dauerhaftes Faktenarchiv.
+- Die sichtbare Webversion wurde auf Alpha v0.26 erhöht. Eine neue APK ist für diese zentrale Änderung nicht erforderlich.
+
+**Technischer Test:**
+
+- JavaScript-Syntax von Oberfläche, Chat-Backend und Wissens-Backend bestanden.
+- Der vollständige Gedächtnisfluss wurde mit einem simulierten Cloudflare-KV getestet: Grundwissen lesen, falschen Besitzerschlüssel ablehnen, bestätigte Information schreiben und nach erneutem Lesen wiederfinden.
+- JSON-Syntax des Grundbestands bestanden.
+- Suche nach den drei früheren falschen Zuordnungen im ausführbaren Code ohne Treffer.
+- Git-Diff-Prüfung ohne Leerraumfehler bestanden.
+
+**Offen:**
+
+- Vor dem Live-Test müssen in Cloudflare einmalig die KV-Bindung `RHIA_KNOWLEDGE` und das Geheimnis `RHIA_OWNER_TOKEN` eingerichtet werden.
+- Der Besitzerschlüssel wird beim ersten Speichern auf Mikes Gerät abgefragt und nur lokal auf diesem Gerät gespeichert.
+- Der echte KI-Test aus der App benötigt weiterhin eine ausdrückliche Kostenbestätigung.
+
+**Nächster Schritt:**
+
+Den v0.26-Grundstand veröffentlichen, Cloudflare-KV und Besitzerschlüssel verbinden und anschließend den vollständigen Meilensteintest auf zwei Geräten durchführen.
+
 ### 06.08.2026, 12:58 Uhr – Datenübertragung freigegeben; Backend-Verbindung vorbereitet
 
 **Bereich:** Datenschutz / KI-Verbindung / Kostenkontrolle
