@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 06.08.2026, 12:49 Uhr  
+**Letzte Aktualisierung:** 06.08.2026, 12:58 Uhr  
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -33,6 +33,32 @@ Format:
 Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sortieren und später Fragen wie „Was haben wir am 05.08.2026 geändert?“ beantworten kann. Vermutungen dürfen nicht als getestete Ergebnisse eingetragen werden.
 
 ## Aktueller verbindlicher Stand
+
+### 06.08.2026, 12:58 Uhr – Datenübertragung freigegeben; Backend-Verbindung vorbereitet
+
+**Bereich:** Datenschutz / KI-Verbindung / Kostenkontrolle
+
+**Bestätigte Entscheidung:**
+
+- Mike hat ausdrücklich freigegeben, dass RHIA die aktuelle freie Frage, die letzten acht Gesprächseinträge und ausdrücklich in RHIA gespeicherte Erinnerungen an das eigene Backend `https://rhia.pages.dev` überträgt.
+- Diese Freigabe erlaubt keine automatische kostenpflichtige OpenAI-Anfrage.
+- Die Kostenbremse bleibt verbindlich: Zuerst kostenlose lokale Antwort; andernfalls Kostenschätzung; OpenAI erst nach einem weiteren ausdrücklichen „Ja“.
+
+**Änderung:**
+
+- Die zentrale Oberfläche verwendet für freie Fragen nun den eindeutigen Endpunkt `https://rhia.pages.dev/api/chat` statt des auf GitHub Pages nicht vorhandenen relativen Pfads `/api/chat`.
+- Das Backend erlaubt Anfragen ausschließlich von der RHIA-Oberfläche auf GitHub Pages und von der eigenen Cloudflare-Adresse.
+- Die notwendige CORS-Vorabprüfung für JSON-Anfragen wurde ergänzt.
+
+**Technischer Test vor Veröffentlichung:**
+
+- JavaScript-Syntaxprüfung bestanden.
+- Git-Diff-Prüfung ohne Leerraumfehler bestanden.
+- Live-Test und Veröffentlichung stehen noch aus; sie dürfen erst nach erfolgreicher Bereitstellung als bestanden dokumentiert werden.
+
+**Nächster Schritt:**
+
+Änderungen veröffentlichen. Danach die CORS-Vorabprüfung, eine kostenlose Grundfrage und eine freie Frage bis ausschließlich zur Kostenwarnung testen. Es darf bei diesem technischen Test kein OpenAI-Aufruf und kein Credit-Verbrauch stattfinden. Erst danach testet Mike die vorhandene v0.25-App.
 
 ### 06.08.2026, 12:49 Uhr – v0.25 getestet; kostenlose Grundfragen erweitert
 

@@ -65,7 +65,7 @@ main{display:block;width:100%;height:100%;min-height:0}
 <div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <script>
 "use strict";
-const VERSION="0.25",API="/api/chat";
+const VERSION="0.25",API="https://rhia.pages.dev/api/chat";
 const DEFAULT_PROFILE=Object.freeze({
   assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
   user:{name:"Mike",formalAddress:"Sir"},

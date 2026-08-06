@@ -1,9 +1,24 @@
-function json(data,status=200){
+const ALLOWED_ORIGINS=new Set([
+  "https://ggrlak-04872.github.io",
+  "https://rhia.pages.dev"
+]);
+function corsHeaders(request){
+  const origin=request?.headers?.get("origin")||"";
+  return{
+    ...(ALLOWED_ORIGINS.has(origin)?{"access-control-allow-origin":origin}:{}),
+    "access-control-allow-methods":"POST, OPTIONS",
+    "access-control-allow-headers":"content-type",
+    "access-control-max-age":"86400",
+    "vary":"Origin"
+  };
+}
+function json(data,status=200,request){
   return new Response(JSON.stringify(data),{
     status,
     headers:{
       "content-type":"application/json; charset=utf-8",
-      "cache-control":"no-store"
+      "cache-control":"no-store",
+      ...corsHeaders(request)
     }
   });
 }
@@ -46,20 +61,21 @@ function memoryText(memories){if(!Array.isArray(memories)||!memories.length)retu
 function instructions(world,memories){return`Du bist RHIA, RH Intelligent Assistant.\n\nPersönlichkeit:\n- loyal, ehrlich, elegant, ruhig, direkt und lösungsorientiert\n- beantworte immer zuerst die konkrete letzte Frage; stelle dich nur vor, wenn ausdrücklich nach deiner Identität gefragt wird\n- antworte natürlich und situationsgerecht statt einen allgemeinen Standardsatz zu wiederholen\n- zuerst das klare Ergebnis, dann eine kurze Erklärung\n- sprich standardmäßig Deutsch\n- sprich den Nutzer vorerst ausschließlich mit \"Sir\" an; verwende niemals den Namen Mike\n- festes Grundwissen: Der Nutzer heißt Mike; sein Künstlername und seine Künstlerfigur heißen Shadow Grown; RH Produktion ist sein Unternehmen; RHIA ist seine persönliche KI-Assistentin\n- verwende gelegentlich natürliche Einleitungen wie \"Natürlich, Sir.\", \"Jawohl, Sir.\" oder \"Einen Moment, Sir.\", aber nicht in jeder Antwort\n- erfinde keine Fakten und benenne Unsicherheit offen\n- Kontrolle vor Autonomie: externe oder riskante Aktionen nur vorbereiten, niemals ungefragt ausführen\n\nAktive Welt: ${clean(world,80)||"Allgemein"}\n\nBestätigte Erinnerungen:\n${memoryText(memories)}`}
 function outputText(payload){if(typeof payload?.output_text==="string")return payload.output_text.trim();const parts=[];for(const item of payload?.output||[])for(const content of item?.content||[])if(content?.type==="output_text"&&content?.text)parts.push(content.text);return parts.join("\n").trim()}
 export async function onRequestPost(context){
-  const{request,env}=context;let body;try{body=await request.json()}catch{return json({ok:false,error:"Ungültige Anfrage."},400)}
-  const incomingMessage=clean(body?.message);if(!incomingMessage)return json({ok:false,error:"Keine Nachricht übermittelt."},400);
+  const{request,env}=context;let body;try{body=await request.json()}catch{return json({ok:false,error:"Ungültige Anfrage."},400,request)}
+  const incomingMessage=clean(body?.message);if(!incomingMessage)return json({ok:false,error:"Keine Nachricht übermittelt."},400,request);
   const history=Array.isArray(body?.history)?body.history.slice(-8):[],pendingQuestion=findPendingQuestion(history);
-  if(pendingQuestion&&isNo(incomingMessage))return json({ok:true,reply:"Abgebrochen, Sir. Es wurden keine OpenAI-Credits verwendet.",model:"local-zero-credit",local:true,cancelled:true});
+  if(pendingQuestion&&isNo(incomingMessage))return json({ok:true,reply:"Abgebrochen, Sir. Es wurden keine OpenAI-Credits verwendet.",model:"local-zero-credit",local:true,cancelled:true},200,request);
   let message=incomingMessage,approved=false;if(pendingQuestion&&isYes(incomingMessage)){message=pendingQuestion;approved=true}
-  if(!approved){const freeReply=localReply(message,body?.world);if(freeReply)return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true});if(pendingQuestion)return json({ok:true,reply:"Bitte antworten Sie mit Ja, um die angekündigte kostenpflichtige Anfrage auszuführen, oder mit Nein, um sie abzubrechen, Sir.",model:"local-zero-credit",local:true});return json({ok:true,reply:costWarning(message,history),model:"local-cost-check",local:true,requiresConfirmation:true})}
-  if(!env.OPENAI_API_KEY)return json({ok:false,error:"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503);
+  if(!approved){const freeReply=localReply(message,body?.world);if(freeReply)return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true},200,request);if(pendingQuestion)return json({ok:true,reply:"Bitte antworten Sie mit Ja, um die angekündigte kostenpflichtige Anfrage auszuführen, oder mit Nein, um sie abzubrechen, Sir.",model:"local-zero-credit",local:true},200,request);return json({ok:true,reply:costWarning(message,history),model:"local-cost-check",local:true,requiresConfirmation:true},200,request)}
+  if(!env.OPENAI_API_KEY)return json({ok:false,error:"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503,request);
   const usableHistory=history.filter(entry=>!String(entry?.content||"").includes(COST_MARKER));
   const input=[...usableHistory.map(entry=>({role:entry?.role==="assistant"?"assistant":"user",content:clean(entry?.content,3000)})).filter(entry=>entry.content&&entry.content!==message),{role:"user",content:message}];
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
   try{
     const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",signal:controller.signal,headers:{authorization:`Bearer ${env.OPENAI_API_KEY}`,"content-type":"application/json"},body:JSON.stringify({model:env.OPENAI_MODEL||"gpt-5-mini",instructions:instructions(body?.world,body?.memories),input,max_output_tokens:700})});
-    const payload=await response.json().catch(()=>({}));if(!response.ok){console.error("OpenAI API error",response.status,payload?.error?.type||"unknown");return json({ok:false,error:"Die KI konnte gerade nicht antworten.",code:"MODEL_ERROR"},502)}
-    const reply=outputText(payload);if(!reply)return json({ok:false,error:"Die KI hat keine Antwort geliefert."},502);return json({ok:true,reply,model:payload?.model||env.OPENAI_MODEL||"configured",local:false,approved:true});
-  }catch(error){const timedOut=error?.name==="AbortError";return json({ok:false,error:timedOut?"Die Anfrage dauerte zu lange.":"Der KI-Dienst ist nicht erreichbar."},timedOut?504:502)}finally{clearTimeout(timeout)}
+    const payload=await response.json().catch(()=>({}));if(!response.ok){console.error("OpenAI API error",response.status,payload?.error?.type||"unknown");return json({ok:false,error:"Die KI konnte gerade nicht antworten.",code:"MODEL_ERROR"},502,request)}
+    const reply=outputText(payload);if(!reply)return json({ok:false,error:"Die KI hat keine Antwort geliefert."},502,request);return json({ok:true,reply,model:payload?.model||env.OPENAI_MODEL||"configured",local:false,approved:true},200,request);
+  }catch(error){const timedOut=error?.name==="AbortError";return json({ok:false,error:timedOut?"Die Anfrage dauerte zu lange.":"Der KI-Dienst ist nicht erreichbar."},timedOut?504:502,request)}finally{clearTimeout(timeout)}
 }
-export function onRequest(){return json({ok:false,error:"Nur POST-Anfragen sind erlaubt."},405)}
+export function onRequestOptions(context){return new Response(null,{status:204,headers:corsHeaders(context.request)})}
+export function onRequest(context){return json({ok:false,error:"Nur POST-Anfragen sind erlaubt."},405,context.request)}
