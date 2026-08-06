@@ -21,8 +21,8 @@ android {
         applicationId = "app.rhia.localtest"
         minSdk = 31
         targetSdk = 35
-        versionCode = 22
-        versionName = "0.22"
+        versionCode = 23
+        versionName = "0.23"
     }
 }
 
