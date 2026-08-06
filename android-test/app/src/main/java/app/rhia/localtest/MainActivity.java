@@ -13,6 +13,7 @@ import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 
 import java.util.Locale;
 
@@ -46,6 +47,9 @@ public final class MainActivity extends Activity implements RecognitionListener 
     private String latestRecognizedText = "";
     private TextToSpeech tts;
     private boolean ttsReady;
+    private String pendingSpeechText;
+    private String pendingSpeechId;
+    private long utteranceCounter;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -154,7 +158,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
                 "window.startSpeechRecognition=function(){};" +
                 "try{if(typeof state!=='undefined'&&state.settings){state.settings.browserVoice=true;if(typeof save==='function')save();if(typeof render==='function')render();}}catch(ignore){}" +
                 "window.browserSpeechSupported=function(){return true;};" +
-                "window.speakBrowserText=function(text,handlers){try{if(handlers&&handlers.onstart)handlers.onstart();RHIAAndroid.speakText(String(text||\'\'));setTimeout(function(){if(handlers&&handlers.onend)handlers.onend();},Math.max(1200,String(text||\'\').length*65));return true;}catch(error){if(handlers&&handlers.onerror)handlers.onerror({error:String(error)});return false;}};" +
+                "window.__rhiaNativeSpeechHandlers={};window.rhiaNativeSpeechEvent=function(id,event){var h=window.__rhiaNativeSpeechHandlers[id];if(!h)return;if(event==='start'&&h.onstart)h.onstart();if(event==='done'&&h.onend)h.onend();if(event==='error'&&h.onerror)h.onerror({error:'android-tts'});if(event==='done'||event==='error')delete window.__rhiaNativeSpeechHandlers[id];};" +
+                "window.speakBrowserText=function(text,handlers){try{var id='rhia-'+Date.now()+'-'+Math.random().toString(16).slice(2);window.__rhiaNativeSpeechHandlers[id]=handlers||{};RHIAAndroid.speakText(String(text||\'\'),id);return true;}catch(error){if(handlers&&handlers.onerror)handlers.onerror({error:String(error)});return false;}};" +
                 "window.rhiaAcceptOfflineText=function(text){Promise.resolve(handle(text)).catch(function(error){console.error('RHIA offline handoff',error);});return true;};" +
                 "var mic=document.getElementById('mic');if(mic)mic.style.display='none';" +
                 "var stage=document.getElementById('stage');if(stage&&!stage.dataset.rhiaOffline){stage.dataset.rhiaOffline='1';stage.style.touchAction='manipulation';stage.addEventListener('click',function(event){if(event.target.closest&&event.target.closest('button'))return;RHIAAndroid.toggleOfflineListening();},false);}" +
@@ -172,8 +177,8 @@ public final class MainActivity extends Activity implements RecognitionListener 
             runOnUiThread(MainActivity.this::toggleOfflineListening);
         }
 
-        @JavascriptInterface public void speakText(String text) {
-            runOnUiThread(() -> speakNative(text, "rhia-answer"));
+        @JavascriptInterface public void speakText(String text, String utteranceId) {
+            runOnUiThread(() -> speakNative(text, utteranceId));
         }
 
         @JavascriptInterface public void testLocalVoice() {
@@ -197,20 +202,58 @@ public final class MainActivity extends Activity implements RecognitionListener 
             if (ttsReady) {
                 tts.setSpeechRate(0.92f);
                 tts.setPitch(0.92f);
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override public void onStart(String utteranceId) {
+                        runOnUiThread(() -> notifySpeechEvent(utteranceId, "start"));
+                    }
+
+                    @Override public void onDone(String utteranceId) {
+                        runOnUiThread(() -> {
+                            notifySpeechEvent(utteranceId, "done");
+                            setDiagnostic("BEREIT · RHIA ANTIPPEN");
+                            setState("", "OFFLINE BEREIT");
+                        });
+                    }
+
+                    @Override public void onError(String utteranceId) {
+                        runOnUiThread(() -> {
+                            notifySpeechEvent(utteranceId, "error");
+                            setDiagnostic("SPRACHAUSGABE FEHLGESCHLAGEN");
+                            setState("error", "SPRACHAUSGABE FEHLGESCHLAGEN");
+                        });
+                    }
+                });
+                if (pendingSpeechText != null) {
+                    String text = pendingSpeechText;
+                    String id = pendingSpeechId;
+                    pendingSpeechText = null;
+                    pendingSpeechId = null;
+                    speakNative(text, id);
+                }
             }
         });
     }
 
+    private void notifySpeechEvent(String utteranceId, String event) {
+        if (utteranceId == null || !utteranceId.startsWith("rhia-")) return;
+        web.evaluateJavascript("window.rhiaNativeSpeechEvent&&window.rhiaNativeSpeechEvent(" +
+                JSONObject.quote(utteranceId) + "," + JSONObject.quote(event) + ")", null);
+    }
+
     private boolean speakNative(String text, String utteranceId) {
-        if (!ttsReady || tts == null) {
-            setDiagnostic("ANDROID-SPRACHAUSGABE NICHT BEREIT");
-            setState("error", "SPRACHAUSGABE NICHT BEREIT");
-            return false;
-        }
         String clean = text == null ? "" : text.trim();
         if (clean.isBlank()) return false;
+        String id = utteranceId == null || utteranceId.isBlank()
+                ? "rhia-native-" + (++utteranceCounter) : utteranceId;
+        if (!ttsReady || tts == null) {
+            pendingSpeechText = clean;
+            pendingSpeechId = id;
+            setDiagnostic("ANDROID-STIMME WIRD VORBEREITET");
+            setState("thinking", "STIMME WIRD VORBEREITET");
+            return true;
+        }
         setState("speaking", "RHIA ANTWORTET");
-        return tts.speak(clean, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+        return tts.speak(clean, TextToSpeech.QUEUE_FLUSH, null, id)
                 == TextToSpeech.SUCCESS;
     }
 
