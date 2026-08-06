@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 05.08.2026, 15:07 Uhr  
+**Letzte Aktualisierung:** 06.08.2026, 12:49 Uhr  
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -33,6 +33,41 @@ Format:
 Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sortieren und später Fragen wie „Was haben wir am 05.08.2026 geändert?“ beantworten kann. Vermutungen dürfen nicht als getestete Ergebnisse eingetragen werden.
 
 ## Aktueller verbindlicher Stand
+
+### 06.08.2026, 12:49 Uhr – v0.25 getestet; kostenlose Grundfragen erweitert
+
+**Bereich:** Android-App / Sprachzentrum / KI-Verbindung / Kostenkontrolle
+
+**Bestätigter Teststand:**
+
+- RHIA v0.25, Build 38 wurde auf Mikes Tablet installiert; im App-Menü wird Version 0.25 angezeigt.
+- Die dauerhaft gleiche App-Signatur ist damit als neue Grundlage installiert. Künftige korrekt signierte APKs sollen als Update über v0.25 installiert werden, ohne vorherige Deinstallation.
+- Spracheingabe, Übergabe an die Antwortlogik und hörbare lokale Sprachausgabe funktionieren.
+- „Wie geht es dir?“ wurde korrekt erkannt und kostenlos lokal beantwortet.
+- „Wie heiße ich?“ wurde korrekt mit Mike, der Anrede Sir und den Bereichen RHIA, Shadow Grown und RH Produktion beantwortet.
+- „Was ist mein Künstlername?“ wurde zwar korrekt erkannt, konnte im bisherigen Stand aber wegen der nicht erreichbaren KI-Adresse nicht beantwortet werden.
+- „Shadow Grown“ wurde von der Offline-Spracherkennung mindestens einmal als „Shadow großen“ erkannt.
+
+**Änderung:**
+
+- Die Fragen „Was ist mein Künstlername?“, „Wie lautet mein Künstlername?“, „Wie heiße ich als Rapper/Künstler?“ sowie „Wer/Was ist Shadow Grown?“ werden jetzt lokal und ohne OpenAI-Credits beantwortet.
+- Häufige Erkennungsvarianten „Shadow großen“, „Shadow grossen“, „Shadow grauen“ und „Shadow Ground“ werden in der Oberfläche automatisch zu „Shadow Grown“ normalisiert.
+- Die Antwortwartezeit wurde von 2,5 auf 10 Sekunden erhöht.
+- Technische Fehler werden nicht mehr als „Befehl nicht verstanden“ ausgegeben, sondern als Verbindungs-, Internet- oder Zeitüberschreitungsfehler benannt.
+- Dieselben persönlichen Grundfragen wurden auch im Cloudflare-Backend als `local-zero-credit` ergänzt.
+- Die Kostenbremse bleibt verbindlich: Bekannte Fragen werden lokal beantwortet; ein OpenAI-Aufruf erfolgt erst nach Kostenschätzung und ausdrücklicher Bestätigung mit Ja.
+
+**Sicherheitsentscheidung offen:**
+
+- Die Android-App lädt die Oberfläche von GitHub Pages. Dort verweist `/api/chat` weiterhin ins Leere.
+- Der vorhandene funktionierende Endpunkt ist `https://rhia.pages.dev/api/chat`.
+- Eine direkte Verbindung würde bei freien Fragen Gesprächsverlauf und lokal bestätigte Erinnerungen an dieses RHIA-Backend übertragen. Diese Übertragung wird erst nach ausdrücklicher Freigabe durch Mike aktiviert.
+- Bis dahin funktionieren lokale Befehle und die neu ergänzten kostenlosen Grundfragen; freie Online-KI-Fragen bleiben deaktiviert.
+
+**Nächster Schritt:**
+
+Mike entscheidet ausdrücklich, ob RHIA freie Fragen samt begrenztem Gesprächskontext und bestätigten Erinnerungen an das eigene Backend `rhia.pages.dev` senden darf. Bei Freigabe wird die Adresse verbunden, anschließend ohne OpenAI-Aufruf bis zur Kostenabfrage technisch getestet und erst danach von Mike in der vorhandenen v0.25-App geprüft.
+
 
 ### 05.08.2026, 15:07 Uhr – Baustein 3.1: situationsgerechte Ausdrucksweise
 
