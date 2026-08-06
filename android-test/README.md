@@ -1,4 +1,4 @@
-# RHIA Android Hybrid Test v0.9
+# RHIA Android Hybrid Test v0.23
 
 Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprachzentrum.
 
@@ -18,6 +18,9 @@ Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprach
 - Die App zeigt ihre native Versionsnummer bei der lokalen Spracherkennung an; Release-Titel und App lesen dieselbe zentrale Versionsnummer, damit sie bei Updates übereinstimmen.
 - Bei erkanntem „Rhia“ antwortet sie mit „Ja, Sir?“.
 - Für die Ausgabe wird nur eine installierte TTS-Stimme akzeptiert, die keine Netzwerkverbindung benötigt.
+- Die Android-Stimme wird einmal beim App-Start vorbereitet und danach wiederverwendet.
+- Start und Ende jeder gesprochenen Antwort werden über native Android-Rückmeldungen gesteuert; geschätzte Wartezeiten entfallen.
+- Nicht verstandene Befehle verlassen den Antwortzustand spätestens nach 2,5 Sekunden mit einer hörbaren Rückmeldung.
 
 ## Testablauf
 
