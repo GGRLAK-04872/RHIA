@@ -1,4 +1,4 @@
-# RHIA Android Hybrid Test v0.23
+# RHIA Android Hybrid Test v0.24
 
 Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprachzentrum.
 
@@ -21,6 +21,7 @@ Der erste native Android-Test für RHIA prüft ausschließlich das lokale Sprach
 - Die Android-Stimme wird einmal beim App-Start vorbereitet und danach wiederverwendet.
 - Start und Ende jeder gesprochenen Antwort werden über native Android-Rückmeldungen gesteuert; geschätzte Wartezeiten entfallen.
 - Nicht verstandene Befehle verlassen den Antwortzustand spätestens nach 2,5 Sekunden mit einer hörbaren Rückmeldung.
+- Lokale Befehle funktionieren ohne vorangestellten Namen; typische Fehlerkennungen des Namens wie „wir“, „Urea“, „Kurier“, „Maria“, „ihr“ und „hier“ werden nur vor einem bekannten lokalen Befehl entfernt.
 
 ## Testablauf
 
