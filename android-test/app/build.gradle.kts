@@ -24,6 +24,22 @@ android {
         versionCode = 25
         versionName = "0.25"
     }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("RHIA_KEYSTORE_PATH") ?: "missing-rhia-release.jks")
+            storePassword = System.getenv("RHIA_KEYSTORE_PASSWORD") ?: ""
+            keyAlias = "rhia-release"
+            keyPassword = System.getenv("RHIA_KEYSTORE_PASSWORD") ?: ""
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
+    }
 }
 
 dependencies {
