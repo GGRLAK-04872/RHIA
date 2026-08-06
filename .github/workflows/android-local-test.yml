@@ -31,11 +31,35 @@ jobs:
           APP_VERSION=$(sed -n 's/.*versionName = "\([^"]*\)".*/\1/p' app/build.gradle.kts)
           test -n "$APP_VERSION"
           echo "APP_VERSION=$APP_VERSION" >> "$GITHUB_ENV"
-      - name: Build debug APK
-        run: gradle :app:assembleDebug
+      - name: Restore permanent signing key
+        env:
+          RHIA_KEYSTORE_BASE64: ${{ secrets.RHIA_KEYSTORE_BASE64 }}
+          RHIA_KEYSTORE_PASSWORD: ${{ secrets.RHIA_KEYSTORE_PASSWORD }}
+        run: |
+          test -n "$RHIA_KEYSTORE_BASE64"
+          test -n "$RHIA_KEYSTORE_PASSWORD"
+          RHIA_KEYSTORE_PATH="$RUNNER_TEMP/rhia-release.jks"
+          printf '%s' "$RHIA_KEYSTORE_BASE64" | base64 --decode > "$RHIA_KEYSTORE_PATH"
+          test -s "$RHIA_KEYSTORE_PATH"
+          chmod 600 "$RHIA_KEYSTORE_PATH"
+          echo "RHIA_KEYSTORE_PATH=$RHIA_KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo "RHIA_KEYSTORE_PASSWORD=$RHIA_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+      - name: Validate signing key
+        run: |
+          keytool -list \
+            -keystore "$RHIA_KEYSTORE_PATH" \
+            -storepass "$RHIA_KEYSTORE_PASSWORD" \
+            -alias rhia-release > /dev/null
+      - name: Build signed release APK
+        run: gradle :app:assembleRelease
+      - name: Verify APK signature
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
       - name: Prepare APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk ../RHIA-Android-Test.apk
-      - name: Publish hybrid test release
+        run: cp app/build/outputs/apk/release/app-release.apk ../RHIA-Android-Test.apk
+      - name: Publish signed hybrid test release
         working-directory: .
         env:
           GH_TOKEN: ${{ github.token }}
@@ -44,4 +68,4 @@ jobs:
           gh release create "$TAG" RHIA-Android-Test.apk \
             --repo "${{ github.repository }}" \
             --title "RHIA Android Hybrid Test v${APP_VERSION} (Build ${{ github.run_number }})" \
-            --notes "Beschleunigt und stabilisiert die native Android-Sprachausgabe. Der Antwortstatus folgt echten TTS-Rückmeldungen; nicht verstandene Befehle erhalten nach spätestens 2,5 Sekunden eine hörbare Rückmeldung."
+            --notes "Dauerhaft signierte RHIA-Testversion. Nach der einmaligen Neuinstallation können künftige Versionen als Update installiert werden, ohne lokale App-Daten zu löschen."
