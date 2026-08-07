@@ -54,6 +54,39 @@ Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfal
 
 ## Aktueller verbindlicher Stand
 
+### 07.08.2026, 09:30 Uhr – Stufe 0.1 technisch repariert; Geräte-Praxistest offen
+
+**Bereich:** Besitzerzugang / zentrales Gedächtnis / Export und Löschung / Kosten- und Datenschutz
+
+**Änderung:**
+
+- Lesen, Schreiben, Exportieren und Löschen des zentralen Gedächtnisses verlangen jetzt den gültigen RHIA-Besitzerschlüssel.
+- Der Schlüssel wird nicht mehr vor seiner Prüfung gespeichert. Die Eingabe erfolgt verdeckt; der Wert erscheint nicht in Programmcode, Protokollen oder Fehlermeldungen.
+- Ein lokal gespeicherter falscher oder veralteter Schlüssel wird erkannt, entfernt und kann im selben Vorgang durch den aktuellen Schlüssel ersetzt werden. Der vorgemerkte Speichervorgang bleibt bei einem Fehler erhalten.
+- In den Einstellungen kann Mike den Besitzerzugang prüfen oder ersetzen und das zentrale Gedächtnis als JSON-Datei exportieren.
+- Der Befehl „Vergiss dauerhaft: …“ löscht nach einer zusätzlichen Ja-/Nein-Bestätigung genau den gewählten zentralen Eintrag.
+- Persönliche Fragen wie „Wie lautet mein Testcode?“ werden bei passendem bestätigtem Eintrag direkt aus dem zentralen Gedächtnis beantwortet. Dafür wird kein OpenAI-Aufruf und kein Credit benötigt.
+- Ein bestätigter kostenpflichtiger KI-Aufruf verlangt ebenfalls den gültigen Besitzerzugang; kostenlose lokale Antworten bleiben ohne Schlüssel nutzbar.
+- Abhängigkeitfreie automatische Tests und ein GitHub-Actions-Testlauf wurden ergänzt.
+
+**Technischer Test:**
+
+- Sechs automatische Tests bestanden: fehlender, falscher, korrekter und veralteter Schlüssel; Schreiben; Neustart; simuliertes Zweitgerät; Export; geschützte Löschung; kostenlose Chatantwort; Schutz kostenpflichtiger Aufrufe; CORS und sichere verdeckte Eingabe.
+- JavaScript-Syntax von Wissens- und Chat-Endpunkt bestanden.
+- Die eingebettete Oberfläche wurde syntaktisch geprüft.
+- Sicherheitssuche ohne fest eingetragenen Schlüssel, sichtbare `prompt`-Eingabe oder Token-Ausgabe im Protokoll bestanden.
+- Für diese Tests wurden weder der echte Besitzerschlüssel noch OpenAI-Credits oder Produktionsdaten verwendet.
+
+**Offen:**
+
+- Nach Veröffentlichung muss Cloudflare Pages den neuen Stand bereitstellen.
+- Mike muss den vollständigen Praxistest mit echtem Besitzerschlüssel auf Gerät A und Gerät B durchführen. Bis dahin ist Stufe 0.1 technisch vorbereitet, aber noch nicht vollständig abgenommen.
+- Die sichtbare Versionsnummer bleibt deshalb zunächst v0.26.
+
+**Nächster Schritt:**
+
+Nach erfolgreicher Bereitstellung genau den Stufe-0.1-Praxistest durchführen: korrekten Schlüssel, falschen beziehungsweise veralteten Schlüssel, Speichern von „Mein Testcode ist Bordeaux 47“, vollständigen Neustart, Abruf auf dem Zweitgerät, Export und anschließende bestätigte Löschung prüfen. Erst nach Mikes Bestätigung wird Stufe 0.1 abgeschlossen und Stufe 1 begonnen.
+
 ### 07.08.2026 – Aufbauplan auf echte Assistenz ausgerichtet
 
 **Bereich:** Gesamtarchitektur / Prioritäten / Lernfähigkeit / Moritz-Maaker-Videoanalyse
