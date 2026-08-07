@@ -34,19 +34,51 @@ Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sort
 
 ## Verbindlicher RHIA-Aufbauplan
 
-Dieser Plan ist die dauerhafte Entwicklungsreihenfolge. Ein neuer Chat darf ihn nur ändern, wenn Mike eine andere Priorität bestätigt.
+Der vollständige verbindliche Entwicklungsplan steht in **`RHIA_AUFBAUPLAN.md`**. Er ersetzt am 07.08.2026 die frühere Reihenfolge, in der Stimme und App-Komfort vor der eigentlichen Arbeitszentrale lagen.
 
-1. **Stabile Grundlage und zentrale Oberfläche** – abgeschlossen: gemeinsame Weboberfläche, Android-App, dauerhafte App-Signierung und kontrollierte Kostenfreigabe.
-2. **Persönlichkeit und bestätigtes Wissen** – in Arbeit: situationsgerechte Antworten, zentrale Wissensbasis, geschütztes geräteübergreifendes Gedächtnis, Export und Löschung.
-3. **Einheitliches Sprachzentrum** – als Nächstes: eine feste natürliche RHIA-Stimme für alle Antwortarten, zuverlässige Spracheingabe auch bei Störgeräuschen und klarer Offline-/Online-Rückfall.
-4. **Bestehende Android-App aktuell halten** – danach: Web-Cache korrigieren und den signierten App-Updater fertigstellen, sodass Mike nicht immer neue Apps installieren muss.
-5. **Aufgaben, Termine und Projekte** – anschließend: Priorisierung nach Geldwirkung, Frist, Aufwand und Schutzzeit für RHIA sowie Shadow Grown; Morgenübersicht und verbindliche Ersatzblöcke.
-6. **Kontrollierte Integrationen** – später: Kalender, E-Mail, Dateien und weitere Dienste nur nach ausdrücklicher Freigabe, mit sichtbarer Bestätigung vor externen Aktionen.
-7. **Erweiterte Assistenz** – später: optionale Kamera, Rollen/Stimmen, Markt- und Aktienmodule sowie weitere Automatisierungen. Datenschutz und Kontrolle bleiben vor Autonomie.
+Die verbindliche Reihenfolge lautet nun:
 
-Bei jedem Baustein gilt: kleine Änderung, technischer Test, Mikes Praxistest, Ergebnis dokumentieren, erst dann der nächste Baustein.
+0. Kurskorrektur und belastbares Fundament
+1. Strukturiertes Gehirn und Gedächtnis
+2. RHIA-Arbeitszentrale
+3. Briefing, Planung und echte Assistenz
+4. Kalender und Dateien
+5. Ereigniszentrale und Eigeninitiative
+6. E-Mail und Arbeitswerkzeuge
+7. RHIA-Runner für kontrollierte Handlungen
+8. Wahrnehmung und Spezialmodule
+9. kontrollierte Lern- und Verbesserungsschleife
+10. Bedienkomfort, Stimme, Wake-Word und lokale Robustheit
+
+Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfall, Mikes Praxistest, Ergebnis dokumentieren, erst dann der nächste Baustein.
 
 ## Aktueller verbindlicher Stand
+
+### 07.08.2026 – Aufbauplan auf echte Assistenz ausgerichtet
+
+**Bereich:** Gesamtarchitektur / Prioritäten / Lernfähigkeit / Moritz-Maaker-Videoanalyse
+
+**Änderung:**
+
+- Die bisherige Reihenfolge wurde ersetzt, weil Stimme und App-Komfort zu früh und Arbeitszentrale, Datenquellen, Ereignisse und Werkzeuge zu spät eingeordnet waren.
+- `RHIA_AUFBAUPLAN.md` definiert nun Zielarchitektur, gemeinsames Datenmodell, Sicherheitsstufen, zehn Entwicklungsstufen und verbindliche Abnahmetests.
+- Die ausgewerteten Video-Fähigkeiten wurden den realen technischen Modulen Gehirn, Gedächtnis, Arbeitszentrale, Ereigniszentrale, Werkzeugzentrale, Runner, Wahrnehmung und Lernschleife zugeordnet.
+- „Selbst lernen“ ist verbindlich als kontrollierte Entwicklung von bestätigtem Gedächtnis über Muster und Playbooks bis zu getesteten Verbesserungsvorschlägen definiert. RHIA darf ihren Produktionscode nicht heimlich selbst verändern.
+
+**Test:**
+
+- Plan mit dem tatsächlichen Repository-Stand von v0.26 abgeglichen.
+- Jede Entwicklungsstufe besitzt ein sichtbares Nutzerergebnis, technische Bausteine, Grenzen und einen Praxistest.
+- Der vorhandene Token-/Gedächtnisfehler bleibt als erster technischer Schritt erhalten, ohne Stimme oder Optik vorzuziehen.
+
+**Offen:**
+
+- Der neue Plan ist eine Architektur- und Reihenfolgeentscheidung; die beschriebenen neuen Assistentenmodule sind noch nicht implementiert.
+- Der zentrale Besitzerzugang und vollständige Gerätewechseltest sind weiterhin fehlerhaft beziehungsweise unbestätigt.
+
+**Nächster Schritt:**
+
+Stufe 0.1 umsetzen: Owner-Token-/Gedächtnisfluss reproduzierbar reparieren und mit korrektem, falschem sowie veraltetem Schlüssel, Neustart, Zweitgerät, Export und Löschung testen.
 
 ### 07.08.2026 – v0.26 live; Übergabe- und Teststand gesichert
 
