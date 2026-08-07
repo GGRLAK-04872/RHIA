@@ -68,7 +68,7 @@ main{display:block;width:100%;height:100%;min-height:0}
 <script>
 "use strict";
 // RHIA backend transfer scope approved on 2026-08-06; paid AI remains separately gated.
-const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge",OWNER_TOKEN_KEY="rhia_owner_token_v1";
+const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge",OWNER_TOKEN_KEY="rhia_owner_token_v1",KNOWLEDGE_MUTATIONS_KEY="rhia_knowledge_mutations_v1",KNOWLEDGE_MUTATION_TTL_MS=60*60*1000;
 const DEFAULT_PROFILE=Object.freeze({
   assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
   user:{name:"Mike",formalAddress:"Sir"},
@@ -83,6 +83,29 @@ let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null,pendingCen
 function setKnowledgeStatus(message,state="idle"){const status=$("knowledgeStatus");if(status){status.textContent=message;status.dataset.state=state}}
 function storedOwnerToken(){return localStorage.getItem(OWNER_TOKEN_KEY)||""}
 function forgetOwnerToken(){localStorage.removeItem(OWNER_TOKEN_KEY);setKnowledgeStatus("Besitzerzugang noch nicht bestätigt.","idle")}
+function storedKnowledgeMutations(){
+  let parsed=[];try{parsed=JSON.parse(localStorage.getItem(KNOWLEDGE_MUTATIONS_KEY)||"[]")}catch{}
+  const now=Date.now(),valid=Array.isArray(parsed)?parsed.filter(item=>item&&item.id&&item.expiresAt>now&&(item.type==="delete"||(item.type==="upsert"&&item.fact))):[];
+  if(valid.length!==parsed.length)storeKnowledgeMutations(valid);return valid;
+}
+function storeKnowledgeMutations(mutations){if(mutations.length)localStorage.setItem(KNOWLEDGE_MUTATIONS_KEY,JSON.stringify(mutations));else localStorage.removeItem(KNOWLEDGE_MUTATIONS_KEY)}
+function recordKnowledgeMutation(mutation){
+  const next=storedKnowledgeMutations().filter(item=>item.id!==mutation.id);
+  next.push({...mutation,expiresAt:Date.now()+KNOWLEDGE_MUTATION_TTL_MS});storeKnowledgeMutations(next);
+}
+function applyKnowledgeMutations(knowledge,{reconcile=false}={}){
+  const base={schemaVersion:Number(knowledge?.schemaVersion)||1,updatedAt:knowledge?.updatedAt||null,facts:Array.isArray(knowledge?.facts)?knowledge.facts:[]};
+  const serverFacts=base.facts,mutations=storedKnowledgeMutations(),pending=[];let facts=[...serverFacts];
+  for(const mutation of mutations){
+    const serverFact=serverFacts.find(item=>item?.id===mutation.id);
+    const confirmed=mutation.type==="delete"?!serverFact:Boolean(serverFact&&serverFact.confirmedAt===mutation.fact?.confirmedAt);
+    if(reconcile&&confirmed)continue;
+    pending.push(mutation);facts=facts.filter(item=>item?.id!==mutation.id);
+    if(mutation.type==="upsert")facts.push(mutation.fact);
+  }
+  if(pending.length!==mutations.length)storeKnowledgeMutations(pending);
+  return{...base,facts};
+}
 function finishOwnerPrompt(value){const resolve=ownerPromptResolve;ownerPromptResolve=null;$("ownerTokenInput").value="";$("ownerAuth").hidden=true;resolve?.(String(value||"").trim())}
 function askOwnerToken(message){
   if(ownerPromptResolve)finishOwnerPrompt("");
@@ -121,14 +144,22 @@ async function loadCentralKnowledge({interactive=false}={}){
   try{
     const payload=await knowledgeRequest({interactive});if(!payload)return false;
     if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
-    centralKnowledge=payload.knowledge;return true;
+    centralKnowledge=applyKnowledgeMutations(payload.knowledge,{reconcile:true});return true;
   }catch(error){
     console.warn("RHIA central knowledge unavailable",{code:error?.code||"UNKNOWN"});
     if(interactive)throw error;return false;
   }
 }
-async function saveCentralKnowledge(change){const payload=await knowledgeRequest({method:"POST",body:change,interactive:true});await loadCentralKnowledge({interactive:true});return payload}
-async function deleteCentralKnowledge(id){const payload=await knowledgeRequest({method:"DELETE",body:{id},interactive:true});await loadCentralKnowledge({interactive:true});return payload}
+async function saveCentralKnowledge(change){
+  const payload=await knowledgeRequest({method:"POST",body:change,interactive:true});
+  if(!payload?.fact||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Speicherbestätigung","KNOWLEDGE_INVALID_RESPONSE");
+  recordKnowledgeMutation({type:"upsert",id:payload.fact.id,fact:payload.fact});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+}
+async function deleteCentralKnowledge(id){
+  const payload=await knowledgeRequest({method:"DELETE",body:{id},interactive:true});
+  if(payload?.deleted?.id!==id||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Löschbestätigung","KNOWLEDGE_INVALID_RESPONSE");
+  recordKnowledgeMutation({type:"delete",id});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+}
 async function exportCentralKnowledge(){
   const payload=await knowledgeRequest({interactive:true,exportMode:true});
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
