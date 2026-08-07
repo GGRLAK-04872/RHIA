@@ -55,12 +55,18 @@ describe("SQLite-Durable-Object als einzige Gedächtnisquelle",()=>{
     const preview=await stub.previewMigration(input);expect(preview.ok).toBe(true);expect(preview.revision).toBe(0);expect(preview.manifest.summary.facts).toBe(1);expect((await stub.read()).revision).toBe(0);
     const wrong=await stub.importMigration({expectedRevision:0,confirmedChecksum:"0".repeat(64),manifest:preview.manifest});expect(wrong.code).toBe("MIGRATION_CHECKSUM_MISMATCH");expect((await stub.read()).revision).toBe(0);
     const imported=await stub.importMigration({expectedRevision:0,confirmedChecksum:preview.checksum,manifest:preview.manifest});expect(imported.ok).toBe(true);expect(imported.snapshot.revision).toBe(1);expect(imported.snapshot.facts.map(item=>item.id)).toEqual(["active"]);expect(imported.snapshot.tombstones.map(item=>item.factId)).toContain("deleted");
-    const repeated=await stub.importMigration({expectedRevision:1,confirmedChecksum:preview.checksum,manifest:preview.manifest});expect(repeated.ok).toBe(true);expect(repeated.alreadyImported).toBe(true);expect(repeated.snapshot.revision).toBe(1);
+    const repeated=await stub.importMigration({expectedRevision:1,confirmedChecksum:preview.checksum,manifest:preview.manifest});expect(repeated.ok).toBe(true);expect(repeated.alreadyImported).toBe(true);expect(repeated.snapshot.revision).toBe(1);expect(repeated.importRecord).toMatchObject({sourceId:"central-export",revision:1,factCount:1,tombstoneCount:1});
     const status=await stub.migrationStatus("central-export");expect(status.record.checksum).toBe(preview.checksum);expect(status.revision).toBe(1);
   });
 
   it("verwirft widersprüchliche Duplikate bereits in der Migrationsvorschau",async()=>{
     const preview=await stub.previewMigration({sourceId:"duplicate-source",facts:[fact("same","Erste Fassung"),fact("same","Widersprüchliche Fassung")],tombstones:[]});
     expect(preview.ok).toBe(false);expect(preview.code).toBe("MIGRATION_DUPLICATE_CONFLICT");expect((await stub.read()).revision).toBe(0);
+  });
+
+  it("verwirft eine vorhandene Fingerabdruck-Kollision unter anderer ID vor dem Import",async()=>{
+    await stub.upsert({expectedRevision:0,fact:fact("existing","Identischer bestätigter Inhalt")});
+    const preview=await stub.previewMigration({sourceId:"fingerprint-conflict",facts:[fact("legacy-id","Identischer bestätigter Inhalt")],tombstones:[]});
+    expect(preview.ok).toBe(false);expect(preview.status).toBe(409);expect(preview.conflicts).toContainEqual({id:"legacy-id",existingId:"existing",code:"FACT_FINGERPRINT_CONFLICT"});expect((await stub.read()).revision).toBe(1);
   });
 });

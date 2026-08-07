@@ -23,5 +23,27 @@
   },
   "observability": {
     "enabled": true
+  },
+  "env": {
+    "preview": {
+      "name": "rhia-memory-store-preview",
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "RHIA_MEMORY",
+            "class_name": "RhiaMemoryStore"
+          }
+        ]
+      },
+      "exports": {
+        "RhiaMemoryStore": {
+          "type": "durable-object",
+          "storage": "sqlite"
+        }
+      },
+      "vars": {
+        "RHIA_TEST_MODE": "false"
+      }
+    }
   }
 }

@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 07.08.2026, 13:29 Uhr (Europe/Berlin)
+**Letzte Aktualisierung:** 07.08.2026, 14:31 Uhr (Europe/Berlin)
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -53,6 +53,34 @@ Die verbindliche Reihenfolge lautet nun:
 Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfall, Mikes Praxistest, Ergebnis dokumentieren, erst dann der nächste Baustein.
 
 ## Aktueller verbindlicher Stand
+
+### 07.08.2026, 14:31 Uhr – Vier Abschlussblocker von Draft-PR 23 auf demselben Branch geschlossen
+
+**Bereich:** Stufe 0.1 / zentrales Gedächtnis / Reparatur der Abschlussprüfung
+
+**Änderung:**
+
+- Die Browserbereinigung bindet die exakten alten Rohwerte mit SHA-256 an die Vorschau, inventarisiert sie vor dem Import und unmittelbar vor der Bereinigung erneut und bricht bei jeder Abweichung mit Pflicht zu einer neuen Vorschau ab.
+- Der zurückgelesene Durable-Object-Stand muss jeden vorgesehenen Fakt mit ID, Aussage und Fingerabdruck sowie jeden Tombstone vollständig nachweisen. Fehlende Fakten, fehlende Tombstones, falsche Fingerabdrücke und widersprüchliche ID-/Fingerabdruck-Zuordnungen verhindern die Bereinigung.
+- Aufgaben, Notizen, Ideen, UI-Einstellungen und Besitzerschlüssel bleiben erhalten. Aus dem alten Einstellungsschlüssel wird ausschließlich der nachweislich migrierte `profile`-Teil entfernt; der alte Chat bleibt getrennt.
+- Der alte Chat-Export enthält Anzahl, feste Reihenfolge und SHA-256-Prüfsumme. Vor der Löschung wird der exakte Stand erneut geprüft; eine Änderung verwirft den Exportstatus. Die Löschung verlangt danach eine zweite, gesonderte Bestätigung.
+- Alle Browser-APIs verwenden same-origin-Adressen. Production und Preview besitzen getrennte Durable-Object-Worker und Namespaces. Preview akzeptiert ausschließlich eigene Preview-Secrets und verwendet keinen Produktions-Besitzerschlüssel oder Produktions-OpenAI-Schlüssel.
+- Das Pages-Artefakt wird über eine feste Allowlist nach `dist` gebaut und enthält ausschließlich `index.html`. `knowledge/rhia-core.json`, Functions, Konfigurationen und Dokumentation sind nicht öffentlich enthalten.
+- Migration bleibt in Preview und Production standardmäßig deaktiviert. Es wurden keine Cloudflare-Ressourcen, Bindings, echten Daten oder Browserwerte verändert.
+
+**Technischer Test:**
+
+- 18 Node-, API-, UI-, Sicherheits-, Build- und adversariale Regressionstests bestanden.
+- 9 Tests gegen ein echtes lokales SQLite-Durable-Object bestanden, einschließlich Importwiederholung und Fingerabdruck-Konflikt vor dem Schreiben.
+- Statische Altpfadprüfung, Pages-Functions-Bundle, getrennte Preview-/Production-Typprüfung und beide Durable-Object-Dry-Runs bestanden.
+- Tablet-Test 14 besteht weiterhin ausschließlich als automatischer Regressionstest; der echte Gerätetest steht aus.
+
+**Offen:**
+
+- Draft-PR 23 bleibt ungemergt. Die isolierte Cloudflare-Vorschau wurde noch nicht bereitgestellt.
+- Preview- und Production-Secrets sowie beide Durable-Object-Worker müssen später in einem ausdrücklich freigegebenen Cloudflare-Schritt eingerichtet werden.
+- Echte Migration, Browserbereinigung, Tablet-/Handytests und Stilllegung der Alttechnik wurden nicht ausgeführt.
+- Stufe 0.1 bleibt offen. Stufe 1 wurde nicht begonnen und darf noch nicht beginnen.
 
 ### 07.08.2026, 13:29 Uhr – SQLite-Durable-Object-Austauschpaket auf getrenntem Branch technisch grün
 

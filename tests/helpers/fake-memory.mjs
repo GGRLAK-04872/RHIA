@@ -26,10 +26,12 @@ export class FakeMemoryStub{
   }
   async previewMigration(input){
     this.unavailable();const manifest=await prepareMigrationManifest(input),existing=this.imports.get(manifest.sourceId)||null;
-    return{ok:true,status:200,storeId:this.snapshot.storeId,revision:this.snapshot.revision,checksum:manifest.checksum,sourceId:manifest.sourceId,alreadyImported:Boolean(existing),existingImport:existing,empty:this.snapshot.revision===0&&this.snapshot.facts.length===0&&this.snapshot.tombstones.length===0,acceptedFacts:manifest.facts.length,tombstones:manifest.tombstones.length,skippedFacts:manifest.summary.skippedFacts,conflicts:[],manifest};
+    const conflicts=[];for(const fact of manifest.facts){const byId=this.snapshot.facts.find(item=>item.id===fact.id);if(byId&&byId.fingerprint!==fact.fingerprint)conflicts.push({id:fact.id,code:"FACT_ID_CONFLICT"});const byFingerprint=this.snapshot.facts.find(item=>item.fingerprint===fact.fingerprint&&item.id!==fact.id);if(byFingerprint)conflicts.push({id:fact.id,existingId:byFingerprint.id,code:"FACT_FINGERPRINT_CONFLICT"})}
+    return{ok:!conflicts.length,status:conflicts.length?409:200,storeId:this.snapshot.storeId,revision:this.snapshot.revision,checksum:manifest.checksum,sourceId:manifest.sourceId,alreadyImported:Boolean(existing),existingImport:existing,empty:this.snapshot.revision===0&&this.snapshot.facts.length===0&&this.snapshot.tombstones.length===0,acceptedFacts:manifest.facts.length,tombstones:manifest.tombstones.length,skippedFacts:manifest.summary.skippedFacts,conflicts,manifest};
   }
   async importMigration({expectedRevision,confirmedChecksum,manifest:input}){
     this.unavailable();const preview=await this.previewMigration(input),manifest=preview.manifest;
+    if(!preview.ok)return{ok:false,status:preview.status||409,code:"MIGRATION_FACT_CONFLICT",error:"Die Migration würde vorhandene Fakten unbemerkt überschreiben.",conflicts:clone(preview.conflicts)};
     if(expectedRevision!==this.snapshot.revision)return{ok:false,status:409,code:"MEMORY_REVISION_CONFLICT",error:"Konflikt",expectedRevision,actualRevision:this.snapshot.revision};
     if(confirmedChecksum!==manifest.checksum)return{ok:false,status:409,code:"MIGRATION_CHECKSUM_MISMATCH",error:"Prüfsumme falsch."};
     const existing=this.imports.get(manifest.sourceId);if(existing){if(existing.checksum!==manifest.checksum)return{ok:false,status:409,code:"MIGRATION_SOURCE_CONFLICT",error:"Quelle kollidiert."};return{ok:true,status:200,alreadyImported:true,importRecord:clone(existing),snapshot:await this.read({includeTombstones:true})}}

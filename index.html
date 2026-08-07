@@ -68,7 +68,7 @@ main{display:block;width:100%;height:100%;min-height:0}
 <script>
 "use strict";
 // RHIA backend transfer scope approved on 2026-08-06; paid AI remains separately gated.
-const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge",MIGRATION_API="https://rhia.pages.dev/api/memory-migration",OWNER_TOKEN_KEY="rhia_owner_token_v1";
+const VERSION="0.26",API="/api/chat",KNOWLEDGE_API="/api/knowledge",MIGRATION_API="/api/memory-migration",OWNER_TOKEN_KEY="rhia_owner_token_v1";
 const LEGACY_KEYS=Object.freeze({mutations:"rhia_knowledge_mutations_v1",memories:"rhia_memories_v011",chat:"rhia_chat_v04"});
 const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",ideas:"rhia_ideas_v09",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
@@ -77,7 +77,7 @@ const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{retur
 const storedUiSettings=load(K.settings,{}),{profile:_legacyProfileIgnored,...activeUiSettings}=storedUiSettings&&typeof storedUiSettings==="object"?storedUiSettings:{};
 const state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:[],ideas:load(K.ideas,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot"},activeUiSettings)};
 const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));const existing=load(K.settings,{});localStorage.setItem(K.settings,JSON.stringify({...existing,...state.settings}))};
-let centralKnowledge={storeId:null,schemaVersion:1,revision:-1,updatedAt:null,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null,pendingLegacyMigration=null,legacyChatExported=false;
+let centralKnowledge={storeId:null,schemaVersion:1,revision:-1,updatedAt:null,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null,pendingLegacyMigration=null,legacyChatExportProof=null,legacyChatDeleteArmed=false;
 function setKnowledgeStatus(message,state="idle"){const status=$("knowledgeStatus");if(status){status.textContent=message;status.dataset.state=state}}
 function storedOwnerToken(){return localStorage.getItem(OWNER_TOKEN_KEY)||""}
 function forgetOwnerToken(){localStorage.removeItem(OWNER_TOKEN_KEY);setKnowledgeStatus("Besitzerzugang noch nicht bestätigt.","idle")}
@@ -173,27 +173,73 @@ function identityReply(kind){
 function cleanLegacyText(value,max=700){return String(value||"").trim().replace(/\s+/g," ").slice(0,max)}
 function legacyHash(value){let hash=2166136261;for(const char of String(value)){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619)}return(hash>>>0).toString(16).padStart(8,"0")}
 function parsedLegacy(storage,key,fallback){try{return JSON.parse(storage.getItem(key)||"")??fallback}catch{return fallback}}
-function legacyMemoryInventory(storage=localStorage){
-  const mutations=parsedLegacy(storage,LEGACY_KEYS.mutations,[]),memories=parsedLegacy(storage,LEGACY_KEYS.memories,[]),settings=parsedLegacy(storage,K.settings,{}),profile=settings&&typeof settings==="object"?settings.profile:null;
-  const facts=[],tombstones=[];
-  for(const [index,item] of (Array.isArray(memories)?memories:[]).entries()){
-    const statement=cleanLegacyText(typeof item==="string"?item:item?.text??item?.content);if(!statement)continue;
+async function legacySha256(value){const bytes=new TextEncoder().encode(String(value));const digest=await crypto.subtle.digest("SHA-256",bytes);return[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("")}
+function exactLegacyJson(raw,key,fallback){if(raw===null)return fallback;try{return JSON.parse(raw)??fallback}catch{throw knowledgeError(`Der alte Browserwert ${key} ist beschädigt und darf nicht automatisch bereinigt werden`,"LEGACY_STORAGE_INVALID")}}
+function legacyMemoryRawValues(storage=localStorage){return[
+  {key:LEGACY_KEYS.mutations,raw:storage.getItem(LEGACY_KEYS.mutations)},
+  {key:LEGACY_KEYS.memories,raw:storage.getItem(LEGACY_KEYS.memories)},
+  {key:K.settings,raw:storage.getItem(K.settings)}
+]}
+function rawValuesEqual(left,right){return Array.isArray(left)&&Array.isArray(right)&&left.length===right.length&&left.every((item,index)=>item?.key===right[index]?.key&&item?.raw===right[index]?.raw)}
+function appendLegacyProfileFacts(value,path,facts){
+  if(value===null||value===undefined||value==="")return;
+  if(Array.isArray(value)){value.forEach((item,index)=>appendLegacyProfileFacts(item,[...path,String(index)],facts));return}
+  if(typeof value==="object"){Object.keys(value).sort().forEach(key=>appendLegacyProfileFacts(value[key],[...path,key],facts));return}
+  const text=cleanLegacyText(value,500);if(!text)return;
+  const field=path.join(".")||"Wert",idPath=path.map(part=>part.replace(/[^a-z0-9_-]/gi,"-").toLowerCase()).join(".")||legacyHash(text);
+  facts.push({id:`legacy.browser.profile.${idPath}`,subject:"Früheres Browserprofil",statement:`Profilwert ${field}: ${text}`,confirmedBy:"Mike"});
+}
+async function legacyMemoryInventory(storage=localStorage){
+  const rawValues=legacyMemoryRawValues(storage),rawChecksum=await legacySha256(JSON.stringify(rawValues));
+  const rawByKey=new Map(rawValues.map(item=>[item.key,item.raw]));
+  const mutations=exactLegacyJson(rawByKey.get(LEGACY_KEYS.mutations),LEGACY_KEYS.mutations,[]),memories=exactLegacyJson(rawByKey.get(LEGACY_KEYS.memories),LEGACY_KEYS.memories,[]),settings=exactLegacyJson(rawByKey.get(K.settings),K.settings,{});
+  if(!Array.isArray(mutations)||!Array.isArray(memories)||!settings||typeof settings!=="object"||Array.isArray(settings))throw knowledgeError("Die alten Browserwerte besitzen ein unerwartetes Format und dürfen nicht automatisch bereinigt werden","LEGACY_STORAGE_INVALID");
+  const profile=settings.profile&&typeof settings.profile==="object"?settings.profile:null,facts=[],tombstones=[];
+  for(const [index,item] of memories.entries()){
+    const statement=cleanLegacyText(typeof item==="string"?item:item?.text??item?.content);if(!statement)throw knowledgeError(`Alter Erinnerungseintrag ${index+1} konnte nicht vollständig erfasst werden`,"LEGACY_STORAGE_UNMAPPED");
     facts.push({id:`legacy.browser.memory.${legacyHash(item?.id||statement||index)}`,subject:cleanLegacyText(item?.category,100)||"Erinnerungen",statement,confirmedBy:"Mike",confirmedAt:item?.createdAt});
   }
-  for(const [index,item] of (Array.isArray(mutations)?mutations:[]).entries()){
-    if(item?.type==="upsert"&&item.fact?.statement){facts.push({...item.fact,id:cleanLegacyText(item.fact.id,120)||`legacy.browser.overlay.${legacyHash(index+item.fact.statement)}`})}
-    if(item?.type==="delete"&&item.id)tombstones.push({factId:cleanLegacyText(item.id,120),statement:cleanLegacyText(item?.fact?.statement),subject:cleanLegacyText(item?.fact?.subject,100),reason:"legacy-browser-confirmed-deletion"});
+  for(const [index,item] of mutations.entries()){
+    if(item?.type==="upsert"&&item.fact?.statement){facts.push({...item.fact,id:cleanLegacyText(item.fact.id,120)||`legacy.browser.overlay.${legacyHash(index+item.fact.statement)}`});continue}
+    if(item?.type==="delete"&&item.id){tombstones.push({factId:cleanLegacyText(item.id,120),fingerprint:cleanLegacyText(item?.fact?.fingerprint,64),statement:cleanLegacyText(item?.fact?.statement),subject:cleanLegacyText(item?.fact?.subject,100),reason:"legacy-browser-confirmed-deletion"});continue}
+    throw knowledgeError(`Alte Gedächtnisänderung ${index+1} konnte nicht vollständig erfasst werden`,"LEGACY_STORAGE_UNMAPPED");
   }
-  const userName=cleanLegacyText(profile?.user?.name,100);
-  if(userName)facts.push({id:"legacy.browser.profile.user-name",subject:"Besitzer",statement:`Der im früheren Browserprofil gespeicherte Name lautet ${userName}.`,confirmedBy:"Mike"});
-  for(const project of Array.isArray(profile?.projects)?profile.projects:[]){const name=cleanLegacyText(project,100);if(name)facts.push({id:`legacy.browser.profile.project.${legacyHash(name)}`,subject:"Projekte",statement:`Das frühere Browserprofil enthält das Projekt ${name}.`,confirmedBy:"Mike"})}
-  const rawSignature=JSON.stringify({mutations,memories,profile});
-  return{manifest:{sourceId:`legacy-browser-${legacyHash(rawSignature)}`,sourceType:"legacy-browser-storage",sourceUpdatedAt:null,requireEmpty:false,facts,tombstones},counts:{facts:facts.length,tombstones:tombstones.length,hasProfile:Boolean(profile),hasChat:Boolean(storage.getItem(LEGACY_KEYS.chat))}};
+  if(profile)appendLegacyProfileFacts(profile,[],facts);
+  return{
+    manifest:{sourceId:`legacy-browser-${rawChecksum}`,sourceType:"legacy-browser-storage",sourceUpdatedAt:null,requireEmpty:false,facts,tombstones},
+    counts:{facts:facts.length,tombstones:tombstones.length,hasProfile:Boolean(profile),hasChat:Boolean(storage.getItem(LEGACY_KEYS.chat))},
+    rawChecksum,rawValues
+  };
 }
-function clearVerifiedLegacyMemory(storage,proof,expected){
-  if(!proof||!expected||proof.sourceId!==expected.sourceId||proof.checksum!==expected.checksum||proof.revision!==expected.revision||proof.storeId!==expected.storeId)return false;
-  storage.removeItem(LEGACY_KEYS.mutations);storage.removeItem(LEGACY_KEYS.memories);
-  const settings=parsedLegacy(storage,K.settings,{});if(settings&&typeof settings==="object"&&Object.prototype.hasOwnProperty.call(settings,"profile")){const{profile:_removed,...rest}=settings;storage.setItem(K.settings,JSON.stringify(rest))}
+function legacyEvidence(value){return{
+  facts:(value?.facts||[]).map(item=>({id:item.id,subject:item.subject,statement:item.statement,status:item.status||"confirmed",fingerprint:item.fingerprint})).sort((a,b)=>a.id.localeCompare(b.id)),
+  tombstones:(value?.tombstones||[]).map(item=>({factId:item.factId||"",subject:item.subject||"",statement:item.statement||"",fingerprint:item.fingerprint||"",reason:item.reason||"",deletedAt:item.deletedAt||""})).sort((a,b)=>(a.factId||a.fingerprint).localeCompare(b.factId||b.fingerprint))
+}}
+async function verifyLegacyMigrationContent(manifest,knowledge){
+  if(!manifest||!knowledge||!Array.isArray(knowledge.facts)||!Array.isArray(knowledge.tombstones))return{ok:false,code:"MIGRATION_CONTENT_MISSING"};
+  const matchedFacts=[];
+  for(const expected of manifest.facts||[]){
+    const actual=knowledge.facts.find(item=>item?.id===expected.id);
+    if(actual){if(actual.fingerprint!==expected.fingerprint||actual.subject!==expected.subject||actual.statement!==expected.statement||actual.status!=="confirmed")return{ok:false,code:"MIGRATION_FACT_MISMATCH",id:expected.id};matchedFacts.push(actual);continue}
+    const tombstone=knowledge.tombstones.find(item=>item?.factId===expected.id||item?.fingerprint===expected.fingerprint);
+    if(!tombstone)return{ok:false,code:"MIGRATION_FACT_MISSING",id:expected.id};
+    if(tombstone.factId!==expected.id||tombstone.fingerprint!==expected.fingerprint||tombstone.subject!==expected.subject||tombstone.statement!==expected.statement)return{ok:false,code:"MIGRATION_FACT_MISMATCH",id:expected.id};
+    matchedFacts.push({id:expected.id,subject:tombstone.subject,statement:tombstone.statement,status:"confirmed",fingerprint:tombstone.fingerprint});
+  }
+  const matchedTombstones=[];
+  for(const expected of manifest.tombstones||[]){const actual=knowledge.tombstones.find(item=>(expected.factId&&item?.factId===expected.factId)||(!expected.factId&&expected.fingerprint&&item?.fingerprint===expected.fingerprint));if(!actual||expected.factId&&actual.factId!==expected.factId||expected.fingerprint&&actual.fingerprint!==expected.fingerprint||expected.subject&&actual.subject!==expected.subject||expected.statement&&actual.statement!==expected.statement)return{ok:false,code:!actual?"MIGRATION_TOMBSTONE_MISSING":"MIGRATION_TOMBSTONE_MISMATCH",id:expected.factId||expected.fingerprint};matchedTombstones.push(actual)}
+  const expectedEvidence=legacyEvidence(manifest),actualEvidence=legacyEvidence({facts:matchedFacts,tombstones:matchedTombstones}),expectedChecksum=await legacySha256(JSON.stringify(expectedEvidence)),actualChecksum=await legacySha256(JSON.stringify(actualEvidence));
+  return{ok:expectedChecksum===actualChecksum&&matchedFacts.length===expectedEvidence.facts.length&&matchedTombstones.length===expectedEvidence.tombstones.length,expectedChecksum,actualChecksum,factCount:matchedFacts.length,tombstoneCount:matchedTombstones.length};
+}
+async function clearVerifiedLegacyMemory(storage,pending,proof){
+  if(!pending||!proof?.metadataOk||!proof?.content?.ok)return false;
+  const current=await legacyMemoryInventory(storage);
+  if(current.rawChecksum!==pending.rawChecksum||current.manifest.sourceId!==pending.manifest.sourceId||!rawValuesEqual(current.rawValues,pending.rawValues))return false;
+  for(const item of pending.rawValues)if(storage.getItem(item.key)!==item.raw)return false;
+  const mutationRaw=pending.rawValues.find(item=>item.key===LEGACY_KEYS.mutations)?.raw,memoryRaw=pending.rawValues.find(item=>item.key===LEGACY_KEYS.memories)?.raw,settingsRaw=pending.rawValues.find(item=>item.key===K.settings)?.raw;
+  if(mutationRaw!==null)storage.removeItem(LEGACY_KEYS.mutations);
+  if(memoryRaw!==null)storage.removeItem(LEGACY_KEYS.memories);
+  if(settingsRaw!==null){const settings=exactLegacyJson(settingsRaw,K.settings,{});if(Object.prototype.hasOwnProperty.call(settings,"profile")){const{profile:_removed,...rest}=settings;storage.setItem(K.settings,JSON.stringify(rest))}}
   return true;
 }
 function downloadJson(value,name){const blob=new Blob([JSON.stringify(value,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
@@ -205,25 +251,46 @@ async function migrationRequest({method="POST",body=null,sourceId=""}={}){
   localStorage.setItem(OWNER_TOKEN_KEY,ownerToken);return payload;
 }
 async function previewLegacyMemory(){
-  const inventory=legacyMemoryInventory(),list=$("legacyMemoryPreviewList");pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;list.hidden=true;list.textContent="";
+  const inventory=await legacyMemoryInventory(),list=$("legacyMemoryPreviewList");pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;list.hidden=true;list.textContent="";
   if(!inventory.counts.facts&&!inventory.counts.tombstones&&!inventory.counts.hasProfile){$("legacyMemoryStatus").textContent="Keine alten Gedächtniswerte gefunden. Es wurde nichts gelöscht.";return}
   const preview=await migrationRequest({body:{action:"preview",manifest:inventory.manifest}});
-  pendingLegacyMigration={manifest:preview.manifest,checksum:preview.checksum,expectedRevision:preview.revision,storeId:preview.storeId,counts:inventory.counts};
+  if(preview.manifest?.sourceId!==inventory.manifest.sourceId)throw knowledgeError("Die Migrationsvorschau gehört nicht zum aktuellen Browserstand","MIGRATION_PREVIEW_MISMATCH");
+  pendingLegacyMigration={manifest:preview.manifest,checksum:preview.checksum,expectedRevision:preview.revision,storeId:preview.storeId,counts:inventory.counts,rawChecksum:inventory.rawChecksum,rawValues:inventory.rawValues};
   const facts=preview.manifest.facts.map(item=>`Übernehmen: [${item.subject}] ${item.statement}`),deletions=preview.manifest.tombstones.map(item=>`Gelöscht halten: ${item.statement||item.factId||item.fingerprint}`);list.textContent=[...facts,...deletions].join(" · ")||"Keine übernehmbaren Einträge.";list.hidden=false;
   $("legacyMemoryStatus").textContent=`Nur geprüft: ${preview.manifest.summary.facts} Fakten, ${preview.manifest.summary.tombstones} Löschmarkierungen. Noch nichts importiert oder gelöscht.`;$('legacyImportBtn').disabled=false;
 }
 async function commitLegacyMemory(){
   const pending=pendingLegacyMigration;if(!pending)return;
+  const beforeCommit=await legacyMemoryInventory();
+  if(beforeCommit.rawChecksum!==pending.rawChecksum||!rawValuesEqual(beforeCommit.rawValues,pending.rawValues)){pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;throw knowledgeError("Der Browserstand hat sich seit der Vorschau geändert. Bitte eine neue Vorschau erstellen","LEGACY_STORAGE_CHANGED")}
   const result=await migrationRequest({body:{action:"commit",manifest:pending.manifest,confirmedChecksum:pending.checksum,expectedRevision:pending.expectedRevision}});
   const status=await migrationRequest({method:"GET",sourceId:pending.manifest.sourceId});
-  const readBack=await knowledgeRequest({interactive:true});
-  const record=status.record,expected={sourceId:pending.manifest.sourceId,checksum:pending.checksum,revision:result.importRecord?.revision,storeId:result.snapshot?.storeId};
-  const proof={sourceId:record?.sourceId,checksum:record?.checksum,revision:record?.revision,storeId:status.storeId};
-  if(!record||status.revision<record.revision||readBack?.knowledge?.storeId!==status.storeId||readBack?.knowledge?.revision!==status.revision||!clearVerifiedLegacyMemory(localStorage,proof,expected))throw knowledgeError("Die Rückleseprüfung war nicht eindeutig. Kein alter Browserwert wurde gelöscht.","MIGRATION_VERIFICATION_FAILED");
+  const readBack=await knowledgeRequest({interactive:true,exportMode:true}),record=status.record,content=await verifyLegacyMigrationContent(pending.manifest,readBack?.knowledge);
+  const metadataOk=Boolean(record&&record.sourceId===pending.manifest.sourceId&&record.checksum===pending.checksum&&record.revision===result.importRecord?.revision&&record.factCount===result.importRecord?.factCount&&record.tombstoneCount===result.importRecord?.tombstoneCount&&record.tombstoneCount===pending.manifest.tombstones.length&&Number.isSafeInteger(record.factCount)&&record.factCount>=0&&record.factCount<=pending.manifest.facts.length&&status.storeId===pending.storeId&&result.snapshot?.storeId===pending.storeId&&readBack?.knowledge?.storeId===pending.storeId&&status.revision===result.snapshot?.revision&&readBack?.knowledge?.revision===status.revision);
+  if(!metadataOk||!content.ok||!await clearVerifiedLegacyMemory(localStorage,pending,{metadataOk,content})){pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;throw knowledgeError("Die vollständige Rücklese- oder Browserprüfung war nicht eindeutig. Bitte eine neue Vorschau erstellen. Kein unveränderter Altwert wurde automatisch gelöscht.","MIGRATION_VERIFICATION_FAILED")}
   acceptCentralKnowledge(readBack.knowledge);pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;$("legacyMemoryPreviewList").hidden=true;$("legacyMemoryStatus").textContent=`Import und Rücklesung bestätigt: Revision ${status.revision}. Alte Gedächtniswerte dieses Browsers wurden bereinigt; der alte Chat blieb erhalten.`;
 }
-function exportLegacyChat(){const chat=parsedLegacy(localStorage,LEGACY_KEYS.chat,[]);if(!Array.isArray(chat)||!chat.length){$("legacyMemoryStatus").textContent="Kein alter Chatverlauf zum Exportieren gefunden.";return}downloadJson(chat,`rhia-alter-chat-${new Date().toISOString().slice(0,10)}.json`);legacyChatExported=true;$('legacyChatDeleteBtn').disabled=false;$("legacyMemoryStatus").textContent="Der alte Chat wurde lokal exportiert. Er ist noch nicht gelöscht."}
-function deleteExportedLegacyChat(){if(!legacyChatExported)return;localStorage.removeItem(LEGACY_KEYS.chat);legacyChatExported=false;$('legacyChatDeleteBtn').disabled=true;$("legacyMemoryStatus").textContent="Der zuvor exportierte alte Chat wurde aus diesem Browser gelöscht."}
+async function legacyChatSnapshot(storage=localStorage){
+  const raw=storage.getItem(LEGACY_KEYS.chat);if(raw===null)return{exists:false,raw:null,count:0,rawChecksum:"",orderedChecksum:"",chat:[]};
+  let chat;try{chat=JSON.parse(raw)}catch{throw knowledgeError("Der alte Chat ist beschädigt und kann nicht sicher exportiert werden","LEGACY_CHAT_INVALID")}
+  if(!Array.isArray(chat))throw knowledgeError("Der alte Chat besitzt ein unerwartetes Format","LEGACY_CHAT_INVALID");
+  return{exists:true,raw,count:chat.length,rawChecksum:await legacySha256(raw),orderedChecksum:await legacySha256(JSON.stringify(chat)),chat};
+}
+function resetLegacyChatDeleteUi(){legacyChatDeleteArmed=false;$('legacyChatDeleteBtn').textContent="Exportierten alten Chat löschen"}
+function invalidateLegacyChatExport(message){legacyChatExportProof=null;resetLegacyChatDeleteUi();$('legacyChatDeleteBtn').disabled=true;if(message)$("legacyMemoryStatus").textContent=message}
+async function exportLegacyChat(storage=localStorage){
+  invalidateLegacyChatExport();const snapshot=await legacyChatSnapshot(storage);
+  if(!snapshot.exists||!snapshot.count){$("legacyMemoryStatus").textContent="Kein alter Chatverlauf zum Exportieren gefunden.";return false}
+  downloadJson({schemaVersion:1,sourceKey:LEGACY_KEYS.chat,exportedAt:new Date().toISOString(),count:snapshot.count,checksum:snapshot.orderedChecksum,entries:snapshot.chat},`rhia-alter-chat-${new Date().toISOString().slice(0,10)}.json`);
+  legacyChatExportProof={raw:snapshot.raw,rawChecksum:snapshot.rawChecksum,orderedChecksum:snapshot.orderedChecksum,count:snapshot.count};$('legacyChatDeleteBtn').disabled=false;$("legacyMemoryStatus").textContent=`${snapshot.count} alte Chateinträge wurden in fester Reihenfolge exportiert. Sie sind noch nicht gelöscht.`;return true;
+}
+async function deleteExportedLegacyChat(storage=localStorage){
+  const proof=legacyChatExportProof;if(!proof)return false;const current=await legacyChatSnapshot(storage);
+  if(!current.exists||current.raw!==proof.raw||current.rawChecksum!==proof.rawChecksum||current.orderedChecksum!==proof.orderedChecksum||current.count!==proof.count){invalidateLegacyChatExport("Der alte Chat hat sich seit dem Export geändert. Nichts wurde gelöscht; bitte erneut exportieren.");return false}
+  if(!legacyChatDeleteArmed){legacyChatDeleteArmed=true;$('legacyChatDeleteBtn').textContent=`Löschung von ${proof.count} Chateinträgen endgültig bestätigen`;$("legacyMemoryStatus").textContent="Der exportierte Chatstand ist unverändert. Bitte die Löschung jetzt mit einem zweiten Tippen ausdrücklich bestätigen.";return false}
+  if(storage.getItem(LEGACY_KEYS.chat)!==proof.raw){invalidateLegacyChatExport("Der alte Chat hat sich unmittelbar vor der Löschung geändert. Nichts wurde gelöscht; bitte erneut exportieren.");return false}
+  storage.removeItem(LEGACY_KEYS.chat);invalidateLegacyChatExport();$("legacyMemoryStatus").textContent=`Der exakt exportierte Stand mit ${proof.count} Chateinträgen wurde nach gesonderter Bestätigung aus diesem Browser gelöscht.`;return true;
+}
 function local(text){
   const l=text.toLowerCase().trim();let m;
   if(m=l.match(/^(?:öffne|zeige)(?: mir)?(?: die| das)? (aufgaben|notizen|ideen|einstellungen|steuerung|menü)$/)){
@@ -378,8 +445,8 @@ $("ownerTokenBtn").onclick=async()=>{
 $("knowledgeExportBtn").onclick=async()=>{try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}};
 $("legacyPreviewBtn").onclick=async()=>{try{await previewLegacyMemory()}catch(error){pendingLegacyMigration=null;$("legacyImportBtn").disabled=true;$("legacyMemoryStatus").textContent="Prüfung abgebrochen: "+error.message+". Es wurde nichts gelöscht."}};
 $("legacyImportBtn").onclick=async()=>{try{await commitLegacyMemory()}catch(error){$("legacyMemoryStatus").textContent="Migration gestoppt: "+error.message+" Alte Browserwerte blieben unverändert."}};
-$("legacyChatExportBtn").onclick=exportLegacyChat;
-$("legacyChatDeleteBtn").onclick=deleteExportedLegacyChat;
+$("legacyChatExportBtn").onclick=async()=>{try{await exportLegacyChat()}catch(error){invalidateLegacyChatExport("Chat-Export abgebrochen: "+error.message+". Es wurde nichts gelöscht.")}};
+$("legacyChatDeleteBtn").onclick=async()=>{try{await deleteExportedLegacyChat()}catch(error){invalidateLegacyChatExport("Chat-Löschung abgebrochen: "+error.message+". Es wurde nichts gelöscht.")}};
 $("menuBtn").onclick=()=>openDrawerTab();
 $("mobileMenuBtn").onclick=()=>openDrawerTab("settings");
 $("closeDrawer").onclick=()=>$("drawer").classList.remove("open");

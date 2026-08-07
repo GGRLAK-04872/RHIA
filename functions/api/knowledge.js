@@ -24,13 +24,21 @@ export function json(data,status=200,request,headers={}){
   return new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store",...corsHeaders(request),...headers}});
 }
 
+export function deploymentEnvironment(env){return String(env?.RHIA_DEPLOYMENT_ENV||"production").toLowerCase()==="preview"?"preview":"production"}
+
+export function configuredOwnerToken(env){
+  return deploymentEnvironment(env)==="preview"?String(env?.RHIA_PREVIEW_OWNER_TOKEN||""):String(env?.RHIA_OWNER_TOKEN||"");
+}
+
+export function ownerAccessConfigured(env){return Boolean(configuredOwnerToken(env))}
+
 export function ownerAuthorized(request,env){
-  const expected=String(env?.RHIA_OWNER_TOKEN||""),supplied=request?.headers?.get("x-rhia-owner-token")||"";
+  const expected=configuredOwnerToken(env),supplied=request?.headers?.get("x-rhia-owner-token")||"";
   return Boolean(expected)&&Boolean(supplied)&&supplied===expected;
 }
 
 export function requireOwner(request,env){
-  if(!env?.RHIA_OWNER_TOKEN)return json({ok:false,error:"Der Besitzerzugang ist serverseitig noch nicht eingerichtet.",code:"OWNER_AUTH_NOT_CONFIGURED"},503,request);
+  if(!ownerAccessConfigured(env))return json({ok:false,error:"Der Besitzerzugang ist serverseitig noch nicht eingerichtet.",code:"OWNER_AUTH_NOT_CONFIGURED"},503,request);
   if(!ownerAuthorized(request,env))return json({ok:false,error:"Die Besitzerfreigabe fehlt oder ist ungültig.",code:"OWNER_AUTH_REQUIRED"},401,request);
   return null;
 }

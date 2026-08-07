@@ -31,6 +31,11 @@ function rowTombstone(row){
   };
 }
 
+function rowImport(row){return row?{
+  sourceId:row.source_id,sourceType:row.source_type,checksum:row.checksum,importedAt:row.imported_at,
+  revision:Number(row.revision),factCount:Number(row.fact_count),tombstoneCount:Number(row.tombstone_count)
+}:null}
+
 export class RhiaMemoryStore extends DurableObject{
   constructor(ctx,env){
     super(ctx,env);this.env=env;this.sql=ctx.storage.sql;
@@ -159,7 +164,7 @@ export class RhiaMemoryStore extends DurableObject{
 
   evaluateMigrationSync(manifest){
     const meta=this.meta();
-    const existingImport=first(this.sql.exec("SELECT source_id,checksum,revision FROM imports WHERE source_id=?",manifest.sourceId));
+    const existingImport=rowImport(first(this.sql.exec("SELECT source_id,source_type,checksum,imported_at,revision,fact_count,tombstone_count FROM imports WHERE source_id=?",manifest.sourceId)));
     const existingFacts=asRows(this.sql.exec("SELECT id,fingerprint FROM facts"));
     const existingTombstones=asRows(this.sql.exec("SELECT fact_id,fingerprint FROM tombstones"));
     const tombstoneIds=new Set([...existingTombstones.map(row=>row.fact_id),...manifest.tombstones.map(value=>value.factId)].filter(Boolean));
@@ -168,6 +173,8 @@ export class RhiaMemoryStore extends DurableObject{
     for(const fact of manifest.facts){
       const existing=existingFacts.find(row=>row.id===fact.id);
       if(existing&&existing.fingerprint!==fact.fingerprint)conflicts.push({id:fact.id,code:"FACT_ID_CONFLICT"});
+      const fingerprintOwner=existingFacts.find(row=>row.fingerprint===fact.fingerprint&&row.id!==fact.id);
+      if(fingerprintOwner)conflicts.push({id:fact.id,existingId:fingerprintOwner.id,code:"FACT_FINGERPRINT_CONFLICT"});
     }
     const acceptedFacts=manifest.facts.filter(fact=>!tombstoneIds.has(fact.id)&&!tombstoneFingerprints.has(fact.fingerprint));
     return{
@@ -233,7 +240,7 @@ export class RhiaMemoryStore extends DurableObject{
   async migrationStatus(sourceId){
     const id=String(sourceId||"").trim().slice(0,160);
     const record=id?first(this.sql.exec("SELECT source_id,source_type,checksum,imported_at,revision,fact_count,tombstone_count FROM imports WHERE source_id=?",id)):null;
-    return{ok:true,storeId:this.meta().storeId,revision:this.meta().revision,record:record?{sourceId:record.source_id,sourceType:record.source_type,checksum:record.checksum,importedAt:record.imported_at,revision:Number(record.revision),factCount:Number(record.fact_count),tombstoneCount:Number(record.tombstone_count)}:null};
+    return{ok:true,storeId:this.meta().storeId,revision:this.meta().revision,record:rowImport(record)};
   }
 
   async testAtomicRollback(expectedRevision){

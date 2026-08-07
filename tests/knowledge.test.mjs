@@ -10,7 +10,7 @@ import{FakeMemoryNamespace,FakeMemoryStub}from"./helpers/fake-memory.mjs";
 
 const API="https://rhia.pages.dev/api/knowledge",MIGRATION_API="https://rhia.pages.dev/api/memory-migration",ORIGIN="https://rhia.pages.dev",TOKEN="correct-owner-token";
 
-function environment({token=TOKEN,stub=new FakeMemoryStub(),openAIKey,migration=false}={}){return{RHIA_OWNER_TOKEN:token,RHIA_MEMORY:new FakeMemoryNamespace(stub),...(openAIKey?{OPENAI_API_KEY:openAIKey}:{}),...(migration?{RHIA_MIGRATION_ENABLED:"true"}:{})}}
+function environment({token=TOKEN,stub=new FakeMemoryStub(),openAIKey,migration=false,deploymentEnv,previewToken,previewOpenAIKey}={}){return{RHIA_OWNER_TOKEN:token,RHIA_MEMORY:new FakeMemoryNamespace(stub),...(openAIKey?{OPENAI_API_KEY:openAIKey}:{}),...(migration?{RHIA_MIGRATION_ENABLED:"true"}:{}),...(deploymentEnv?{RHIA_DEPLOYMENT_ENV:deploymentEnv}:{}),...(previewToken?{RHIA_PREVIEW_OWNER_TOKEN:previewToken}:{}),...(previewOpenAIKey?{RHIA_PREVIEW_OPENAI_API_KEY:previewOpenAIKey}:{})}}
 function request(method="GET",{token,body,url=API}={}){const headers={origin:ORIGIN};if(token)headers["x-rhia-owner-token"]=token;if(body!==undefined)headers["content-type"]="application/json";return new Request(url,{method,headers,...(body!==undefined?{body:JSON.stringify(body)}:{})})}
 async function payload(response){return JSON.parse(await response.text())}
 
@@ -19,6 +19,17 @@ test("Besitzerzugang lehnt fehlende, falsche und nicht konfigurierte Schlüssel 
   const missing=await onRequestGet({request:request(),env});assert.equal(missing.status,401);assert.equal((await payload(missing)).code,"OWNER_AUTH_REQUIRED");
   const wrong=await onRequestPost({request:request("POST",{token:"wrong",body:{expectedRevision:0,id:"forbidden",subject:"Test",statement:"Darf nicht gespeichert werden"}}),env});assert.equal(wrong.status,401);assert.equal(stub.snapshot.revision,0);
   const unconfigured=await onRequestGet({request:request("GET",{token:"anything"}),env:{RHIA_MEMORY:env.RHIA_MEMORY}});assert.equal(unconfigured.status,503);assert.equal((await payload(unconfigured)).code,"OWNER_AUTH_NOT_CONFIGURED");
+});
+
+test("Preview verweigert Produktionsgeheimnisse und akzeptiert nur eigene Preview-Schlüssel",async()=>{
+  const stub=new FakeMemoryStub(),withoutPreview=environment({stub,deploymentEnv:"preview",token:"production-owner"});
+  const unavailable=await onRequestGet({request:request("GET",{token:"production-owner"}),env:withoutPreview});assert.equal(unavailable.status,503);assert.equal((await payload(unavailable)).code,"OWNER_AUTH_NOT_CONFIGURED");
+  const env=environment({stub,deploymentEnv:"preview",token:"production-owner",previewToken:"preview-owner",openAIKey:"production-openai"});
+  const rejected=await onRequestGet({request:request("GET",{token:"production-owner"}),env});assert.equal(rejected.status,401);
+  const accepted=await onRequestGet({request:request("GET",{token:"preview-owner"}),env});assert.equal(accepted.status,200);assert.equal(JSON.stringify(await payload(accepted)).includes("preview-owner"),false);
+
+  const approved={message:"Ja",history:[{role:"user",content:"Erstelle eine Vorschauanalyse"},{role:"assistant",content:"RHIA_KOSTENFREIGABE Bitte bestätigen"}]};
+  const noPreviewAI=await onChatPost({request:request("POST",{url:"https://preview.rhia.pages.dev/api/chat",token:"preview-owner",body:approved}),env});assert.equal(noPreviewAI.status,503);assert.match((await payload(noPreviewAI)).error,/Preview-KI-Schlüssel/);
 });
 
 test("ein fehlendes Durable Object liefert 503 und niemals Seed-, KV- oder Browserwissen",async()=>{
@@ -99,19 +110,6 @@ test("Tablet-Test-14-Regression verwirft einen nachträglich eintreffenden alten
   const answerStart=script.indexOf("function normalizedKnowledgeText"),answerEnd=script.indexOf("function isCentralExportCommand");assert.ok(answerStart>=0&&answerEnd>answerStart);
   vm.runInContext(`${script.slice(answerStart,answerEnd)};globalThis.answerFromMemory=answerFromCentralKnowledge;`,context);
   assert.equal(await context.answerFromMemory("Wie lautet mein Testcode?"),true);assert.match(messages.at(-1),/keine bestätigte Information/i);assert.doesNotMatch(messages.at(-1),/Bordeaux 47/i);
-});
-
-test("Browserbereinigung löscht erst nach vollständigem Beweis und lässt Chat, Aufgaben und Besitzerzugang stehen",async()=>{
-  const html=await readFile(new URL("../index.html",import.meta.url),"utf8"),script=html.match(/<script>([\s\S]*)<\/script>/)?.[1];assert.ok(script);
-  const start=script.indexOf("function cleanLegacyText"),end=script.indexOf("function local");assert.ok(start>=0&&end>start);
-  const values=new Map([["rhia_knowledge_mutations_v1",JSON.stringify([{type:"delete",id:"old.deleted"}])],["rhia_memories_v011",JSON.stringify([{id:"m1",text:"Alte Erinnerung",category:"Profil"}])],["rhia_chat_v04",JSON.stringify([{text:"Alter Chat"}])],["rhia_settings_v010",JSON.stringify({world:"RHIA",profile:{user:{name:"Mike"}}})],["rhia_tasks_v03","tasks"],["rhia_owner_token_v1","secret"]]);
-  const storage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};
-  const context={localStorage:storage,LEGACY_KEYS:{mutations:"rhia_knowledge_mutations_v1",memories:"rhia_memories_v011",chat:"rhia_chat_v04"},K:{settings:"rhia_settings_v010"},JSON,Date,Blob:class{},URL:{},document:{},setTimeout,encodeURIComponent};vm.createContext(context);
-  vm.runInContext(`${script.slice(start,end)};globalThis.inspect=legacyMemoryInventory;globalThis.clearLegacy=clearVerifiedLegacyMemory;`,context);
-  const inventory=context.inspect(storage);assert.equal(inventory.counts.facts>=1,true);assert.equal(values.has("rhia_memories_v011"),true,"Eine Vorschau darf nichts löschen.");
-  assert.equal(context.clearLegacy(storage,{sourceId:"x"},{sourceId:"y"}),false);assert.equal(values.has("rhia_memories_v011"),true);
-  const proof={sourceId:"source",checksum:"hash",revision:4,storeId:"store"};assert.equal(context.clearLegacy(storage,proof,{...proof}),true);
-  assert.equal(values.has("rhia_knowledge_mutations_v1"),false);assert.equal(values.has("rhia_memories_v011"),false);assert.equal(values.has("rhia_chat_v04"),true);assert.equal(values.get("rhia_tasks_v03"),"tasks");assert.equal(values.get("rhia_owner_token_v1"),"secret");assert.deepEqual(JSON.parse(values.get("rhia_settings_v010")),{world:"RHIA"});
 });
 
 test("CORS und Oberfläche enthalten den neuen sicheren Stufe-0.1-Fluss",async()=>{

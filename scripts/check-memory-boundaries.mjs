@@ -32,7 +32,8 @@ const html=entries.find(([path])=>path==="index.html")[1];
 for(const key of["rhia_knowledge_mutations_v1","rhia_memories_v011","rhia_chat_v04"]){
   assert.equal(html.split(key).length-1,1,`${key} darf ausschließlich einmal als Bereinigungsschlüssel vorkommen.`);
 }
-assert.match(html,/function legacyMemoryInventory/);assert.match(html,/function clearVerifiedLegacyMemory/);assert.match(html,/acceptCentralKnowledge/);assert.match(html,/expectedRevision/);
+assert.match(html,/function legacyMemoryInventory/);assert.match(html,/function clearVerifiedLegacyMemory/);assert.match(html,/function verifyLegacyMigrationContent/);assert.match(html,/crypto\.subtle\.digest\("SHA-256"/);assert.match(html,/rawValuesEqual/);assert.match(html,/legacyChatSnapshot/);assert.match(html,/legacyChatDeleteArmed/);assert.match(html,/acceptCentralKnowledge/);assert.match(html,/expectedRevision/);
+assert.match(html,/API="\/api\/chat",KNOWLEDGE_API="\/api\/knowledge",MIGRATION_API="\/api\/memory-migration"/);
 assert.match(combined,/RHIA_MEMORY/);assert.match(combined,/MEMORY_REVISION_CONFLICT/);assert.match(combined,/tombstones/);
 
 for(const removed of["../backend/worker.js","../wrangler.jsonc","../.github/scripts/apply_ai_client.py"]){

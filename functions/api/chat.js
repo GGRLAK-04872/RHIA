@@ -1,5 +1,5 @@
 import{MemoryStoreError,readCentralMemory}from"../lib/memory-store.js";
-import{ownerAuthorized}from"./knowledge.js";
+import{deploymentEnvironment,ownerAccessConfigured,ownerAuthorized}from"./knowledge.js";
 import{normalizedMemoryText}from"../../shared/memory-contract.js";
 
 const ALLOWED_ORIGINS=new Set(["https://ggrlak-04872.github.io","https://rhia.pages.dev"]);
@@ -17,6 +17,7 @@ function json(data,status=200,request){return new Response(JSON.stringify(data),
 function clean(value,max=12000){return String(value??"").trim().slice(0,max)}
 function normalized(value){return normalizedMemoryText(clean(value,12000))}
 function includesAny(text,phrases){return phrases.some(phrase=>text.includes(phrase))}
+function configuredOpenAIKey(env){return deploymentEnvironment(env)==="preview"?String(env?.RHIA_PREVIEW_OPENAI_API_KEY||""):String(env?.OPENAI_API_KEY||"")}
 
 function localReply(message,world){
   const text=normalized(message);if(!text)return null;
@@ -73,16 +74,16 @@ export async function onRequestPost({request,env}){
   if(pendingQuestion&&isNo(incomingMessage))return json({ok:true,reply:"Abgebrochen, Sir. Es wurden keine OpenAI-Credits verwendet.",model:"local-zero-credit",local:true,cancelled:true},200,request);
   let message=incomingMessage,approved=false;if(pendingQuestion&&isYes(incomingMessage)){message=pendingQuestion;approved=true}
   if(!approved){const freeReply=localReply(message,body?.world);if(freeReply)return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true},200,request);if(pendingQuestion)return json({ok:true,reply:"Bitte antworten Sie mit Ja, um die angekündigte kostenpflichtige Anfrage auszuführen, oder mit Nein, um sie abzubrechen, Sir.",model:"local-zero-credit",local:true},200,request);return json({ok:true,reply:costWarning(message,history),model:"local-cost-check",local:true,requiresConfirmation:true},200,request)}
-  if(!env.RHIA_OWNER_TOKEN)return json({ok:false,error:"Der Besitzerzugang ist serverseitig noch nicht eingerichtet.",code:"OWNER_AUTH_NOT_CONFIGURED"},503,request);
+  if(!ownerAccessConfigured(env))return json({ok:false,error:"Der Besitzerzugang ist serverseitig noch nicht eingerichtet.",code:"OWNER_AUTH_NOT_CONFIGURED"},503,request);
   if(!ownerAuthorized(request,env))return json({ok:false,error:"Bitte bestätigen Sie zuerst Ihren RHIA-Besitzerschlüssel.",code:"OWNER_AUTH_REQUIRED"},401,request);
-  if(!env.OPENAI_API_KEY)return json({ok:false,error:"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503,request);
+  const openAIKey=configuredOpenAIKey(env);if(!openAIKey)return json({ok:false,error:deploymentEnvironment(env)==="preview"?"Der getrennte Preview-KI-Schlüssel ist nicht aktiv.":"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503,request);
   let knowledge;
   try{knowledge=await readCentralMemory(env,{includeTombstones:true})}
   catch(error){const known=error instanceof MemoryStoreError;return json({ok:false,error:known?error.message:"Das zentrale Gedächtnis ist gerade nicht erreichbar.",code:known?error.code:"MEMORY_STORE_UNAVAILABLE"},known?error.status:503,request)}
   const input=[...safeHistory(history,knowledge.tombstones,message),{role:"user",content:message}];
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),25000);
   try{
-    const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",signal:controller.signal,headers:{authorization:`Bearer ${env.OPENAI_API_KEY}`,"content-type":"application/json"},body:JSON.stringify({model:env.OPENAI_MODEL||"gpt-5-mini",instructions:instructions(body?.world,knowledge),input,max_output_tokens:700,store:false})});
+    const response=await fetch("https://api.openai.com/v1/responses",{method:"POST",signal:controller.signal,headers:{authorization:`Bearer ${openAIKey}`,"content-type":"application/json"},body:JSON.stringify({model:env.OPENAI_MODEL||"gpt-5-mini",instructions:instructions(body?.world,knowledge),input,max_output_tokens:700,store:false})});
     const payload=await response.json().catch(()=>({}));if(!response.ok){console.error("OpenAI API error",response.status,payload?.error?.type||"unknown");return json({ok:false,error:"Die KI konnte gerade nicht antworten.",code:"MODEL_ERROR"},502,request)}
     const reply=outputText(payload);if(!reply)return json({ok:false,error:"Die KI hat keine Antwort geliefert."},502,request);
     return json({ok:true,reply,model:payload?.model||env.OPENAI_MODEL||"configured",local:false,approved:true,memory:{storeId:knowledge.storeId,revision:knowledge.revision}},200,request);

@@ -3,10 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "npm run test:node && npm run test:worker && npm run check:memory-boundaries",
+    "build": "node scripts/build-pages.mjs",
+    "test": "npm run build && npm run test:node && npm run test:worker && npm run check:memory-boundaries && npm run check:bundles",
     "test:node": "node --test tests/*.test.mjs",
-    "test:worker": "vitest run --config vitest.config.js",
-    "check:memory-boundaries": "node scripts/check-memory-boundaries.mjs"
+    "test:worker": "XDG_CONFIG_HOME=.wrangler/config vitest run --config vitest.config.js",
+    "check:memory-boundaries": "node scripts/check-memory-boundaries.mjs",
+    "check:bundles": "node scripts/check-bundles.mjs"
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.20.3",
