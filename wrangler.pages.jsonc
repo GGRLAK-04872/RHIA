@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "rhia",
+  "pages_build_output_dir": ".",
+  "compatibility_date": "2026-08-07",
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RHIA_MEMORY",
+        "class_name": "RhiaMemoryStore",
+        "script_name": "rhia-memory-store"
+      }
+    ]
+  }
+}

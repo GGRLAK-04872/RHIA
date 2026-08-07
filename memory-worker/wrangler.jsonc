@@ -1,0 +1,27 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "rhia-memory-store",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-07",
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RHIA_MEMORY",
+        "class_name": "RhiaMemoryStore"
+      }
+    ]
+  },
+  "exports": {
+    "RhiaMemoryStore": {
+      "type": "durable-object",
+      "storage": "sqlite"
+    }
+  },
+  "vars": {
+    "RHIA_TEST_MODE": "false"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
