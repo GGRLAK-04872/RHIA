@@ -63,44 +63,30 @@ main{display:block;width:100%;height:100%;min-height:0}
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic" type="button" aria-label="Mikrofon aktivieren">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
 <footer><div class="version">ALPHA <b>V0.26</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
-<div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Zentrales Gedächtnis</h3><div class="switches"><small id="knowledgeStatus" class="voice-test-status" role="status" aria-live="polite">Besitzerzugang noch nicht geprüft.</small><button id="ownerTokenBtn" type="button">Besitzerschlüssel prüfen oder ersetzen</button><button id="knowledgeExportBtn" type="button">Zentrales Gedächtnis exportieren</button><small class="voice-hint">Der Schlüssel wird verdeckt eingegeben und erst nach erfolgreicher Prüfung auf diesem Gerät gespeichert.</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
+<div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Zentrales Gedächtnis</h3><div class="switches"><small id="knowledgeStatus" class="voice-test-status" role="status" aria-live="polite">Besitzerzugang noch nicht geprüft.</small><button id="ownerTokenBtn" type="button">Besitzerschlüssel prüfen oder ersetzen</button><button id="knowledgeExportBtn" type="button">Zentrales Gedächtnis exportieren</button><small class="voice-hint">Der Schlüssel wird verdeckt eingegeben und erst nach erfolgreicher Prüfung auf diesem Gerät gespeichert.</small></div><h3>Kontrollierte Altgedächtnis-Bereinigung</h3><div class="switches"><small id="legacyMemoryStatus" class="voice-test-status" role="status" aria-live="polite">Noch nicht geprüft. Es wird nichts automatisch gelöscht.</small><div id="legacyMemoryPreviewList" class="empty" hidden></div><button id="legacyPreviewBtn" type="button">Altgedächtnis nur prüfen</button><button id="legacyImportBtn" type="button" disabled>Geprüft importieren und Speicherwerte bereinigen</button><button id="legacyChatExportBtn" type="button">Alten Chat lokal exportieren</button><button id="legacyChatDeleteBtn" type="button" disabled>Exportierten alten Chat löschen</button><small class="voice-hint">Die Bereinigung löscht keine Aufgaben, Notizen, Ideen, Einstellungen oder den Besitzerschlüssel. Der alte Chat wird getrennt behandelt.</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
 <div class="owner-auth" id="ownerAuth" hidden><div class="owner-auth-card" role="dialog" aria-modal="true" aria-labelledby="ownerAuthTitle"><h2 id="ownerAuthTitle">RHIA-Besitzerzugang</h2><p id="ownerAuthMessage">Bitte geben Sie Ihren Besitzerschlüssel ein.</p><input id="ownerTokenInput" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="RHIA-Besitzerschlüssel"><div class="owner-auth-actions"><button id="ownerAuthCancel" type="button">Abbrechen</button><button id="ownerAuthConfirm" class="primary" type="button">Prüfen</button></div></div></div>
 <script>
 "use strict";
 // RHIA backend transfer scope approved on 2026-08-06; paid AI remains separately gated.
-const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge",OWNER_TOKEN_KEY="rhia_owner_token_v1",KNOWLEDGE_MUTATIONS_KEY="rhia_knowledge_mutations_v1",KNOWLEDGE_MUTATION_TTL_MS=60*60*1000;
-const DEFAULT_PROFILE=Object.freeze({
-  assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
-  user:{name:"Mike",formalAddress:"Sir"},
-  projects:["RHIA","Shadow Grown","RH Produktion"]
-});
-const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",ideas:"rhia_ideas_v09",memories:"rhia_memories_v011",settings:"rhia_settings_v010"};
+const VERSION="0.26",API="/api/chat",KNOWLEDGE_API="/api/knowledge",MIGRATION_API="/api/memory-migration",OWNER_TOKEN_KEY="rhia_owner_token_v1";
+const LEGACY_KEYS=Object.freeze({mutations:"rhia_knowledge_mutations_v1",memories:"rhia_memories_v011",chat:"rhia_chat_v04"});
+const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",ideas:"rhia_ideas_v09",settings:"rhia_settings_v010"};
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
-const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:load(K.chat,[]),ideas:load(K.ideas,[]),memories:load(K.memories,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot",profile:DEFAULT_PROFILE},load(K.settings,{}))};
-const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.chat,JSON.stringify(state.chat));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));localStorage.setItem(K.memories,JSON.stringify(state.memories));localStorage.setItem(K.settings,JSON.stringify(state.settings))};
-let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null,knowledgeLoadSequence=0;
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const storedUiSettings=load(K.settings,{}),{profile:_legacyProfileIgnored,...activeUiSettings}=storedUiSettings&&typeof storedUiSettings==="object"?storedUiSettings:{};
+const state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:[],ideas:load(K.ideas,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot"},activeUiSettings)};
+const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));const existing=load(K.settings,{});localStorage.setItem(K.settings,JSON.stringify({...existing,...state.settings}))};
+let centralKnowledge={storeId:null,schemaVersion:1,revision:-1,updatedAt:null,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null,pendingLegacyMigration=null,legacyChatExportProof=null,legacyChatDeleteArmed=false;
 function setKnowledgeStatus(message,state="idle"){const status=$("knowledgeStatus");if(status){status.textContent=message;status.dataset.state=state}}
 function storedOwnerToken(){return localStorage.getItem(OWNER_TOKEN_KEY)||""}
 function forgetOwnerToken(){localStorage.removeItem(OWNER_TOKEN_KEY);setKnowledgeStatus("Besitzerzugang noch nicht bestätigt.","idle")}
-function storedKnowledgeMutations(){
-  let parsed=[];try{parsed=JSON.parse(localStorage.getItem(KNOWLEDGE_MUTATIONS_KEY)||"[]")}catch{}
-  const now=Date.now(),valid=Array.isArray(parsed)?parsed.filter(item=>item&&item.id&&item.expiresAt>now&&(item.type==="delete"||(item.type==="upsert"&&item.fact))):[];
-  if(valid.length!==parsed.length)storeKnowledgeMutations(valid);return valid;
-}
-function storeKnowledgeMutations(mutations){if(mutations.length)localStorage.setItem(KNOWLEDGE_MUTATIONS_KEY,JSON.stringify(mutations));else localStorage.removeItem(KNOWLEDGE_MUTATIONS_KEY)}
-function recordKnowledgeMutation(mutation){
-  const next=storedKnowledgeMutations().filter(item=>item.id!==mutation.id);
-  next.push({...mutation,expiresAt:Date.now()+KNOWLEDGE_MUTATION_TTL_MS});storeKnowledgeMutations(next);
-}
-function applyKnowledgeMutations(knowledge){
-  const base={schemaVersion:Number(knowledge?.schemaVersion)||1,updatedAt:knowledge?.updatedAt||null,facts:Array.isArray(knowledge?.facts)?knowledge.facts:[]};
-  const mutations=storedKnowledgeMutations();let facts=[...base.facts];
-  for(const mutation of mutations){
-    facts=facts.filter(item=>item?.id!==mutation.id);
-    if(mutation.type==="upsert")facts.push(mutation.fact);
-  }
-  return{...base,facts};
+function acceptCentralKnowledge(knowledge){
+  if(!knowledge||typeof knowledge.storeId!=="string"||!knowledge.storeId||!Number.isSafeInteger(knowledge.revision)||knowledge.revision<0||!Array.isArray(knowledge.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
+  if(centralKnowledge.storeId&&centralKnowledge.storeId!==knowledge.storeId)throw knowledgeError("Die Gedächtnisquelle hat unerwartet gewechselt","MEMORY_STORE_ID_MISMATCH");
+  if(knowledge.revision<centralKnowledge.revision)return false;
+  centralKnowledge={storeId:knowledge.storeId,schemaVersion:Number(knowledge.schemaVersion)||1,revision:knowledge.revision,updatedAt:knowledge.updatedAt||null,facts:knowledge.facts};
+  if(typeof render==="function")render();return true;
 }
 function finishOwnerPrompt(value){const resolve=ownerPromptResolve;ownerPromptResolve=null;$("ownerTokenInput").value="";$("ownerAuth").hidden=true;resolve?.(String(value||"").trim())}
 function askOwnerToken(message){
@@ -137,39 +123,34 @@ async function knowledgeRequest({method="GET",body=null,interactive=false,retry=
   return payload;
 }
 async function loadCentralKnowledge({interactive=false}={}){
-  const loadSequence=++knowledgeLoadSequence;
   try{
     const payload=await knowledgeRequest({interactive});if(!payload)return false;
-    if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
-    if(loadSequence===knowledgeLoadSequence)centralKnowledge=applyKnowledgeMutations(payload.knowledge);return true;
+    acceptCentralKnowledge(payload.knowledge);return true;
   }catch(error){
     console.warn("RHIA central knowledge unavailable",{code:error?.code||"UNKNOWN"});
     if(interactive)throw error;return false;
   }
 }
 async function saveCentralKnowledge(change){
-  const payload=await knowledgeRequest({method:"POST",body:change,interactive:true});
+  if(centralKnowledge.revision<0)await loadCentralKnowledge({interactive:true});
+  const payload=await knowledgeRequest({method:"POST",body:{...change,expectedRevision:centralKnowledge.revision},interactive:true});
   if(!payload?.fact||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Speicherbestätigung","KNOWLEDGE_INVALID_RESPONSE");
-  knowledgeLoadSequence++;recordKnowledgeMutation({type:"upsert",id:payload.fact.id,fact:payload.fact});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+  acceptCentralKnowledge(payload.knowledge);return payload;
 }
 async function deleteCentralKnowledge(id){
-  const payload=await knowledgeRequest({method:"DELETE",body:{id},interactive:true});
+  if(centralKnowledge.revision<0)await loadCentralKnowledge({interactive:true});
+  const payload=await knowledgeRequest({method:"DELETE",body:{id,expectedRevision:centralKnowledge.revision},interactive:true});
   if(payload?.deleted?.id!==id||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Löschbestätigung","KNOWLEDGE_INVALID_RESPONSE");
-  knowledgeLoadSequence++;recordKnowledgeMutation({type:"delete",id});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+  acceptCentralKnowledge(payload.knowledge);return payload;
 }
 async function exportCentralKnowledge(){
   const payload=await knowledgeRequest({interactive:true,exportMode:true});
-  const exported={...payload,knowledge:applyKnowledgeMutations(payload.knowledge)};
-  const blob=new Blob([JSON.stringify(exported,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  acceptCentralKnowledge(payload.knowledge);
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
   link.href=url;link.download=`rhia-gedaechtnis-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  return exported;
+  return payload;
 }
-const MEMORY_CATEGORIES=Object.freeze(["Profil","Projekte","Vorlieben","Entscheidungen","Erinnerungen"]);
-function normalizeMemoryCategory(value){const key=String(value||"").toLocaleLowerCase("de-DE");return({"profil":"Profil","projekt":"Projekte","projekte":"Projekte","vorliebe":"Vorlieben","vorlieben":"Vorlieben","entscheidung":"Entscheidungen","entscheidungen":"Entscheidungen","erinnerung":"Erinnerungen","erinnerungen":"Erinnerungen"}[key]||"Erinnerungen")}
-function normalizeMemoryItem(item,index=0){if(typeof item==="string")return{id:"memory-migrated-"+index,text:cleanMemoryText(item),category:"Erinnerungen",createdAt:new Date(0).toISOString()};return{id:item.id||"memory-migrated-"+index,text:cleanMemoryText(item.text),category:normalizeMemoryCategory(item.category),createdAt:item.createdAt||new Date(0).toISOString()}}
-const normalizedMemories=state.memories.map(normalizeMemoryItem).filter(item=>item.text);
-if(JSON.stringify(normalizedMemories)!==JSON.stringify(state.memories)){state.memories=normalizedMemories;save()}
-let recognitionActive=false,pendingAutomaticSpeech="",automaticSpeechTimer=0,speechRecognizer=null,speechTestMode=false,speechRecognitionError="",pendingMemoryDeletion=null;
+let recognitionActive=false,pendingAutomaticSpeech="",automaticSpeechTimer=0,speechRecognizer=null,speechTestMode=false,speechRecognitionError="";
 function browserSpeechSupported(){return "speechSynthesis" in window&&"SpeechSynthesisUtterance" in window}
 function setSpeechInputStatus(message,status="idle"){const label=$("speechInputStatus"),dot=$("speechInputDot");if(label)label.textContent=message;if(dot)dot.dataset.state=status}
 function speechErrorMessage(code){return({"not-allowed":"Mikrofonzugriff blockiert. Bitte die Browserberechtigung für das Mikrofon erlauben.","service-not-allowed":"Spracherkennung wurde vom Browser blockiert.","no-speech":"Keine Sprache erkannt. Bitte näher am Mikrofon und noch einmal versuchen.","audio-capture":"Kein verfügbares Mikrofon gefunden.",network:"Die Spracherkennung hat gerade keine Verbindung.",aborted:"Spracherkennung abgebrochen."}[code]||"Spracherkennung konnte nicht gestartet werden.")}
@@ -185,74 +166,133 @@ function openDrawerTab(name="tasks"){
   if(target)target.click();
   $("drawer").classList.add("open");
 }
-function profile(){
-  const stored=state.settings.profile||{},assistant=stored.assistant||{},user=stored.user||{};
+function identityReply(kind){
+  if(kind==="assistant-name")return"Ich heiße RHIA, ausgeschrieben RH Intelligent Assistant, Sir.";
+  return"Ich bin RHIA, RH Intelligent Assistant: Ihre digitale Assistentin und Teil von RH Produktion, Sir.";
+}
+function cleanLegacyText(value,max=700){return String(value||"").trim().replace(/\s+/g," ").slice(0,max)}
+function legacyHash(value){let hash=2166136261;for(const char of String(value)){hash^=char.charCodeAt(0);hash=Math.imul(hash,16777619)}return(hash>>>0).toString(16).padStart(8,"0")}
+function parsedLegacy(storage,key,fallback){try{return JSON.parse(storage.getItem(key)||"")??fallback}catch{return fallback}}
+async function legacySha256(value){const bytes=new TextEncoder().encode(String(value));const digest=await crypto.subtle.digest("SHA-256",bytes);return[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("")}
+function exactLegacyJson(raw,key,fallback){if(raw===null)return fallback;try{return JSON.parse(raw)??fallback}catch{throw knowledgeError(`Der alte Browserwert ${key} ist beschädigt und darf nicht automatisch bereinigt werden`,"LEGACY_STORAGE_INVALID")}}
+function legacyMemoryRawValues(storage=localStorage){return[
+  {key:LEGACY_KEYS.mutations,raw:storage.getItem(LEGACY_KEYS.mutations)},
+  {key:LEGACY_KEYS.memories,raw:storage.getItem(LEGACY_KEYS.memories)},
+  {key:K.settings,raw:storage.getItem(K.settings)}
+]}
+function rawValuesEqual(left,right){return Array.isArray(left)&&Array.isArray(right)&&left.length===right.length&&left.every((item,index)=>item?.key===right[index]?.key&&item?.raw===right[index]?.raw)}
+function appendLegacyProfileFacts(value,path,facts){
+  if(value===null||value===undefined||value==="")return;
+  if(Array.isArray(value)){value.forEach((item,index)=>appendLegacyProfileFacts(item,[...path,String(index)],facts));return}
+  if(typeof value==="object"){Object.keys(value).sort().forEach(key=>appendLegacyProfileFacts(value[key],[...path,key],facts));return}
+  const text=cleanLegacyText(value,500);if(!text)return;
+  const field=path.join(".")||"Wert",idPath=path.map(part=>part.replace(/[^a-z0-9_-]/gi,"-").toLowerCase()).join(".")||legacyHash(text);
+  facts.push({id:`legacy.browser.profile.${idPath}`,subject:"Früheres Browserprofil",statement:`Profilwert ${field}: ${text}`,confirmedBy:"Mike"});
+}
+async function legacyMemoryInventory(storage=localStorage){
+  const rawValues=legacyMemoryRawValues(storage),rawChecksum=await legacySha256(JSON.stringify(rawValues));
+  const rawByKey=new Map(rawValues.map(item=>[item.key,item.raw]));
+  const mutations=exactLegacyJson(rawByKey.get(LEGACY_KEYS.mutations),LEGACY_KEYS.mutations,[]),memories=exactLegacyJson(rawByKey.get(LEGACY_KEYS.memories),LEGACY_KEYS.memories,[]),settings=exactLegacyJson(rawByKey.get(K.settings),K.settings,{});
+  if(!Array.isArray(mutations)||!Array.isArray(memories)||!settings||typeof settings!=="object"||Array.isArray(settings))throw knowledgeError("Die alten Browserwerte besitzen ein unerwartetes Format und dürfen nicht automatisch bereinigt werden","LEGACY_STORAGE_INVALID");
+  const profile=settings.profile&&typeof settings.profile==="object"?settings.profile:null,facts=[],tombstones=[];
+  for(const [index,item] of memories.entries()){
+    const statement=cleanLegacyText(typeof item==="string"?item:item?.text??item?.content);if(!statement)throw knowledgeError(`Alter Erinnerungseintrag ${index+1} konnte nicht vollständig erfasst werden`,"LEGACY_STORAGE_UNMAPPED");
+    facts.push({id:`legacy.browser.memory.${legacyHash(item?.id||statement||index)}`,subject:cleanLegacyText(item?.category,100)||"Erinnerungen",statement,confirmedBy:"Mike",confirmedAt:item?.createdAt});
+  }
+  for(const [index,item] of mutations.entries()){
+    if(item?.type==="upsert"&&item.fact?.statement){facts.push({...item.fact,id:cleanLegacyText(item.fact.id,120)||`legacy.browser.overlay.${legacyHash(index+item.fact.statement)}`});continue}
+    if(item?.type==="delete"&&item.id){tombstones.push({factId:cleanLegacyText(item.id,120),fingerprint:cleanLegacyText(item?.fact?.fingerprint,64),statement:cleanLegacyText(item?.fact?.statement),subject:cleanLegacyText(item?.fact?.subject,100),reason:"legacy-browser-confirmed-deletion"});continue}
+    throw knowledgeError(`Alte Gedächtnisänderung ${index+1} konnte nicht vollständig erfasst werden`,"LEGACY_STORAGE_UNMAPPED");
+  }
+  if(profile)appendLegacyProfileFacts(profile,[],facts);
   return{
-    assistant:{...DEFAULT_PROFILE.assistant,...assistant},
-    user:{...DEFAULT_PROFILE.user,...user},
-    projects:Array.isArray(stored.projects)&&stored.projects.length?stored.projects:DEFAULT_PROFILE.projects
+    manifest:{sourceId:`legacy-browser-${rawChecksum}`,sourceType:"legacy-browser-storage",sourceUpdatedAt:null,requireEmpty:false,facts,tombstones},
+    counts:{facts:facts.length,tombstones:tombstones.length,hasProfile:Boolean(profile),hasChat:Boolean(storage.getItem(LEGACY_KEYS.chat))},
+    rawChecksum,rawValues
   };
 }
-function identityReply(kind){
-  const p=profile(),a=p.assistant,u=p.user;
-  if(kind==="assistant-name")return `Ich heiße ${a.name}, ausgeschrieben ${a.longName}, ${u.formalAddress}.`;
-  if(kind==="assistant")return `Ich bin ${a.name}, ${a.longName}: Ihre ${a.role} und Teil von ${a.organization}, ${u.formalAddress}.`;
-  if(kind==="user")return `Sie sind ${u.name}. Für mich sind Sie ${u.formalAddress}, und ich unterstütze Sie bei ${p.projects.join(", ") }.`;
-  return `Ja. Sie sind ${u.name}, ${u.formalAddress}. Ich kenne Ihre zentralen Projekte: ${p.projects.join(", ")}.`;
-}
-function cleanMemoryText(value){return String(value||"").trim().replace(/[.!?]+$/g,"").replace(/\s+/g," ").slice(0,500)}
-function comparableMemoryText(value){return cleanMemoryText(value).toLocaleLowerCase("de-DE")}
-function parseMemoryInput(value){
-  let text=cleanMemoryText(value).replace(/^(?:,?\s*dass\s+)/i,""),category="";
-  const explicit=text.match(/^(?:als|unter|in|im|für|fuer|zu|zum|zur)?\s*(profil|projekte?|vorlieben?|entscheidungen?|erinnerungen?)\s*[:,;-]?\s*(?:dass\s+)?(.+)$/i);
-  if(explicit){category=normalizeMemoryCategory(explicit[1]);text=cleanMemoryText(explicit[2])}
-  if(!category){
-    if(/^(?:mein name ist|ich heiße|ich heisse|ich bin \d+|ich wohne|ich arbeite)/i.test(text))category="Profil";
-    else if(/^(?:zum projekt|projekt\s+|bei rhia|bei shadow grown|bei rh produktion)/i.test(text))category="Projekte";
-    else if(/^(?:mein lieblings|ich mag|ich bevorzuge|mir gefällt|mir gefaellt|ich möchte lieber|ich moechte lieber)/i.test(text))category="Vorlieben";
-    else if(/^(?:wir haben entschieden|ich habe entschieden|die entscheidung ist|verbindlich gilt|wir legen fest)/i.test(text))category="Entscheidungen";
-    else category="Erinnerungen";
+function legacyEvidence(value){return{
+  facts:(value?.facts||[]).map(item=>({id:item.id,subject:item.subject,statement:item.statement,status:item.status||"confirmed",fingerprint:item.fingerprint})).sort((a,b)=>a.id.localeCompare(b.id)),
+  tombstones:(value?.tombstones||[]).map(item=>({factId:item.factId||"",subject:item.subject||"",statement:item.statement||"",fingerprint:item.fingerprint||"",reason:item.reason||"",deletedAt:item.deletedAt||""})).sort((a,b)=>(a.factId||a.fingerprint).localeCompare(b.factId||b.fingerprint))
+}}
+async function verifyLegacyMigrationContent(manifest,knowledge){
+  if(!manifest||!knowledge||!Array.isArray(knowledge.facts)||!Array.isArray(knowledge.tombstones))return{ok:false,code:"MIGRATION_CONTENT_MISSING"};
+  const matchedFacts=[];
+  for(const expected of manifest.facts||[]){
+    const actual=knowledge.facts.find(item=>item?.id===expected.id);
+    if(actual){if(actual.fingerprint!==expected.fingerprint||actual.subject!==expected.subject||actual.statement!==expected.statement||actual.status!=="confirmed")return{ok:false,code:"MIGRATION_FACT_MISMATCH",id:expected.id};matchedFacts.push(actual);continue}
+    const tombstone=knowledge.tombstones.find(item=>item?.factId===expected.id||item?.fingerprint===expected.fingerprint);
+    if(!tombstone)return{ok:false,code:"MIGRATION_FACT_MISSING",id:expected.id};
+    if(tombstone.factId!==expected.id||tombstone.fingerprint!==expected.fingerprint||tombstone.subject!==expected.subject||tombstone.statement!==expected.statement)return{ok:false,code:"MIGRATION_FACT_MISMATCH",id:expected.id};
+    matchedFacts.push({id:expected.id,subject:tombstone.subject,statement:tombstone.statement,status:"confirmed",fingerprint:tombstone.fingerprint});
   }
-  return{category,text};
+  const matchedTombstones=[];
+  for(const expected of manifest.tombstones||[]){const actual=knowledge.tombstones.find(item=>(expected.factId&&item?.factId===expected.factId)||(!expected.factId&&expected.fingerprint&&item?.fingerprint===expected.fingerprint));if(!actual||expected.factId&&actual.factId!==expected.factId||expected.fingerprint&&actual.fingerprint!==expected.fingerprint||expected.subject&&actual.subject!==expected.subject||expected.statement&&actual.statement!==expected.statement)return{ok:false,code:!actual?"MIGRATION_TOMBSTONE_MISSING":"MIGRATION_TOMBSTONE_MISMATCH",id:expected.factId||expected.fingerprint};matchedTombstones.push(actual)}
+  const expectedEvidence=legacyEvidence(manifest),actualEvidence=legacyEvidence({facts:matchedFacts,tombstones:matchedTombstones}),expectedChecksum=await legacySha256(JSON.stringify(expectedEvidence)),actualChecksum=await legacySha256(JSON.stringify(actualEvidence));
+  return{ok:expectedChecksum===actualChecksum&&matchedFacts.length===expectedEvidence.facts.length&&matchedTombstones.length===expectedEvidence.tombstones.length,expectedChecksum,actualChecksum,factCount:matchedFacts.length,tombstoneCount:matchedTombstones.length};
 }
-function remember(value){
-  const parsed=parseMemoryInput(value),memory=parsed.text;
-  if(memory.length<2){say("Was genau soll ich mir merken, Sir?");return true}
-  const existing=state.memories.find(item=>comparableMemoryText(item.text)===comparableMemoryText(memory)&&normalizeMemoryCategory(item.category)===parsed.category);
-  if(existing){say("Das ist bereits unter "+parsed.category+" gespeichert, Sir: "+memory+".");return true}
-  state.memories.push({id:(globalThis.crypto?.randomUUID?.()||"memory-"+Date.now()),text:memory,category:parsed.category,createdAt:new Date().toISOString()});
-  save();render();say("Unter "+parsed.category+" habe ich dauerhaft gespeichert: "+memory+".");return true;
+async function clearVerifiedLegacyMemory(storage,pending,proof){
+  if(!pending||!proof?.metadataOk||!proof?.content?.ok)return false;
+  const current=await legacyMemoryInventory(storage);
+  if(current.rawChecksum!==pending.rawChecksum||current.manifest.sourceId!==pending.manifest.sourceId||!rawValuesEqual(current.rawValues,pending.rawValues))return false;
+  for(const item of pending.rawValues)if(storage.getItem(item.key)!==item.raw)return false;
+  const mutationRaw=pending.rawValues.find(item=>item.key===LEGACY_KEYS.mutations)?.raw,memoryRaw=pending.rawValues.find(item=>item.key===LEGACY_KEYS.memories)?.raw,settingsRaw=pending.rawValues.find(item=>item.key===K.settings)?.raw;
+  if(mutationRaw!==null)storage.removeItem(LEGACY_KEYS.mutations);
+  if(memoryRaw!==null)storage.removeItem(LEGACY_KEYS.memories);
+  if(settingsRaw!==null){const settings=exactLegacyJson(settingsRaw,K.settings,{});if(Object.prototype.hasOwnProperty.call(settings,"profile")){const{profile:_removed,...rest}=settings;storage.setItem(K.settings,JSON.stringify(rest))}}
+  return true;
 }
-function recallMemories(category=""){
-  const wanted=category?normalizeMemoryCategory(category):"",items=wanted?state.memories.filter(item=>normalizeMemoryCategory(item.category)===wanted):state.memories;
-  if(!items.length){say(wanted?"Unter "+wanted+" habe ich noch nichts gespeichert, Sir.":"Ich habe noch keine persönlichen Informationen gespeichert, Sir.");return true}
-  const recent=items.slice(-5).map(item=>cleanMemoryText(item.text));
-  const label=wanted||"allen fünf Bereichen";
-  const prefix=items.length===1?"Unter "+label+" habe ich gespeichert: ":"Unter "+label+" sind die neuesten "+items.length+" Einträge: ";
-  say(prefix+recent.join("; ")+".");return true;
+function downloadJson(value,name){const blob=new Blob([JSON.stringify(value,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function migrationRequest({method="POST",body=null,sourceId=""}={}){
+  let ownerToken=storedOwnerToken();if(!ownerToken){ownerToken=await askOwnerToken("Bitte geben Sie Ihren RHIA-Besitzerschlüssel für die kontrollierte Migrationsprüfung ein.");if(!ownerToken)throw knowledgeError("Besitzerfreigabe abgebrochen","OWNER_AUTH_CANCELLED")}
+  const url=MIGRATION_API+(sourceId?`?sourceId=${encodeURIComponent(sourceId)}`:"");let response;
+  try{response=await fetch(url,{method,cache:"no-store",headers:{"content-type":"application/json","x-rhia-owner-token":ownerToken},...(body?{body:JSON.stringify(body)}:{})})}catch{throw knowledgeError("Der Migrationsdienst ist gerade nicht erreichbar","MIGRATION_NETWORK_ERROR")}
+  const payload=await response.json().catch(()=>({}));if(!response.ok||!payload.ok)throw knowledgeError(payload.error||"Die Migration konnte nicht geprüft werden",payload.code||"MIGRATION_REQUEST_FAILED");
+  localStorage.setItem(OWNER_TOKEN_KEY,ownerToken);return payload;
 }
-function requestMemoryDeletion(query){
-  const needle=comparableMemoryText(query);
-  const matches=state.memories.filter(item=>{const text=comparableMemoryText(item.text);return text===needle||text.includes(needle)||needle.includes(text)});
-  if(!matches.length){say("Dazu habe ich keine passende gespeicherte Information gefunden, Sir.");return true}
-  if(matches.length>1){say("Ich habe mehrere passende Einträge gefunden. Bitte sagen Sie genauer, welchen ich vergessen soll.");return true}
-  const item=matches[0];pendingMemoryDeletion={id:item.id,text:cleanMemoryText(item.text),category:normalizeMemoryCategory(item.category)};
-  say("Soll ich diesen Eintrag aus "+pendingMemoryDeletion.category+" wirklich löschen: "+pendingMemoryDeletion.text+"?");return true;
+async function previewLegacyMemory(){
+  const inventory=await legacyMemoryInventory(),list=$("legacyMemoryPreviewList");pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;list.hidden=true;list.textContent="";
+  if(!inventory.counts.facts&&!inventory.counts.tombstones&&!inventory.counts.hasProfile){$("legacyMemoryStatus").textContent="Keine alten Gedächtniswerte gefunden. Es wurde nichts gelöscht.";return}
+  const preview=await migrationRequest({body:{action:"preview",manifest:inventory.manifest}});
+  if(preview.manifest?.sourceId!==inventory.manifest.sourceId)throw knowledgeError("Die Migrationsvorschau gehört nicht zum aktuellen Browserstand","MIGRATION_PREVIEW_MISMATCH");
+  pendingLegacyMigration={manifest:preview.manifest,checksum:preview.checksum,expectedRevision:preview.revision,storeId:preview.storeId,counts:inventory.counts,rawChecksum:inventory.rawChecksum,rawValues:inventory.rawValues};
+  const facts=preview.manifest.facts.map(item=>`Übernehmen: [${item.subject}] ${item.statement}`),deletions=preview.manifest.tombstones.map(item=>`Gelöscht halten: ${item.statement||item.factId||item.fingerprint}`);list.textContent=[...facts,...deletions].join(" · ")||"Keine übernehmbaren Einträge.";list.hidden=false;
+  $("legacyMemoryStatus").textContent=`Nur geprüft: ${preview.manifest.summary.facts} Fakten, ${preview.manifest.summary.tombstones} Löschmarkierungen. Noch nichts importiert oder gelöscht.`;$('legacyImportBtn').disabled=false;
 }
-function resolveMemoryDeletion(answer){
-  if(!pendingMemoryDeletion)return false;
-  const yes=/^(ja|jawohl|bestätigen|bestaetigen|löschen|loeschen|ja bitte)$/.test(answer);
-  const no=/^(nein|abbrechen|nicht löschen|nicht loeschen)$/.test(answer);
-  if(!yes&&!no){say("Bitte sagen Sie Ja zum Löschen oder Nein zum Abbrechen, Sir.");return true}
-  const pending=pendingMemoryDeletion;pendingMemoryDeletion=null;
-  if(no){say("In Ordnung, Sir. Der Eintrag bleibt gespeichert.");return true}
-  const index=state.memories.findIndex(item=>item.id===pending.id);
-  if(index<0){say("Der Eintrag ist nicht mehr vorhanden, Sir.");return true}
-  state.memories.splice(index,1);save();render();say("Der Eintrag wurde aus "+pending.category+" gelöscht, Sir.");return true;
+async function commitLegacyMemory(){
+  const pending=pendingLegacyMigration;if(!pending)return;
+  const beforeCommit=await legacyMemoryInventory();
+  if(beforeCommit.rawChecksum!==pending.rawChecksum||!rawValuesEqual(beforeCommit.rawValues,pending.rawValues)){pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;throw knowledgeError("Der Browserstand hat sich seit der Vorschau geändert. Bitte eine neue Vorschau erstellen","LEGACY_STORAGE_CHANGED")}
+  const result=await migrationRequest({body:{action:"commit",manifest:pending.manifest,confirmedChecksum:pending.checksum,expectedRevision:pending.expectedRevision}});
+  const status=await migrationRequest({method:"GET",sourceId:pending.manifest.sourceId});
+  const readBack=await knowledgeRequest({interactive:true,exportMode:true}),record=status.record,content=await verifyLegacyMigrationContent(pending.manifest,readBack?.knowledge);
+  const metadataOk=Boolean(record&&record.sourceId===pending.manifest.sourceId&&record.checksum===pending.checksum&&record.revision===result.importRecord?.revision&&record.factCount===result.importRecord?.factCount&&record.tombstoneCount===result.importRecord?.tombstoneCount&&record.tombstoneCount===pending.manifest.tombstones.length&&Number.isSafeInteger(record.factCount)&&record.factCount>=0&&record.factCount<=pending.manifest.facts.length&&status.storeId===pending.storeId&&result.snapshot?.storeId===pending.storeId&&readBack?.knowledge?.storeId===pending.storeId&&status.revision===result.snapshot?.revision&&readBack?.knowledge?.revision===status.revision);
+  if(!metadataOk||!content.ok||!await clearVerifiedLegacyMemory(localStorage,pending,{metadataOk,content})){pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;throw knowledgeError("Die vollständige Rücklese- oder Browserprüfung war nicht eindeutig. Bitte eine neue Vorschau erstellen. Kein unveränderter Altwert wurde automatisch gelöscht.","MIGRATION_VERIFICATION_FAILED")}
+  acceptCentralKnowledge(readBack.knowledge);pendingLegacyMigration=null;$('legacyImportBtn').disabled=true;$("legacyMemoryPreviewList").hidden=true;$("legacyMemoryStatus").textContent=`Import und Rücklesung bestätigt: Revision ${status.revision}. Alte Gedächtniswerte dieses Browsers wurden bereinigt; der alte Chat blieb erhalten.`;
+}
+async function legacyChatSnapshot(storage=localStorage){
+  const raw=storage.getItem(LEGACY_KEYS.chat);if(raw===null)return{exists:false,raw:null,count:0,rawChecksum:"",orderedChecksum:"",chat:[]};
+  let chat;try{chat=JSON.parse(raw)}catch{throw knowledgeError("Der alte Chat ist beschädigt und kann nicht sicher exportiert werden","LEGACY_CHAT_INVALID")}
+  if(!Array.isArray(chat))throw knowledgeError("Der alte Chat besitzt ein unerwartetes Format","LEGACY_CHAT_INVALID");
+  return{exists:true,raw,count:chat.length,rawChecksum:await legacySha256(raw),orderedChecksum:await legacySha256(JSON.stringify(chat)),chat};
+}
+function resetLegacyChatDeleteUi(){legacyChatDeleteArmed=false;$('legacyChatDeleteBtn').textContent="Exportierten alten Chat löschen"}
+function invalidateLegacyChatExport(message){legacyChatExportProof=null;resetLegacyChatDeleteUi();$('legacyChatDeleteBtn').disabled=true;if(message)$("legacyMemoryStatus").textContent=message}
+async function exportLegacyChat(storage=localStorage){
+  invalidateLegacyChatExport();const snapshot=await legacyChatSnapshot(storage);
+  if(!snapshot.exists||!snapshot.count){$("legacyMemoryStatus").textContent="Kein alter Chatverlauf zum Exportieren gefunden.";return false}
+  downloadJson({schemaVersion:1,sourceKey:LEGACY_KEYS.chat,exportedAt:new Date().toISOString(),count:snapshot.count,checksum:snapshot.orderedChecksum,entries:snapshot.chat},`rhia-alter-chat-${new Date().toISOString().slice(0,10)}.json`);
+  legacyChatExportProof={raw:snapshot.raw,rawChecksum:snapshot.rawChecksum,orderedChecksum:snapshot.orderedChecksum,count:snapshot.count};$('legacyChatDeleteBtn').disabled=false;$("legacyMemoryStatus").textContent=`${snapshot.count} alte Chateinträge wurden in fester Reihenfolge exportiert. Sie sind noch nicht gelöscht.`;return true;
+}
+async function deleteExportedLegacyChat(storage=localStorage){
+  const proof=legacyChatExportProof;if(!proof)return false;const current=await legacyChatSnapshot(storage);
+  if(!current.exists||current.raw!==proof.raw||current.rawChecksum!==proof.rawChecksum||current.orderedChecksum!==proof.orderedChecksum||current.count!==proof.count){invalidateLegacyChatExport("Der alte Chat hat sich seit dem Export geändert. Nichts wurde gelöscht; bitte erneut exportieren.");return false}
+  if(!legacyChatDeleteArmed){legacyChatDeleteArmed=true;$('legacyChatDeleteBtn').textContent=`Löschung von ${proof.count} Chateinträgen endgültig bestätigen`;$("legacyMemoryStatus").textContent="Der exportierte Chatstand ist unverändert. Bitte die Löschung jetzt mit einem zweiten Tippen ausdrücklich bestätigen.";return false}
+  if(storage.getItem(LEGACY_KEYS.chat)!==proof.raw){invalidateLegacyChatExport("Der alte Chat hat sich unmittelbar vor der Löschung geändert. Nichts wurde gelöscht; bitte erneut exportieren.");return false}
+  storage.removeItem(LEGACY_KEYS.chat);invalidateLegacyChatExport();$("legacyMemoryStatus").textContent=`Der exakt exportierte Stand mit ${proof.count} Chateinträgen wurde nach gesonderter Bestätigung aus diesem Browser gelöscht.`;return true;
 }
 function local(text){
   const l=text.toLowerCase().trim();let m;
-  if(resolveMemoryDeletion(l))return true;
   if(m=l.match(/^(?:öffne|zeige)(?: mir)?(?: die| das)? (aufgaben|notizen|ideen|einstellungen|steuerung|menü)$/)){
     const tab={aufgaben:"tasks",notizen:"notes",ideen:"ideas",einstellungen:"settings",steuerung:"tasks",menü:"tasks"}[m[1]];
     openDrawerTab(tab);say("Geöffnet, Sir.");return true;
@@ -260,20 +300,10 @@ function local(text){
   if(m=l.match(/^(?:rhia[ ,]*)?(?:aufgabe|erstelle eine aufgabe)[: ]+(.+)/)){state.tasks.push({text:m[1],done:false,createdAt:new Date().toISOString(),world:state.settings.world});save();render();say("Jawohl, Sir. Die Aufgabe ist gespeichert.");return true}
   if(m=l.match(/^(?:rhia[ ,]*)?(?:notiz|speichere eine notiz)[: ]+(.+)/)){state.notes.push({text:m[1],createdAt:new Date().toISOString(),world:state.settings.world});save();render();say("Natürlich, Sir. Die Notiz ist gespeichert.");return true}
   if(m=l.match(/^(?:rhia[ ,]*)?(?:idee|speichere eine idee)[: ]+(.+)/)){state.ideas.push({title:m[1],status:"offen",createdAt:new Date().toISOString(),area:state.settings.world});save();render();say("Jawohl, Sir. Die Idee ist gespeichert.");return true}
-  if(m=text.match(/^(?:rhia[ ,]*)?(?:merke dir(?: bitte)?(?:,)?(?: dass)?|speichere(?: bitte)?(?: als erinnerung)?(?:,)?(?: dass)?)\s+(.+)/i))return remember(m[1]);
-  if(/^(?:rhia[ ,]*)?(?:was hast du dir gemerkt|was weißt du noch|welche informationen hast du gespeichert)(?:\?)?$/i.test(text))return recallMemories();
-  if(/^(?:rhia[ ,]*)?(?:was steht in meinem profil|was weißt du aus meinem profil)(?:\?)?$/i.test(text))return recallMemories("Profil");
-  if(/^(?:rhia[ ,]*)?(?:welche projekte kennst du|was weißt du über meine projekte)(?:\?)?$/i.test(text))return recallMemories("Projekte");
-  if(/^(?:rhia[ ,]*)?(?:welche vorlieben kennst du|was sind meine vorlieben)(?:\?)?$/i.test(text))return recallMemories("Vorlieben");
-  if(/^(?:rhia[ ,]*)?(?:welche entscheidungen hast du gespeichert|was haben wir entschieden)(?:\?)?$/i.test(text))return recallMemories("Entscheidungen");
-  if(/^(?:rhia[ ,]*)?(?:welche erinnerungen hast du|was ist unter erinnerungen gespeichert)(?:\?)?$/i.test(text))return recallMemories("Erinnerungen");
-  if(m=text.match(/^(?:rhia[ ,]*)?(?:vergiss(?: bitte)?(?:,)?(?: dass)?|lösche (?:bitte )?(?:den |die )?(?:eintrag|erinnerung)(?:,)?(?: dass)?)\s+(.+)/i))return requestMemoryDeletion(m[1]);
   if(/wie heißt du|wie heisst du|was ist dein name/.test(l)){say(identityReply("assistant-name"));return true}
   if(/wer bist du|was bist du|stell dich vor/.test(l)){say(identityReply("assistant"));return true}
-  if(/^(?:wer bin ich|wie heiße ich|wie heisse ich)[.!? ]*$/.test(l)){say(identityReply("user"));return true}
-  if(/kennst du mich|was weißt du über mich|was weisst du über mich/.test(l)){say(identityReply("knows-user"));return true}
-  if(/wie geht es dir|wie gehts dir|wie geht.s dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir/.test(l)){say("Mir geht es gut, "+profile().user.formalAddress+". Ich bin bereit – was machen wir heute?");return true}
-  if(/^(guten morgen|guten tag|guten abend|hallo)(?:[.!? ,]*)$/.test(l)){say("Guten Tag, "+profile().user.formalAddress+". Ich bin bereit.");return true}
+  if(/wie geht es dir|wie gehts dir|wie geht.s dir|wie fühlst du dich|wie fuehlst du dich|alles gut bei dir/.test(l)){say("Mir geht es gut, Sir. Ich bin bereit – was machen wir heute?");return true}
+  if(/^(guten morgen|guten tag|guten abend|hallo)(?:[.!? ,]*)$/.test(l)){say("Guten Tag, Sir. Ich bin bereit.");return true}
   if(/welche version|deine version/.test(l)){say("Ich laufe aktuell als RHIA Alpha Version "+VERSION+", Sir.");return true}
   if(/wie spät|wie viel uhr/.test(l)){say("Es ist "+new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+" Uhr, Sir.");return true}
   if(/welches datum|welcher tag ist heute/.test(l)){say("Heute ist "+new Date().toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})+", Sir.");return true}
@@ -294,7 +324,7 @@ function normalizeSpokenCommand(raw){
   return text.trim();
 }
 function proposedKnowledge(text){
-  const match=String(text).match(/^(?:rhia[ ,]*)?(?:merke dir dauerhaft|speichere dauerhaft|lerne dauerhaft|korrigiere dauerhaft)(?:,?\s+dass)?\s+(.+)/i);
+  const match=String(text).match(/^(?:rhia[ ,]*)?(?:merke dir(?: bitte)?(?: dauerhaft)?|speichere(?: bitte)?(?: dauerhaft)?(?: als erinnerung)?|lerne dauerhaft|korrigiere dauerhaft)(?:,?\s+dass)?\s*[:,;-]?\s+(.+)/i);
   if(!match)return null;
   const statement=match[1].trim().replace(/[.!?]+$/g,"");
   if(statement.length<3)return null;
@@ -304,9 +334,10 @@ function proposedKnowledge(text){
   return{...(sameSubject.length===1?{id:sameSubject[0].id}:{}),subject,statement};
 }
 function normalizedKnowledgeText(value){return String(value||"").toLocaleLowerCase("de-DE").replace(/[.,!?;:„“\"'()]/g," ").replace(/\s+/g," ").trim()}
-function centralDeletionQuery(text){const match=String(text).match(/^(?:rhia[ ,]*)?(?:vergiss dauerhaft|lösche dauerhaft|loesche dauerhaft)(?: bitte)?(?: den eintrag| die erinnerung)?\s*[:,;-]?\s+(.+)/i);return match?.[1]?.trim().replace(/[.!?]+$/g,"")||""}
+function centralDeletionQuery(text){const match=String(text).match(/^(?:rhia[ ,]*)?(?:vergiss(?: bitte)?(?: dauerhaft)?|lösche(?: bitte)?(?: dauerhaft)?|loesche(?: bitte)?(?: dauerhaft)?)(?: den eintrag| die erinnerung)?\s*[:,;-]?\s+(.+)/i);return match?.[1]?.trim().replace(/[.!?]+$/g,"")||""}
 function centralQuestion(text){
   const clean=String(text||"").trim().replace(/[.!?]+$/g,"");
+  if(/^(?:wer bin ich|wie heiße ich|wie heisse ich|kennst du mich|was weißt du über mich|was weisst du über mich)$/i.test(clean))return{target:"Mike",personal:true};
   const match=clean.match(/^(?:wie lautet|was ist|wer ist|wie heißt|wie heisst|was weißt du über|was weisst du ueber)\s+(.+)$/i);if(!match)return null;
   const target=normalizedKnowledgeText(match[1]);return{target,personal:/^(?:mein|meine|meinen|meinem|meiner|meines|unser|unsere|unseren|unserem|unserer|unseres)\b/.test(target)};
 }
@@ -322,10 +353,8 @@ function findCentralDeletionMatches(query,knowledge=centralKnowledge){
   return(knowledge?.facts||[]).filter(item=>{const statement=normalizedKnowledgeText(item?.statement);return statement===needle||statement.includes(needle)||needle.includes(statement)});
 }
 async function prepareCentralDeletion(query){
-  const previouslyVisible=findCentralDeletionMatches(query);
   try{await loadCentralKnowledge({interactive:true})}catch(error){say("Ich konnte das zentrale Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
-  const refreshed=findCentralDeletionMatches(query),matches=[...refreshed];
-  for(const fact of previouslyVisible)if(!matches.some(item=>item?.id===fact?.id))matches.push(fact);
+  const matches=findCentralDeletionMatches(query);
   if(!matches.length){say("Dazu habe ich keinen passenden zentralen Gedächtniseintrag gefunden, Sir.");return true}
   if(matches.length>1){say("Ich habe mehrere zentrale Einträge gefunden. Bitte nennen Sie den zu löschenden Satz genauer, Sir.");return true}
   pendingCentralDeletion={id:matches[0].id,statement:matches[0].statement};say(`Soll ich diesen zentralen Eintrag dauerhaft löschen, Sir: „${matches[0].statement}“? Bitte antworten Sie mit Ja oder Nein.`);return true;
@@ -336,18 +365,25 @@ async function resolveCentralDeletion(text){
   if(!yes&&!no){say("Bitte antworten Sie zuerst mit Ja oder Nein: Soll ich den zentralen Eintrag dauerhaft löschen, Sir?");return true}
   if(no){pendingCentralDeletion=null;say("Verstanden, Sir. Der zentrale Eintrag bleibt gespeichert.");return true}
   try{await deleteCentralKnowledge(pendingCentralDeletion.id);pendingCentralDeletion=null;say("Bestätigt, Sir. Der zentrale Gedächtniseintrag wurde dauerhaft gelöscht.")}
-  catch(error){say("Ich konnte den zentralen Eintrag nicht löschen, Sir. "+error.message+".")}
+  catch(error){if(error?.code==="MEMORY_REVISION_CONFLICT"){pendingCentralDeletion=null;await loadCentralKnowledge({interactive:true}).catch(()=>false);say("Der zentrale Gedächtnisstand hat sich geändert, Sir. Bitte geben Sie den Löschbefehl erneut.")}else say("Ich konnte den zentralen Eintrag nicht löschen, Sir. "+error.message+".")}
   return true;
 }
 async function answerFromCentralKnowledge(text){
   const question=centralQuestion(text);if(!question)return false;
-  if(!(centralKnowledge.facts||[]).length){
-    if(!question.personal&&!storedOwnerToken())return false;
-    try{await loadCentralKnowledge({interactive:question.personal})}catch(error){say("Ich konnte mein zentrales Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
-  }
+  if(!question.personal&&!storedOwnerToken())return false;
+  let loaded=false;
+  try{loaded=await loadCentralKnowledge({interactive:question.personal})}catch(error){say("Ich konnte mein zentrales Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
+  if(!loaded){say("Ich konnte mein zentrales Gedächtnis nicht öffnen, Sir. Es gibt keine Rückfallquelle.");return true}
   const fact=findCentralFact(question.target);if(fact){say(fact.statement.replace(/[.!?]+$/g,"") + ", Sir.");return true}
   if(question.personal){say("Dazu habe ich noch keine bestätigte Information in meinem zentralen Gedächtnis, Sir.");return true}
   return false;
+}
+function isCentralRecallCommand(text){return /^(?:rhia[ ,]*)?(?:was hast du dir gemerkt|was weißt du noch|welche informationen hast du gespeichert|was steht in meinem profil|was weißt du aus meinem profil|welche projekte kennst du|was weißt du über meine projekte|welche vorlieben kennst du|was sind meine vorlieben|welche entscheidungen hast du gespeichert|was haben wir entschieden|welche erinnerungen hast du|was ist unter erinnerungen gespeichert)(?:\?)?$/i.test(String(text||""))}
+async function recallCentralKnowledge(){
+  try{await loadCentralKnowledge({interactive:true})}catch(error){say("Ich konnte mein zentrales Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
+  const items=(centralKnowledge.facts||[]).filter(item=>item?.status==="confirmed"&&item?.statement).slice(-5);
+  if(!items.length){say("Ich habe noch keine bestätigten Informationen in meinem zentralen Gedächtnis, Sir.");return true}
+  say((items.length===1?"Zentral bestätigt ist: ":"Die neuesten zentral bestätigten Informationen sind: ")+items.map(item=>item.statement.replace(/[.!?]+$/g,"")).join("; ")+".");return true;
 }
 function isCentralExportCommand(text){return /^(?:rhia[ ,]*)?(?:exportiere|sichere|lade)(?: bitte)?(?: mein| das)? (?:zentrales gedächtnis|zentrale gedächtnis|zentrales gedaechtnis|zentrale wissen)(?: herunter)?[.!? ]*$/i.test(String(text||""))}
 const confirms=text=>/^(?:ja|jawohl|bestätigt|speichern|dauerhaft speichern)(?:[.! ]*)$/i.test(text);
@@ -372,7 +408,7 @@ async function handle(raw){
     if(confirms(text)){
       const change=pendingKnowledge;
       try{await saveCentralKnowledge(change);pendingKnowledge=null;say("Bestätigt, Sir. Die Information ist jetzt dauerhaft in meinem zentralen Gedächtnis gespeichert.")}
-      catch(error){console.error("RHIA knowledge write error",{code:error?.code||"UNKNOWN"});say("Ich konnte die Information noch nicht zentral speichern, Sir. "+error.message+".")}
+      catch(error){console.error("RHIA knowledge write error",{code:error?.code||"UNKNOWN"});if(error?.code==="MEMORY_REVISION_CONFLICT"){pendingKnowledge=null;await loadCentralKnowledge({interactive:true}).catch(()=>false);say("Der zentrale Gedächtnisstand hat sich geändert, Sir. Bitte geben Sie den Merkbefehl erneut.")}else say("Ich konnte die Information noch nicht zentral speichern, Sir. "+error.message+".")}
       return;
     }
     say("Bitte antworten Sie zuerst mit Ja oder Nein: Soll ich die vorgeschlagene Information dauerhaft speichern, Sir?");return;
@@ -381,15 +417,16 @@ async function handle(raw){
   if(isCentralExportCommand(text)){try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}return}
   const proposal=proposedKnowledge(text);
   if(proposal){pendingKnowledge=proposal;say(`Soll ich diese Information dauerhaft speichern, Sir: „${proposal.statement}“? Bitte antworten Sie mit Ja oder Nein.`);return}
+  if(isCentralRecallCommand(text)){await recallCentralKnowledge();return}
   if(local(text))return;
   try{
     if(await answerFromCentralKnowledge(text))return;
-    const p=await requestChat({message:text,world:state.settings.world,memories:state.memories,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))});say(p.reply)
+    const p=await requestChat({message:text,world:state.settings.world,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))});say(p.reply)
   }catch(e){
     console.error("RHIA request error",{code:e?.code||e?.name||"UNKNOWN"});const message=e?.code?.startsWith("OWNER_")?e.message+", Sir.":e?.name==="AbortError"?"Die KI-Verbindung hat zu lange gebraucht, Sir. Bitte versuchen Sie es gleich noch einmal.":navigator.onLine===false?"Keine Internetverbindung, Sir. Lokale Funktionen bleiben verfügbar.":"Die KI-Verbindung ist gerade nicht erreichbar, Sir. Ihre Frage wurde verstanden.";say(message)
   }
 }
-function render(){const activeIdeas=state.ideas.filter(x=>x.status!=="verworfen");$("taskCount").textContent=state.tasks.length;$("noteCount").textContent=state.notes.length;$("ideaCount").textContent=activeIdeas.length;$("memoryCount").textContent=state.memories.length;$("worldTop").textContent=$("worldSide").textContent=state.settings.world.toUpperCase();$("colorSide").textContent=state.settings.colorTheme.toUpperCase();renderList("tasks",state.tasks,x=>x.text);renderList("notes",state.notes,x=>x.text);renderList("ideas",activeIdeas,x=>x.title);$("voiceToggle").textContent="Sprachausgabe: "+(state.settings.browserVoice?"an":"aus");$("voiceToggle").setAttribute("aria-pressed",String(state.settings.browserVoice));$("worlds").innerHTML=worlds.map(w=>`<button class="${w===state.settings.world?'active':''}" data-world="${w}">${w}</button>`).join("");$("colors").innerHTML=Object.keys(themes).map(c=>`<button class="${c===state.settings.colorTheme?'active':''}" data-color="${c}">${c}</button>`).join("");document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{state.settings.world=b.dataset.world;save();render()});document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{applyTheme(b.dataset.color);save();render()})}
+function render(){const activeIdeas=state.ideas.filter(x=>x.status!=="verworfen");$("taskCount").textContent=state.tasks.length;$("noteCount").textContent=state.notes.length;$("ideaCount").textContent=activeIdeas.length;$("memoryCount").textContent=Math.max(0,centralKnowledge.facts.length);$("worldTop").textContent=$("worldSide").textContent=state.settings.world.toUpperCase();$("colorSide").textContent=state.settings.colorTheme.toUpperCase();renderList("tasks",state.tasks,x=>x.text);renderList("notes",state.notes,x=>x.text);renderList("ideas",activeIdeas,x=>x.title);$("voiceToggle").textContent="Sprachausgabe: "+(state.settings.browserVoice?"an":"aus");$("voiceToggle").setAttribute("aria-pressed",String(state.settings.browserVoice));$("worlds").innerHTML=worlds.map(w=>`<button class="${w===state.settings.world?'active':''}" data-world="${w}">${w}</button>`).join("");$("colors").innerHTML=Object.keys(themes).map(c=>`<button class="${c===state.settings.colorTheme?'active':''}" data-color="${c}">${c}</button>`).join("");document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{state.settings.world=b.dataset.world;save();render()});document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{applyTheme(b.dataset.color);save();render()})}
 function renderList(type,data,label){const el=$("tab-"+type);el.innerHTML=data.length?data.map((x,i)=>`<div class="item ${x.done?'done':''}"><div class="txt">${escapeHtml(label(x))}</div><div class="actions">${type==='tasks'?`<button data-toggle="${i}">✓</button>`:''}<button data-del="${type}:${i}">×</button></div></div>`).join(""):"<div class='empty'>Noch keine Einträge.</div>";el.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{state.tasks[+b.dataset.toggle].done=!state.tasks[+b.dataset.toggle].done;save();render()});el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const [t,i]=b.dataset.del.split(":");state[t].splice(+i,1);save();render()})}
 const escapeHtml=s=>String(s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function applyTheme(n){state.settings.colorTheme=n;const t=themes[n]||themes.bordeauxrot;document.documentElement.style.setProperty("--a",t[0]);document.documentElement.style.setProperty("--b",t[1]);document.documentElement.style.setProperty("--c",t[2]);document.documentElement.style.setProperty("--rgb",t[3]);setVisualTheme(t)}
@@ -402,11 +439,14 @@ $("ownerTokenBtn").onclick=async()=>{
     const token=await askOwnerToken("Bitte geben Sie den aktuellen RHIA-Besitzerschlüssel ein. Der bisher gespeicherte Schlüssel wird erst nach erfolgreicher Prüfung ersetzt.");
     if(!token){setKnowledgeStatus("Prüfung abgebrochen. Der bisherige Schlüssel bleibt unverändert.","idle");return}
     const payload=await knowledgeRequest({interactive:true,token});
-    if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
-    knowledgeLoadSequence++;centralKnowledge=applyKnowledgeMutations(payload.knowledge);say("Besitzerzugang bestätigt. Das zentrale Gedächtnis ist verbunden, Sir.");
+    acceptCentralKnowledge(payload.knowledge);say("Besitzerzugang bestätigt. Das zentrale Gedächtnis ist verbunden, Sir.");
   }catch(error){setKnowledgeStatus(error.message,"error");say("Der Besitzerzugang konnte nicht bestätigt werden, Sir. "+error.message+".")}
 };
 $("knowledgeExportBtn").onclick=async()=>{try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}};
+$("legacyPreviewBtn").onclick=async()=>{try{await previewLegacyMemory()}catch(error){pendingLegacyMigration=null;$("legacyImportBtn").disabled=true;$("legacyMemoryStatus").textContent="Prüfung abgebrochen: "+error.message+". Es wurde nichts gelöscht."}};
+$("legacyImportBtn").onclick=async()=>{try{await commitLegacyMemory()}catch(error){$("legacyMemoryStatus").textContent="Migration gestoppt: "+error.message+" Alte Browserwerte blieben unverändert."}};
+$("legacyChatExportBtn").onclick=async()=>{try{await exportLegacyChat()}catch(error){invalidateLegacyChatExport("Chat-Export abgebrochen: "+error.message+". Es wurde nichts gelöscht.")}};
+$("legacyChatDeleteBtn").onclick=async()=>{try{await deleteExportedLegacyChat()}catch(error){invalidateLegacyChatExport("Chat-Löschung abgebrochen: "+error.message+". Es wurde nichts gelöscht.")}};
 $("menuBtn").onclick=()=>openDrawerTab();
 $("mobileMenuBtn").onclick=()=>openDrawerTab("settings");
 $("closeDrawer").onclick=()=>$("drawer").classList.remove("open");

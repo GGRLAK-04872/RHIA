@@ -1,0 +1,11 @@
+{
+  "tombstones": [
+    {
+      "factId": "learned.example-deleted-id",
+      "subject": "Beispiel",
+      "statement": "Dieser Beispielsatz wurde bestätigt gelöscht.",
+      "deletedAt": "2026-08-07T00:00:00.000Z",
+      "reason": "confirmed-legacy-deletion"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 07.08.2026  
+**Letzte Aktualisierung:** 07.08.2026, 14:31 Uhr (Europe/Berlin)
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -53,6 +53,67 @@ Die verbindliche Reihenfolge lautet nun:
 Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfall, Mikes Praxistest, Ergebnis dokumentieren, erst dann der nächste Baustein.
 
 ## Aktueller verbindlicher Stand
+
+### 07.08.2026, 14:31 Uhr – Vier Abschlussblocker von Draft-PR 23 auf demselben Branch geschlossen
+
+**Bereich:** Stufe 0.1 / zentrales Gedächtnis / Reparatur der Abschlussprüfung
+
+**Änderung:**
+
+- Die Browserbereinigung bindet die exakten alten Rohwerte mit SHA-256 an die Vorschau, inventarisiert sie vor dem Import und unmittelbar vor der Bereinigung erneut und bricht bei jeder Abweichung mit Pflicht zu einer neuen Vorschau ab.
+- Der zurückgelesene Durable-Object-Stand muss jeden vorgesehenen Fakt mit ID, Aussage und Fingerabdruck sowie jeden Tombstone vollständig nachweisen. Fehlende Fakten, fehlende Tombstones, falsche Fingerabdrücke und widersprüchliche ID-/Fingerabdruck-Zuordnungen verhindern die Bereinigung.
+- Aufgaben, Notizen, Ideen, UI-Einstellungen und Besitzerschlüssel bleiben erhalten. Aus dem alten Einstellungsschlüssel wird ausschließlich der nachweislich migrierte `profile`-Teil entfernt; der alte Chat bleibt getrennt.
+- Der alte Chat-Export enthält Anzahl, feste Reihenfolge und SHA-256-Prüfsumme. Vor der Löschung wird der exakte Stand erneut geprüft; eine Änderung verwirft den Exportstatus. Die Löschung verlangt danach eine zweite, gesonderte Bestätigung.
+- Alle Browser-APIs verwenden same-origin-Adressen. Production und Preview besitzen getrennte Durable-Object-Worker und Namespaces. Preview akzeptiert ausschließlich eigene Preview-Secrets und verwendet keinen Produktions-Besitzerschlüssel oder Produktions-OpenAI-Schlüssel.
+- Das Pages-Artefakt wird über eine feste Allowlist nach `dist` gebaut und enthält ausschließlich `index.html`. `knowledge/rhia-core.json`, Functions, Konfigurationen und Dokumentation sind nicht öffentlich enthalten.
+- Migration bleibt in Preview und Production standardmäßig deaktiviert. Es wurden keine Cloudflare-Ressourcen, Bindings, echten Daten oder Browserwerte verändert.
+
+**Technischer Test:**
+
+- 18 Node-, API-, UI-, Sicherheits-, Build- und adversariale Regressionstests bestanden.
+- 9 Tests gegen ein echtes lokales SQLite-Durable-Object bestanden, einschließlich Importwiederholung und Fingerabdruck-Konflikt vor dem Schreiben.
+- Statische Altpfadprüfung, Pages-Functions-Bundle, getrennte Preview-/Production-Typprüfung und beide Durable-Object-Dry-Runs bestanden.
+- Tablet-Test 14 besteht weiterhin ausschließlich als automatischer Regressionstest; der echte Gerätetest steht aus.
+
+**Offen:**
+
+- Draft-PR 23 bleibt ungemergt. Die isolierte Cloudflare-Vorschau wurde noch nicht bereitgestellt.
+- Preview- und Production-Secrets sowie beide Durable-Object-Worker müssen später in einem ausdrücklich freigegebenen Cloudflare-Schritt eingerichtet werden.
+- Echte Migration, Browserbereinigung, Tablet-/Handytests und Stilllegung der Alttechnik wurden nicht ausgeführt.
+- Stufe 0.1 bleibt offen. Stufe 1 wurde nicht begonnen und darf noch nicht beginnen.
+
+### 07.08.2026, 13:29 Uhr – SQLite-Durable-Object-Austauschpaket auf getrenntem Branch technisch grün
+
+**Bereich:** Stufe 0.1 / zentrales Gedächtnis / kontrollierte Ablösung
+
+**Änderung:**
+
+- Der Branch `agent/durable-object-memory` wurde direkt vom geprüften `main`-Stand `c6a92d5e226eef9b71940c5b6e699a8f0ec067c2` angelegt. `main` und die produktive Seite wurden nicht verändert.
+- Ein SQLite-basiertes Durable Object ist im neuen Produktstand die einzige veränderliche Gedächtnisquelle. Fakten, Revisionen, Änderungen, Importprotokolle und Tombstones liegen in einer gemeinsamen SQLite-Transaktion.
+- Oberfläche, Export und Online-Chat lesen denselben benannten Speicher und geben dieselbe `storeId` und Revision weiter. Ist dieser Speicher nicht verbunden oder nicht erreichbar, antwortet der Gedächtnisweg mit einem Fehler und nutzt keine KV-, Seed-, Core- oder Browser-Rückfallquelle.
+- Die produktiven KV-, `RHIA_KNOWLEDGE`-, Seed- und Browser-Gedächtnispfade sowie die überholten Reparaturflicken aus PR 21 und PR 22 wurden aus dem Branch entfernt. `knowledge/rhia-core.json` bleibt nur als nicht angeschlossenes Vergleichsarchiv bis zur späteren, bestätigten Migration erhalten.
+- Die kontrollierte Migration besitzt getrennte Vorschau und Freigabe, SHA-256-Prüfsumme, erwartete Ausgangsrevision, Quellen-Idempotenz und eine standardmäßig deaktivierte API. Die Browserbereinigung erfolgt erst nach Importprotokoll und vollständiger Rückleseprüfung; der alte Chat wird nur nach eigenem Export getrennt gelöscht.
+- Der frühere Worker-Quellpfad und seine alte Wrangler-Konfiguration wurden nur aus diesem Branch entfernt. Der bereits extern laufende Worker, alte KV-Daten, Browserwerte und bestehende Cloudflare-Bindings wurden nicht verändert oder abgeschaltet.
+
+**Technischer Test:**
+
+- 11 API-, Oberflächen-, Sicherheits-, Migrations- und Regressionstests bestanden.
+- 8 Tests gegen ein echtes lokales SQLite-Durable-Object bestanden: Initialisierung, konkurrierende Revisionen, Duplikatsperre, atomischer Rollback, atomisches Löschen, Tombstones, wiederholte Löschung und kontrollierte Migration.
+- Die statische Gedächtnisgrenzen-Prüfung bestätigt, dass der Produktcode keine KV-, Seed-, Core- oder Browser-Rückfallquelle mehr enthält.
+- Die Cloudflare-Pages-Functions wurden mit Wrangler 4.120.0 erfolgreich gebündelt; die Durable-Object-Konfiguration wurde erfolgreich geparst und in Bindungstypen übersetzt.
+- Tablet-Test 14 besteht als automatischer Regressionstest: Ein nach der Löschrevision eintreffender alter Stand wird verworfen und „Bordeaux 47“ nicht beantwortet.
+- Es wurden keine echten Besitzerschlüssel, Produktionsdaten, OpenAI-Credits oder Cloudflare-Ressourcen verwendet.
+
+**Offen:**
+
+- Durable Object, Pages-Binding, Migrationsschalter und Browserbereinigung sind nur implementiert und getestet, aber nicht produktiv eingerichtet oder ausgeführt.
+- Die echte kontrollierte Datenmigration, der echte Browser-Abgleich und Tablet-Test 14 auf dem Gerät stehen weiterhin aus.
+- Der alte externe Worker und die alten KV-Daten bleiben bis zu einer gesonderten, ausdrücklich freigegebenen Abschaltung beziehungsweise Löschung bestehen.
+- Stufe 0.1 bleibt offen. Stufe 1 wurde nicht begonnen und darf noch nicht beginnen.
+
+**Nächster Schritt:**
+
+Das Austauschpaket ausschließlich als Draft-PR prüfen. Erst nach ausdrücklicher Freigabe folgen in einem getrennten Wartungsfenster die neue Cloudflare-Ressource, das Pages-Binding, Vorschau und kontrollierte Migration. Es erfolgt weder eine Zusammenführung noch eine produktive Änderung im Rahmen dieses Branch-Schritts.
 
 ### 07.08.2026, 11:04 Uhr – Tablet-Test 14 erneut fehlgeschlagen; zweite Löschreparatur lokal grün
 
