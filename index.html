@@ -21,6 +21,7 @@ main{min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 310px;positio
 .answer{position:absolute;left:50%;top:80px;transform:translateX(-50%);width:min(720px,86%);padding:14px 18px;border:1px solid var(--line);border-radius:16px;background:rgba(19,3,9,.76);backdrop-filter:blur(15px);text-align:center;line-height:1.45;opacity:0;pointer-events:none;transition:.25s}.answer.show{opacity:1}.answer small{display:block;color:var(--b);letter-spacing:2px;margin-bottom:7px}.answerText{font-size:16px}.inputline{position:absolute;left:50%;bottom:142px;transform:translateX(-50%);width:min(620px,82%);display:flex;gap:8px;opacity:.16;transition:.25s}.inputline:focus-within{opacity:1}.inputline input{flex:1;padding:12px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(5,1,3,.78);color:#fff;outline:none}.inputline button{border:0;border-radius:999px;background:var(--a);padding:0 18px}
 .panel{border-left:1px solid var(--line);background:linear-gradient(180deg,rgba(42,8,17,.72),rgba(17,3,8,.88));backdrop-filter:blur(20px);padding:26px 22px;overflow:auto}.greeting{margin-bottom:28px}.greeting small{letter-spacing:2px}.greeting h2{font-weight:400;font-size:22px;line-height:1.35}.accentline{width:42px;height:1px;background:var(--b)}.stats{display:grid}.stat{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}.icon{width:40px;height:40px;border:1px solid var(--line);border-radius:12px;display:grid;place-items:center;color:var(--b)}.stat span{font-size:12px;letter-spacing:1px}.stat b{color:var(--b);font-size:18px}.panelbottom{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}.meta{display:flex;justify-content:space-between;gap:10px;margin:12px 0}.meta small{color:var(--muted)}.meta b{font-size:13px}.swatch{width:20px;height:20px;border-radius:50%;background:var(--a);box-shadow:0 0 15px var(--a)}.miniWave{height:42px;margin-top:24px;background:repeating-linear-gradient(90deg,transparent 0 4px,var(--b) 5px 6px,transparent 7px 10px);mask:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent)}.listenlabel{color:var(--muted);font-size:12px}
 .drawer{position:fixed;inset:0 0 0 auto;width:min(430px,100%);background:#090307;border-left:1px solid var(--line);z-index:20;transform:translateX(100%);transition:.3s;padding:22px;overflow:auto}.drawer.open{transform:none}.drawerhead{display:flex;justify-content:space-between;align-items:center}.drawerhead button{border:1px solid var(--line);background:none;border-radius:50%;width:40px;height:40px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03)}.tabs button.active{background:var(--a)}.tab{display:none}.tab.active{display:block}.item{display:grid;grid-template-columns:1fr auto;gap:8px;padding:11px;border:1px solid var(--line);border-radius:12px;margin:8px 0;background:rgba(255,255,255,.025)}.item.done .txt{text-decoration:line-through;color:var(--muted)}.actions button{border:0;background:none;color:var(--b);padding:5px}.empty{color:var(--muted);padding:16px 0}.switches button,.worlds button,.colors button{width:100%;margin:5px 0;padding:11px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025);text-align:left}.worlds button.active,.colors button.active{background:rgba(var(--rgb),.22)}.speech-state{display:flex;align-items:center;gap:9px;margin:3px 3px 8px;color:var(--text);font-size:13px}.speech-state-dot{width:7px;height:7px;border-radius:50%;background:#84757b;box-shadow:0 0 0 transparent}.speech-state-dot[data-state="ready"]{background:#74d594;box-shadow:0 0 12px rgba(116,213,148,.65)}.speech-state-dot[data-state="active"]{background:var(--b);box-shadow:0 0 15px var(--b);animation:pulseSpeechDot 1s ease-in-out infinite}.speech-state-dot[data-state="error"]{background:#ff795f;box-shadow:0 0 12px rgba(255,121,95,.65)}@keyframes pulseSpeechDot{50%{opacity:.42;transform:scale(.72)}}.voice-hint,.voice-test-status{display:block;min-height:18px;margin:7px 3px 10px;color:var(--muted);font-size:12px;line-height:1.45}.voice-hint{margin-bottom:12px;color:#d3b6c0}
+.owner-auth[hidden]{display:none}.owner-auth{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.78);backdrop-filter:blur(12px)}.owner-auth-card{width:min(430px,100%);padding:24px;border:1px solid var(--line);border-radius:18px;background:#11050a;box-shadow:0 25px 90px rgba(0,0,0,.72)}.owner-auth-card h2{margin:0 0 10px}.owner-auth-card p{margin:0 0 16px;color:#d3b6c0;line-height:1.5}.owner-auth-card input{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;background:#050203;color:#fff;outline:none}.owner-auth-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}.owner-auth-actions button{padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.03)}.owner-auth-actions .primary{background:var(--a)}
 footer{display:flex;justify-content:space-between;align-items:center;padding:0 28px;z-index:4;color:var(--muted);font-size:10px;letter-spacing:2px}.version b{color:var(--b)}.clock{text-align:right}.clock strong{display:block;color:var(--text);font-size:18px;letter-spacing:1px}.clock span{font-size:9px}
 @media(max-width:850px){.app{grid-template-rows:64px auto 40px}header{padding:12px 15px}.topstate{display:none}.worldtop{display:none}main{display:block}.stage{min-height:74vh}.panel{border-left:0;border-top:1px solid var(--line);padding:20px}.core{width:min(76vw,430px)}.answer{top:30px}.inputline{bottom:125px}.voicezone{bottom:20px}.stats{grid-template-columns:1fr 1fr;gap:0 16px}.stage:after{display:none}footer{padding:0 15px}}
 @media(max-width:600px),(any-pointer:coarse) and (max-width:1600px){
@@ -62,11 +63,12 @@ main{display:block;width:100%;height:100%;min-height:0}
 <main><section class="stage" id="stage"><canvas id="canvas"></canvas><div class="answer" id="answer"><small>RHIA ANTWORTET</small><div class="answerText" id="answerText"></div></div><div class="core"><div><h1>RHIA</h1><p id="coreState">BEREIT</p></div></div><form class="inputline" id="form"><input id="command" placeholder="Optional schreiben …" autocomplete="off"><button>Senden</button></form><div class="voicezone"><div class="wake"><b>MIKROFON ANTIPPEN</b> UND SPRECHEN</div><div class="voicebar"><div class="wave"></div><button class="mic" id="mic" type="button" aria-label="Mikrofon aktivieren">🎙</button><div class="wave"></div></div></div></section>
 <aside class="panel"><div class="greeting"><small id="dayGreeting">GUTEN ABEND, SIR</small><h2>Wie kann ich Sie unterstützen?</h2><div class="accentline"></div></div><div class="stats"><div class="stat"><div class="icon">✓</div><span>AUFGABEN</span><b id="taskCount">0</b></div><div class="stat"><div class="icon">◫</div><span>NOTIZEN</span><b id="noteCount">0</b></div><div class="stat"><div class="icon">◉</div><span>IDEEN</span><b id="ideaCount">0</b></div><div class="stat"><div class="icon">◆</div><span>ERINNERUNGEN</span><b id="memoryCount">0</b></div></div><div class="panelbottom"><div class="meta"><small>AKTIVE WELT</small><b id="worldSide">ALLGEMEIN</b></div><div class="meta"><small>FARBE</small><div style="display:flex;gap:8px;align-items:center"><i class="swatch"></i><b id="colorSide">BORDEAUXROT</b></div></div><div class="miniWave"></div><div class="listenlabel" id="listenLabel">Ich bin bereit …</div></div></aside></main>
 <footer><div class="version">ALPHA <b>V0.26</b><br><span>RHIA – RH INTELLIGENT ASSISTANT</span></div><div class="clock"><strong id="clock">--:--</strong><span id="date">--</span></div></footer></div>
-<div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
+<div class="drawer" id="drawer"><div class="drawerhead"><h2>RHIA STEUERUNG</h2><button id="closeDrawer" type="button" aria-label="Steuerung schließen">×</button></div><div class="tabs"><button class="active" data-tab="tasks">Aufgaben</button><button data-tab="notes">Notizen</button><button data-tab="ideas">Ideen</button><button data-tab="settings">Einstellungen</button></div><div class="tab active" id="tab-tasks"></div><div class="tab" id="tab-notes"></div><div class="tab" id="tab-ideas"></div><div class="tab" id="tab-settings"><h3>Sprache &amp; Mikrofon</h3><div class="switches"><div class="speech-state"><i class="speech-state-dot" id="speechInputDot" data-state="idle"></i><span>Spracheingabe</span></div><small class="voice-hint">RHIA hört derzeit erst zu, nachdem das Mikrofon angetippt wurde.</small><button id="speechInputTest" type="button">Spracheingabe testen</button><small id="speechInputStatus" class="voice-test-status" role="status" aria-live="polite">Mikrofon wird geprüft …</small><button id="voiceToggle" type="button">Sprachausgabe: aus</button><button id="voiceTest" type="button">Sprachausgabe testen</button><small id="voiceTestStatus" class="voice-test-status" role="status" aria-live="polite">Bereit</small></div><h3>Zentrales Gedächtnis</h3><div class="switches"><small id="knowledgeStatus" class="voice-test-status" role="status" aria-live="polite">Besitzerzugang noch nicht geprüft.</small><button id="ownerTokenBtn" type="button">Besitzerschlüssel prüfen oder ersetzen</button><button id="knowledgeExportBtn" type="button">Zentrales Gedächtnis exportieren</button><small class="voice-hint">Der Schlüssel wird verdeckt eingegeben und erst nach erfolgreicher Prüfung auf diesem Gerät gespeichert.</small></div><h3>Welten</h3><div class="worlds" id="worlds"></div><h3>Farben</h3><div class="colors" id="colors"></div></div></div>
+<div class="owner-auth" id="ownerAuth" hidden><div class="owner-auth-card" role="dialog" aria-modal="true" aria-labelledby="ownerAuthTitle"><h2 id="ownerAuthTitle">RHIA-Besitzerzugang</h2><p id="ownerAuthMessage">Bitte geben Sie Ihren Besitzerschlüssel ein.</p><input id="ownerTokenInput" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="RHIA-Besitzerschlüssel"><div class="owner-auth-actions"><button id="ownerAuthCancel" type="button">Abbrechen</button><button id="ownerAuthConfirm" class="primary" type="button">Prüfen</button></div></div></div>
 <script>
 "use strict";
 // RHIA backend transfer scope approved on 2026-08-06; paid AI remains separately gated.
-const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge";
+const VERSION="0.26",API="https://rhia.pages.dev/api/chat",KNOWLEDGE_API="https://rhia.pages.dev/api/knowledge",OWNER_TOKEN_KEY="rhia_owner_token_v1";
 const DEFAULT_PROFILE=Object.freeze({
   assistant:{name:"RHIA",longName:"RH Intelligent Assistant",role:"persönliche digitale Assistentin",organization:"RH Produktion"},
   user:{name:"Mike",formalAddress:"Sir"},
@@ -76,18 +78,63 @@ const K={tasks:"rhia_tasks_v03",notes:"rhia_notes_v03",chat:"rhia_chat_v04",idea
 const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA","Kunden"];
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:load(K.chat,[]),ideas:load(K.ideas,[]),memories:load(K.memories,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot",profile:DEFAULT_PROFILE},load(K.settings,{}))};
-let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null;
-async function loadCentralKnowledge(){try{const response=await fetch(KNOWLEDGE_API,{cache:"no-store"});if(!response.ok)throw Error("HTTP "+response.status);const payload=await response.json();if(!Array.isArray(payload?.knowledge?.facts))throw Error("Ungültiges Wissensformat");centralKnowledge=payload.knowledge}catch(error){console.error("RHIA central knowledge error",error)}}
-async function saveCentralKnowledge(change){
-  const ownerToken=localStorage.getItem("rhia_owner_token_v1")||prompt("Bitte geben Sie einmalig Ihren RHIA-Besitzerschlüssel ein:")||"";
-  if(!ownerToken)throw Error("Besitzerfreigabe abgebrochen");
-  localStorage.setItem("rhia_owner_token_v1",ownerToken);
-  const response=await fetch(KNOWLEDGE_API,{method:"POST",headers:{"content-type":"application/json","x-rhia-owner-token":ownerToken},body:JSON.stringify(change)});
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok){if(response.status===401)localStorage.removeItem("rhia_owner_token_v1");throw Error(payload.error||"Speichern fehlgeschlagen")}
-  await loadCentralKnowledge();return payload;
-}
 const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.chat,JSON.stringify(state.chat));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));localStorage.setItem(K.memories,JSON.stringify(state.memories));localStorage.setItem(K.settings,JSON.stringify(state.settings))};
+let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null;
+function setKnowledgeStatus(message,state="idle"){const status=$("knowledgeStatus");if(status){status.textContent=message;status.dataset.state=state}}
+function storedOwnerToken(){return localStorage.getItem(OWNER_TOKEN_KEY)||""}
+function forgetOwnerToken(){localStorage.removeItem(OWNER_TOKEN_KEY);setKnowledgeStatus("Besitzerzugang noch nicht bestätigt.","idle")}
+function finishOwnerPrompt(value){const resolve=ownerPromptResolve;ownerPromptResolve=null;$("ownerTokenInput").value="";$("ownerAuth").hidden=true;resolve?.(String(value||"").trim())}
+function askOwnerToken(message){
+  if(ownerPromptResolve)finishOwnerPrompt("");
+  $("ownerAuthMessage").textContent=message;$("ownerTokenInput").value="";$("ownerAuth").hidden=false;
+  setTimeout(()=>$("ownerTokenInput").focus(),0);
+  return new Promise(resolve=>{ownerPromptResolve=resolve});
+}
+function knowledgeError(message,code="KNOWLEDGE_ERROR"){const error=new Error(message);error.code=code;return error}
+async function knowledgeRequest({method="GET",body=null,interactive=false,retry=true,token,exportMode=false}={}){
+  let ownerToken=token===undefined?storedOwnerToken():String(token||"").trim();
+  if(!ownerToken){
+    setKnowledgeStatus("Besitzerschlüssel erforderlich.","idle");
+    if(!interactive)return null;
+    ownerToken=await askOwnerToken("Bitte geben Sie Ihren RHIA-Besitzerschlüssel ein. Er wird verdeckt und erst nach erfolgreicher Prüfung gespeichert.");
+    if(!ownerToken)throw knowledgeError("Besitzerfreigabe abgebrochen","OWNER_AUTH_CANCELLED");
+  }
+  let response;
+  try{response=await fetch(KNOWLEDGE_API+(exportMode?"?export=1":""),{method,cache:"no-store",headers:{"content-type":"application/json","x-rhia-owner-token":ownerToken},...(body?{body:JSON.stringify(body)}:{})})}
+  catch{throw knowledgeError("Das zentrale Gedächtnis ist gerade nicht erreichbar","KNOWLEDGE_NETWORK_ERROR")}
+  const payload=await response.json().catch(()=>({}));
+  if(response.status===401){
+    if(storedOwnerToken()===ownerToken)forgetOwnerToken();
+    setKnowledgeStatus("Gespeicherter Schlüssel ist ungültig oder veraltet.","error");
+    if(interactive&&retry){
+      const replacement=await askOwnerToken("Der gespeicherte Schlüssel ist ungültig oder veraltet. Bitte geben Sie den aktuellen RHIA-Besitzerschlüssel ein.");
+      if(!replacement)throw knowledgeError("Besitzerfreigabe abgebrochen","OWNER_AUTH_CANCELLED");
+      return knowledgeRequest({method,body,interactive,retry:false,token:replacement,exportMode});
+    }
+  }
+  if(!response.ok)throw knowledgeError(payload.error||"Zugriff auf das zentrale Gedächtnis fehlgeschlagen",payload.code||"KNOWLEDGE_REQUEST_FAILED");
+  localStorage.setItem(OWNER_TOKEN_KEY,ownerToken);
+  setKnowledgeStatus("Zentrales Gedächtnis verbunden.","ready");
+  return payload;
+}
+async function loadCentralKnowledge({interactive=false}={}){
+  try{
+    const payload=await knowledgeRequest({interactive});if(!payload)return false;
+    if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
+    centralKnowledge=payload.knowledge;return true;
+  }catch(error){
+    console.warn("RHIA central knowledge unavailable",{code:error?.code||"UNKNOWN"});
+    if(interactive)throw error;return false;
+  }
+}
+async function saveCentralKnowledge(change){const payload=await knowledgeRequest({method:"POST",body:change,interactive:true});await loadCentralKnowledge({interactive:true});return payload}
+async function deleteCentralKnowledge(id){const payload=await knowledgeRequest({method:"DELETE",body:{id},interactive:true});await loadCentralKnowledge({interactive:true});return payload}
+async function exportCentralKnowledge(){
+  const payload=await knowledgeRequest({interactive:true,exportMode:true});
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download=`rhia-gedaechtnis-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  return payload;
+}
 const MEMORY_CATEGORIES=Object.freeze(["Profil","Projekte","Vorlieben","Entscheidungen","Erinnerungen"]);
 function normalizeMemoryCategory(value){const key=String(value||"").toLocaleLowerCase("de-DE");return({"profil":"Profil","projekt":"Projekte","projekte":"Projekte","vorliebe":"Vorlieben","vorlieben":"Vorlieben","entscheidung":"Entscheidungen","entscheidungen":"Entscheidungen","erinnerung":"Erinnerungen","erinnerungen":"Erinnerungen"}[key]||"Erinnerungen")}
 function normalizeMemoryItem(item,index=0){if(typeof item==="string")return{id:"memory-migrated-"+index,text:cleanMemoryText(item),category:"Erinnerungen",createdAt:new Date(0).toISOString()};return{id:item.id||"memory-migrated-"+index,text:cleanMemoryText(item.text),category:normalizeMemoryCategory(item.category),createdAt:item.createdAt||new Date(0).toISOString()}}
@@ -227,39 +274,104 @@ function proposedKnowledge(text){
   const sameSubject=(centralKnowledge.facts||[]).filter(item=>String(item?.subject||"").toLocaleLowerCase("de-DE")===subject.toLocaleLowerCase("de-DE"));
   return{...(sameSubject.length===1?{id:sameSubject[0].id}:{}),subject,statement};
 }
+function normalizedKnowledgeText(value){return String(value||"").toLocaleLowerCase("de-DE").replace(/[.,!?;:„“\"'()]/g," ").replace(/\s+/g," ").trim()}
+function centralDeletionQuery(text){const match=String(text).match(/^(?:rhia[ ,]*)?(?:vergiss dauerhaft|lösche dauerhaft|loesche dauerhaft)(?: bitte)?(?: den eintrag| die erinnerung)?\s*[:,;-]?\s+(.+)/i);return match?.[1]?.trim().replace(/[.!?]+$/g,"")||""}
+function centralQuestion(text){
+  const clean=String(text||"").trim().replace(/[.!?]+$/g,"");
+  const match=clean.match(/^(?:wie lautet|was ist|wer ist|wie heißt|wie heisst|was weißt du über|was weisst du ueber)\s+(.+)$/i);if(!match)return null;
+  const target=normalizedKnowledgeText(match[1]);return{target,personal:/^(?:mein|meine|meinen|meinem|meiner|meines|unser|unsere|unseren|unserem|unserer|unseres)\b/.test(target)};
+}
+function findCentralFact(query){
+  const target=normalizedKnowledgeText(query);
+  return[...(centralKnowledge.facts||[])].reverse().find(item=>{
+    const subject=normalizedKnowledgeText(item?.subject),statement=normalizedKnowledgeText(item?.statement);
+    return item?.status==="confirmed"&&(subject===target||statement===target||statement.startsWith(target+" "));
+  })||null;
+}
+async function prepareCentralDeletion(query){
+  try{await loadCentralKnowledge({interactive:true})}catch(error){say("Ich konnte das zentrale Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
+  const needle=normalizedKnowledgeText(query),matches=(centralKnowledge.facts||[]).filter(item=>{const statement=normalizedKnowledgeText(item?.statement);return statement===needle||statement.includes(needle)||needle.includes(statement)});
+  if(!matches.length){say("Dazu habe ich keinen passenden zentralen Gedächtniseintrag gefunden, Sir.");return true}
+  if(matches.length>1){say("Ich habe mehrere zentrale Einträge gefunden. Bitte nennen Sie den zu löschenden Satz genauer, Sir.");return true}
+  pendingCentralDeletion={id:matches[0].id,statement:matches[0].statement};say(`Soll ich diesen zentralen Eintrag dauerhaft löschen, Sir: „${matches[0].statement}“? Bitte antworten Sie mit Ja oder Nein.`);return true;
+}
+async function resolveCentralDeletion(text){
+  if(!pendingCentralDeletion)return false;
+  const yes=/^(?:ja|jawohl|bestätigt|bestaetigt|löschen|loeschen|dauerhaft löschen|dauerhaft loeschen)(?:[.! ]*)$/i.test(text),no=rejects(text);
+  if(!yes&&!no){say("Bitte antworten Sie zuerst mit Ja oder Nein: Soll ich den zentralen Eintrag dauerhaft löschen, Sir?");return true}
+  if(no){pendingCentralDeletion=null;say("Verstanden, Sir. Der zentrale Eintrag bleibt gespeichert.");return true}
+  try{await deleteCentralKnowledge(pendingCentralDeletion.id);pendingCentralDeletion=null;say("Bestätigt, Sir. Der zentrale Gedächtniseintrag wurde dauerhaft gelöscht.")}
+  catch(error){say("Ich konnte den zentralen Eintrag nicht löschen, Sir. "+error.message+".")}
+  return true;
+}
+async function answerFromCentralKnowledge(text){
+  const question=centralQuestion(text);if(!question)return false;
+  if(!(centralKnowledge.facts||[]).length){
+    if(!question.personal&&!storedOwnerToken())return false;
+    try{await loadCentralKnowledge({interactive:question.personal})}catch(error){say("Ich konnte mein zentrales Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
+  }
+  const fact=findCentralFact(question.target);if(fact){say(fact.statement.replace(/[.!?]+$/g,"") + ", Sir.");return true}
+  if(question.personal){say("Dazu habe ich noch keine bestätigte Information in meinem zentralen Gedächtnis, Sir.");return true}
+  return false;
+}
+function isCentralExportCommand(text){return /^(?:rhia[ ,]*)?(?:exportiere|sichere|lade)(?: bitte)?(?: mein| das)? (?:zentrales gedächtnis|zentrale gedächtnis|zentrales gedaechtnis|zentrale wissen)(?: herunter)?[.!? ]*$/i.test(String(text||""))}
 const confirms=text=>/^(?:ja|jawohl|bestätigt|speichern|dauerhaft speichern)(?:[.! ]*)$/i.test(text);
 const rejects=text=>/^(?:nein|abbrechen|nicht speichern)(?:[.! ]*)$/i.test(text);
+async function requestChat(payload,retry=true){
+  const headers={"content-type":"application/json"},ownerToken=storedOwnerToken();if(ownerToken)headers["x-rhia-owner-token"]=ownerToken;
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);let response;
+  try{response=await fetch(API,{method:"POST",headers,body:JSON.stringify(payload),signal:controller.signal})}finally{clearTimeout(timeout)}
+  const result=await response.json().catch(()=>({}));
+  if(response.status===401&&result.code==="OWNER_AUTH_REQUIRED"&&retry){forgetOwnerToken();await loadCentralKnowledge({interactive:true});return requestChat(payload,false)}
+  if(!response.ok||!result.ok)throw knowledgeError(result.error||"Die KI-Verbindung ist gerade nicht erreichbar",result.code||"CHAT_REQUEST_FAILED");
+  return result;
+}
 async function handle(raw){
   const spoken=String(raw||"").trim();
   if(new RegExp("^(?:hey\\s+)?(?:"+WAKE_WORDS+")[.!? ,]*$","i").test(spoken)){say("Ja, Sir?");return}
   const text=normalizeSpokenCommand(spoken);if(!text){say("Ja, Sir?");return}
   state.chat.push({type:"user",text,createdAt:new Date().toISOString()});save();setMode("thinking");
+  if(await resolveCentralDeletion(text))return;
   if(pendingKnowledge){
     if(rejects(text)){pendingKnowledge=null;say("Verstanden, Sir. Ich habe die Information nicht gespeichert.");return}
     if(confirms(text)){
-      const change=pendingKnowledge;pendingKnowledge=null;
-      try{await saveCentralKnowledge(change);say("Bestätigt, Sir. Die Information ist jetzt dauerhaft in meinem zentralen Gedächtnis gespeichert.")}
-      catch(error){console.error("RHIA knowledge write error",error);say("Ich konnte die Information noch nicht zentral speichern, Sir. "+error.message+".")}
+      const change=pendingKnowledge;
+      try{await saveCentralKnowledge(change);pendingKnowledge=null;say("Bestätigt, Sir. Die Information ist jetzt dauerhaft in meinem zentralen Gedächtnis gespeichert.")}
+      catch(error){console.error("RHIA knowledge write error",{code:error?.code||"UNKNOWN"});say("Ich konnte die Information noch nicht zentral speichern, Sir. "+error.message+".")}
       return;
     }
     say("Bitte antworten Sie zuerst mit Ja oder Nein: Soll ich die vorgeschlagene Information dauerhaft speichern, Sir?");return;
   }
+  const deletion=centralDeletionQuery(text);if(deletion){await prepareCentralDeletion(deletion);return}
+  if(isCentralExportCommand(text)){try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}return}
   const proposal=proposedKnowledge(text);
   if(proposal){pendingKnowledge=proposal;say(`Soll ich diese Information dauerhaft speichern, Sir: „${proposal.statement}“? Bitte antworten Sie mit Ja oder Nein.`);return}
   if(local(text))return;
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);
   try{
-    const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({message:text,world:state.settings.world,memories:state.memories,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))}),signal:controller.signal});
-    const p=await r.json();if(!r.ok||!p.ok)throw Error(p.error||"Fehler");say(p.reply)
+    if(await answerFromCentralKnowledge(text))return;
+    const p=await requestChat({message:text,world:state.settings.world,memories:state.memories,history:state.chat.slice(-8).map(x=>({role:x.type==="rhia"?"assistant":"user",content:x.text}))});say(p.reply)
   }catch(e){
-    console.error("RHIA request error",e);const message=e?.name==="AbortError"?"Die KI-Verbindung hat zu lange gebraucht, Sir. Bitte versuchen Sie es gleich noch einmal.":navigator.onLine===false?"Keine Internetverbindung, Sir. Lokale Funktionen bleiben verfügbar.":"Die KI-Verbindung ist gerade nicht erreichbar, Sir. Ihre Frage wurde verstanden.";say(message)
-  }finally{clearTimeout(timeout)}
+    console.error("RHIA request error",{code:e?.code||e?.name||"UNKNOWN"});const message=e?.code?.startsWith("OWNER_")?e.message+", Sir.":e?.name==="AbortError"?"Die KI-Verbindung hat zu lange gebraucht, Sir. Bitte versuchen Sie es gleich noch einmal.":navigator.onLine===false?"Keine Internetverbindung, Sir. Lokale Funktionen bleiben verfügbar.":"Die KI-Verbindung ist gerade nicht erreichbar, Sir. Ihre Frage wurde verstanden.";say(message)
+  }
 }
 function render(){const activeIdeas=state.ideas.filter(x=>x.status!=="verworfen");$("taskCount").textContent=state.tasks.length;$("noteCount").textContent=state.notes.length;$("ideaCount").textContent=activeIdeas.length;$("memoryCount").textContent=state.memories.length;$("worldTop").textContent=$("worldSide").textContent=state.settings.world.toUpperCase();$("colorSide").textContent=state.settings.colorTheme.toUpperCase();renderList("tasks",state.tasks,x=>x.text);renderList("notes",state.notes,x=>x.text);renderList("ideas",activeIdeas,x=>x.title);$("voiceToggle").textContent="Sprachausgabe: "+(state.settings.browserVoice?"an":"aus");$("voiceToggle").setAttribute("aria-pressed",String(state.settings.browserVoice));$("worlds").innerHTML=worlds.map(w=>`<button class="${w===state.settings.world?'active':''}" data-world="${w}">${w}</button>`).join("");$("colors").innerHTML=Object.keys(themes).map(c=>`<button class="${c===state.settings.colorTheme?'active':''}" data-color="${c}">${c}</button>`).join("");document.querySelectorAll("[data-world]").forEach(b=>b.onclick=()=>{state.settings.world=b.dataset.world;save();render()});document.querySelectorAll("[data-color]").forEach(b=>b.onclick=()=>{applyTheme(b.dataset.color);save();render()})}
 function renderList(type,data,label){const el=$("tab-"+type);el.innerHTML=data.length?data.map((x,i)=>`<div class="item ${x.done?'done':''}"><div class="txt">${escapeHtml(label(x))}</div><div class="actions">${type==='tasks'?`<button data-toggle="${i}">✓</button>`:''}<button data-del="${type}:${i}">×</button></div></div>`).join(""):"<div class='empty'>Noch keine Einträge.</div>";el.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{state.tasks[+b.dataset.toggle].done=!state.tasks[+b.dataset.toggle].done;save();render()});el.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const [t,i]=b.dataset.del.split(":");state[t].splice(+i,1);save();render()})}
 const escapeHtml=s=>String(s).replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 function applyTheme(n){state.settings.colorTheme=n;const t=themes[n]||themes.bordeauxrot;document.documentElement.style.setProperty("--a",t[0]);document.documentElement.style.setProperty("--b",t[1]);document.documentElement.style.setProperty("--c",t[2]);document.documentElement.style.setProperty("--rgb",t[3]);setVisualTheme(t)}
 $("form").onsubmit=e=>{e.preventDefault();const v=$("command").value;$("command").value="";handle(v)};
+$("ownerAuthCancel").onclick=()=>finishOwnerPrompt("");
+$("ownerAuthConfirm").onclick=()=>finishOwnerPrompt($("ownerTokenInput").value);
+$("ownerTokenInput").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();finishOwnerPrompt(e.currentTarget.value)}else if(e.key==="Escape")finishOwnerPrompt("")};
+$("ownerTokenBtn").onclick=async()=>{
+  try{
+    const token=await askOwnerToken("Bitte geben Sie den aktuellen RHIA-Besitzerschlüssel ein. Der bisher gespeicherte Schlüssel wird erst nach erfolgreicher Prüfung ersetzt.");
+    if(!token){setKnowledgeStatus("Prüfung abgebrochen. Der bisherige Schlüssel bleibt unverändert.","idle");return}
+    const payload=await knowledgeRequest({interactive:true,token});
+    if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
+    centralKnowledge=payload.knowledge;say("Besitzerzugang bestätigt. Das zentrale Gedächtnis ist verbunden, Sir.");
+  }catch(error){setKnowledgeStatus(error.message,"error");say("Der Besitzerzugang konnte nicht bestätigt werden, Sir. "+error.message+".")}
+};
+$("knowledgeExportBtn").onclick=async()=>{try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}};
 $("menuBtn").onclick=()=>openDrawerTab();
 $("mobileMenuBtn").onclick=()=>openDrawerTab("settings");
 $("closeDrawer").onclick=()=>$("drawer").classList.remove("open");
