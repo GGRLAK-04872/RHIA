@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
 
 import {onRequestDelete,onRequestGet,onRequestOptions,onRequestPost} from "../functions/api/knowledge.js";
 import {onRequestPost as onChatPost} from "../functions/api/chat.js";
@@ -11,6 +12,27 @@ class MemoryKV{
   constructor(){this.values=new Map()}
   async get(key,type){const value=this.values.get(key);if(value===undefined)return null;return type==="json"?JSON.parse(value):value}
   async put(key,value){this.values.set(key,String(value))}
+}
+
+class LaggingMemoryKV extends MemoryKV{
+  constructor(){super();this.staleValue=null;this.staleReads=0}
+  async get(key,type){
+    if(this.staleReads>0&&this.staleValue!==null){this.staleReads--;return type==="json"?JSON.parse(this.staleValue):this.staleValue}
+    return super.get(key,type);
+  }
+  async put(key,value){
+    const previous=this.values.get(key);await super.put(key,value);
+    if(previous!==undefined){this.staleValue=previous;this.staleReads=2}
+  }
+}
+
+function browserKnowledgeOverlay(html,values=new Map()){
+  const script=html.match(/<script>([\s\S]*)<\/script>/)?.[1];assert.ok(script);
+  const start=script.indexOf('const VERSION='),end=script.indexOf('const MEMORY_CATEGORIES');assert.ok(start>=0&&end>start);
+  const localStorage={getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,String(value)),removeItem:key=>values.delete(key)};
+  const context={localStorage,Date,JSON,console,setTimeout,clearTimeout};vm.createContext(context);
+  vm.runInContext(script.slice(start,end)+"\n;globalThis.__overlay={recordKnowledgeMutation,applyKnowledgeMutations};",context);
+  return{...context.__overlay,values};
 }
 
 function environment({token="correct-owner-token",kv=new MemoryKV(),openAIKey}={}){
@@ -72,9 +94,35 @@ test("zentrale Löschung verlangt Bestätigungsschlüssel und entfernt nur das g
   assert.equal((await payload(stillThere)).knowledge.facts.some(item=>item.id==="learned.delete-me"),true);
 
   const deleted=await onRequestDelete({request:request("DELETE",{token:secret,body:{id:"learned.delete-me"}}),env});
-  assert.equal(deleted.status,200);assert.equal((await payload(deleted)).deleted.id,"learned.delete-me");
+  assert.equal(deleted.status,200);const deletedBody=await payload(deleted);assert.equal(deletedBody.deleted.id,"learned.delete-me");assert.equal(deletedBody.knowledge.facts.some(item=>item.id==="learned.delete-me"),false);
   const gone=await onRequestGet({request:request("GET",{token:secret}),env});
   assert.equal((await payload(gone)).knowledge.facts.some(item=>item.id==="learned.delete-me"),false);
+});
+
+test("veraltete KV-Antwort lässt bestätigte Löschung im Browser nicht wieder erscheinen",async()=>{
+  const secret="correct-owner-token",kv=new LaggingMemoryKV(),env=environment({token:secret,kv}),id="learned.eventual-delete";
+  await onRequestPost({request:request("POST",{token:secret,body:{id,subject:"Mein Testcode",statement:"Mein Testcode ist Bordeaux 47"}}),env});
+  const deleted=await onRequestDelete({request:request("DELETE",{token:secret,body:{id}}),env});
+  const deletionBody=await payload(deleted);assert.equal(deletionBody.knowledge.facts.some(item=>item.id===id),false);
+
+  const staleRead=await onRequestGet({request:request("GET",{token:secret}),env}),staleKnowledge=(await payload(staleRead)).knowledge;
+  assert.equal(staleKnowledge.facts.some(item=>item.id===id),true,"Der Test muss Cloudflare-KV-Verzögerung nachstellen.");
+
+  const html=await readFile(new URL("../index.html",import.meta.url),"utf8"),overlay=browserKnowledgeOverlay(html);
+  overlay.recordKnowledgeMutation({type:"delete",id});
+  const protectedKnowledge=overlay.applyKnowledgeMutations(staleKnowledge,{reconcile:true});
+  assert.equal(protectedKnowledge.facts.some(item=>item.id===id),false);
+  assert.equal(overlay.values.has("rhia_knowledge_mutations_v1"),true,"Die Löschvormerkung muss einen Neustart überstehen.");
+
+  const reloadedOverlay=browserKnowledgeOverlay(html,overlay.values);
+  const secondStaleRead=await onRequestGet({request:request("GET",{token:secret}),env}),secondStaleKnowledge=(await payload(secondStaleRead)).knowledge;
+  assert.equal(secondStaleKnowledge.facts.some(item=>item.id===id),true);
+  assert.equal(reloadedOverlay.applyKnowledgeMutations(secondStaleKnowledge,{reconcile:true}).facts.some(item=>item.id===id),false,"Auch nach einem Browser-Neustart darf der alte Satz nicht wieder erscheinen.");
+
+  const freshRead=await onRequestGet({request:request("GET",{token:secret}),env}),freshKnowledge=(await payload(freshRead)).knowledge;
+  assert.equal(freshKnowledge.facts.some(item=>item.id===id),false);
+  reloadedOverlay.applyKnowledgeMutations(freshKnowledge,{reconcile:true});
+  assert.equal(reloadedOverlay.values.has("rhia_knowledge_mutations_v1"),false,"Nach zentraler Bestätigung darf die Vormerkung entfernt werden.");
 });
 
 test("kostenfreie Chatantwort bleibt frei, bezahlter Aufruf verlangt Besitzerzugang",async()=>{
