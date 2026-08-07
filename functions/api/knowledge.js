@@ -49,7 +49,7 @@ export async function onRequestPost({request,env}){
     const nextFacts=[...facts.filter(item=>item?.id!==id),fact];
     const next={schemaVersion:1,updatedAt:now,facts:nextFacts.slice(-MAX_FACTS)};
     await env.RHIA_KNOWLEDGE.put(KNOWLEDGE_KEY,JSON.stringify(next));
-    return json({ok:true,fact,knowledgeUpdatedAt:now},201,request);
+    return json({ok:true,fact,knowledge:next,knowledgeUpdatedAt:now},201,request);
   }catch(error){console.error("RHIA knowledge write error",{code:"KNOWLEDGE_WRITE_FAILED"});return json({ok:false,error:"Das zentrale Gedächtnis konnte nicht aktualisiert werden.",code:"KNOWLEDGE_WRITE_FAILED"},503,request)}
 }
 export async function onRequestDelete({request,env}){
@@ -62,7 +62,7 @@ export async function onRequestDelete({request,env}){
     if(!fact)return json({ok:false,error:"Der Gedächtniseintrag wurde nicht gefunden.",code:"KNOWLEDGE_NOT_FOUND"},404,request);
     const now=new Date().toISOString(),next={schemaVersion:1,updatedAt:now,facts:current.facts.filter(item=>item?.id!==id)};
     await env.RHIA_KNOWLEDGE.put(KNOWLEDGE_KEY,JSON.stringify(next));
-    return json({ok:true,deleted:{id:fact.id,subject:fact.subject},knowledgeUpdatedAt:now},200,request);
+    return json({ok:true,deleted:{id:fact.id,subject:fact.subject},knowledge:next,knowledgeUpdatedAt:now},200,request);
   }catch(error){console.error("RHIA knowledge delete error",{code:"KNOWLEDGE_DELETE_FAILED"});return json({ok:false,error:"Der Gedächtniseintrag konnte nicht gelöscht werden.",code:"KNOWLEDGE_DELETE_FAILED"},503,request)}
 }
 export function onRequestOptions({request}){return new Response(null,{status:204,headers:cors(request)})}
