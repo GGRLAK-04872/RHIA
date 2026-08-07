@@ -59,7 +59,7 @@ export async function onRequestDelete({request,env}){
   const id=clean(body?.id,120);if(!id)return json({ok:false,error:"Es wurde kein Gedächtniseintrag angegeben.",code:"KNOWLEDGE_ID_REQUIRED"},400,request);
   try{
     const current=await readKnowledge(env),fact=current.facts.find(item=>item?.id===id);
-    if(!fact)return json({ok:false,error:"Der Gedächtniseintrag wurde nicht gefunden.",code:"KNOWLEDGE_NOT_FOUND"},404,request);
+    if(!fact)return json({ok:true,deleted:{id,alreadyAbsent:true},knowledge:current,knowledgeUpdatedAt:current.updatedAt},200,request);
     const now=new Date().toISOString(),next={schemaVersion:1,updatedAt:now,facts:current.facts.filter(item=>item?.id!==id)};
     await env.RHIA_KNOWLEDGE.put(KNOWLEDGE_KEY,JSON.stringify(next));
     return json({ok:true,deleted:{id:fact.id,subject:fact.subject},knowledge:next,knowledgeUpdatedAt:now},200,request);

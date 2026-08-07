@@ -35,6 +35,26 @@ function browserKnowledgeOverlay(html,values=new Map()){
   return{...context.__overlay,values};
 }
 
+function browserDeletionFlow(html,{initialKnowledge,refreshedKnowledge}){
+  const script=html.match(/<script>([\s\S]*)<\/script>/)?.[1];assert.ok(script);
+  const start=script.indexOf("function normalizedKnowledgeText"),end=script.indexOf("function isCentralExportCommand");assert.ok(start>=0&&end>start);
+  const messages=[];
+  const context={console};vm.createContext(context);
+  vm.runInContext(`
+    var centralKnowledge=${JSON.stringify(initialKnowledge)};
+    var pendingCentralDeletion=null;
+    async function loadCentralKnowledge(){centralKnowledge=${JSON.stringify(refreshedKnowledge)};return true}
+    function say(message){globalThis.__messages.push(message)}
+    async function deleteCentralKnowledge(){return true}
+    const rejects=()=>false;
+    globalThis.__messages=[];
+    ${script.slice(start,end)}
+    globalThis.__deletion={prepareCentralDeletion,getPending:()=>pendingCentralDeletion};
+  `,context);
+  context.__messages=messages;
+  return{...context.__deletion,messages};
+}
+
 function environment({token="correct-owner-token",kv=new MemoryKV(),openAIKey}={}){
   return{RHIA_OWNER_TOKEN:token,RHIA_KNOWLEDGE:kv,...(openAIKey?{OPENAI_API_KEY:openAIKey}:{})};
 }
@@ -97,6 +117,10 @@ test("zentrale Löschung verlangt Bestätigungsschlüssel und entfernt nur das g
   assert.equal(deleted.status,200);const deletedBody=await payload(deleted);assert.equal(deletedBody.deleted.id,"learned.delete-me");assert.equal(deletedBody.knowledge.facts.some(item=>item.id==="learned.delete-me"),false);
   const gone=await onRequestGet({request:request("GET",{token:secret}),env});
   assert.equal((await payload(gone)).knowledge.facts.some(item=>item.id==="learned.delete-me"),false);
+
+  const alreadyAbsent=await onRequestDelete({request:request("DELETE",{token:secret,body:{id:"learned.delete-me"}}),env});
+  assert.equal(alreadyAbsent.status,200,"Eine wiederholte Löschung muss als bereits erledigt bestätigt werden.");
+  assert.equal((await payload(alreadyAbsent)).deleted.alreadyAbsent,true);
 });
 
 test("veraltete KV-Antwort lässt bestätigte Löschung im Browser nicht wieder erscheinen",async()=>{
@@ -122,7 +146,19 @@ test("veraltete KV-Antwort lässt bestätigte Löschung im Browser nicht wieder 
   const freshRead=await onRequestGet({request:request("GET",{token:secret}),env}),freshKnowledge=(await payload(freshRead)).knowledge;
   assert.equal(freshKnowledge.facts.some(item=>item.id===id),false);
   reloadedOverlay.applyKnowledgeMutations(freshKnowledge,{reconcile:true});
-  assert.equal(reloadedOverlay.values.has("rhia_knowledge_mutations_v1"),false,"Nach zentraler Bestätigung darf die Vormerkung entfernt werden.");
+  assert.equal(reloadedOverlay.values.has("rhia_knowledge_mutations_v1"),true,"Eine einzelne neue Antwort darf den Löschschutz noch nicht entfernen.");
+  assert.equal(reloadedOverlay.applyKnowledgeMutations(staleKnowledge,{reconcile:true}).facts.some(item=>item.id===id),false,"Auch wenn nach einer neuen Antwort nochmals ein alter KV-Stand erscheint, muss der Satz gelöscht bleiben.");
+});
+
+test("sichtbarer Altstand bleibt löschbar, wenn die nächste KV-Abfrage den Eintrag schon nicht mehr findet",async()=>{
+  const html=await readFile(new URL("../index.html",import.meta.url),"utf8"),fact={id:"learned.flapping-delete",subject:"Mein Testcode",statement:"Mein Testcode ist Bordeaux 47",status:"confirmed"};
+  const flow=browserDeletionFlow(html,{
+    initialKnowledge:{schemaVersion:1,facts:[fact]},
+    refreshedKnowledge:{schemaVersion:1,facts:[]}
+  });
+  await flow.prepareCentralDeletion("Mein Testcode ist Bordeaux 47");
+  assert.equal(flow.getPending()?.id,fact.id,"RHIA muss den unmittelbar zuvor sichtbaren Eintrag für die Löschbestätigung behalten.");
+  assert.match(flow.messages.at(-1)||"",/Ja oder Nein/i);
 });
 
 test("kostenfreie Chatantwort bleibt frei, bezahlter Aufruf verlangt Besitzerzugang",async()=>{
