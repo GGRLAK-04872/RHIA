@@ -54,6 +54,39 @@ Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfal
 
 ## Aktueller verbindlicher Stand
 
+### 07.08.2026, 10:34 Uhr – Stufe-0.1-Praxistest: verzögerte Löschung erkannt und Reparatur vorbereitet
+
+**Bereich:** Zentrales Gedächtnis / Cloudflare KV / Löschung / Geräte-Praxistest
+
+**Bestätigter Praxistest:**
+
+- Auf dem Tablet bestanden Besitzerzugang, Ablehnung eines falschen Schlüssels, korrekter Schlüssel, kostenloser Abruf von „Bordeaux 47“, erneutes Öffnen in Chrome, Export sowie die Löschabfrage mit Abbruch und Erhalt des Eintrags.
+- Die bestätigte Löschung meldete zunächst Erfolg. Beim direkten Kontrollabruf und erneut nach vollständigem Neuladen antwortete RHIA jedoch weiterhin mit „Mein Testcode lautet Bordeaux 47, Sir.“
+- Tablet-Test 14 ist deshalb fehlgeschlagen. Stufe 0.1 bleibt offen; Handytest und Stufe 1 wurden nicht begonnen.
+
+**Bestätigte Ursache und vorbereitete Reparatur:**
+
+- Cloudflare Workers KV liefert Änderungen nur nach und nach an alle Zwischenspeicher aus. Ein zuvor gelesener Wert kann nach einer erfolgreichen Änderung noch etwa 60 Sekunden oder länger erscheinen.
+- Der bisherige Test verwendete einen sofort konsistenten Ersatzspeicher und konnte dieses echte Cloudflare-Verhalten nicht nachstellen.
+- Die vorbereitete Reparatur merkt bestätigte Schreib- und Löschvorgänge vorübergehend lokal vor. Veraltete Cloudflare-Antworten dürfen dadurch einen gelöschten Satz auch nach einem Browser-Neustart nicht erneut einblenden.
+- Schreib- und Löschantworten enthalten künftig den vom Server tatsächlich geschriebenen Wissensstand. Die lokale Vormerkung wird automatisch entfernt, sobald Cloudflare denselben Stand bestätigt.
+
+**Technischer Test:**
+
+- Sieben automatische Testgruppen bestanden.
+- Der neue Regressionstest simuliert zwei veraltete KV-Leseantworten nach erfolgreicher Löschung sowie einen Browser-Neustart. Der gelöschte Satz bleibt in allen Fällen verborgen und die Vormerkung wird erst nach der zentralen Bestätigung entfernt.
+- JavaScript-Syntax von Oberfläche, Wissens-Endpunkt und Chat-Endpunkt bestanden.
+
+**Offen:**
+
+- Die Reparatur ist noch nicht veröffentlicht. `main` und `rhia.pages.dev` bleiben bis zur geprüften Zusammenführung unverändert.
+- Nach Veröffentlichung wird zuerst die Bereitstellung geprüft und anschließend Tablet-Test 14 wiederholt. Danach folgen die noch offenen Tablet- und Handytests.
+- Stufe 0.1 darf erst nach allen vereinbarten Praxistests abgeschlossen werden. Stufe 1 bleibt unangetastet.
+
+**Nächster Schritt:**
+
+Die Reparatur über einen getrennten Pull Request prüfen und nach ausdrücklicher Freigabe veröffentlichen. Danach ausschließlich mit dem fehlgeschlagenen Tablet-Löschtest fortfahren.
+
 ### 07.08.2026, 09:30 Uhr – Stufe 0.1 technisch repariert; Geräte-Praxistest offen
 
 **Bereich:** Besitzerzugang / zentrales Gedächtnis / Export und Löschung / Kosten- und Datenschutz
