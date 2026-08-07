@@ -1,4 +1,4 @@
-import{readKnowledge}from"./knowledge.js";
+import{ownerAuthorized,readKnowledge}from"./knowledge.js";
 
 const ALLOWED_ORIGINS=new Set([
   "https://ggrlak-04872.github.io",
@@ -9,7 +9,7 @@ function corsHeaders(request){
   return{
     ...(ALLOWED_ORIGINS.has(origin)?{"access-control-allow-origin":origin}:{}),
     "access-control-allow-methods":"POST, OPTIONS",
-    "access-control-allow-headers":"content-type",
+    "access-control-allow-headers":"content-type,x-rhia-owner-token",
     "access-control-max-age":"86400",
     "vary":"Origin"
   };
@@ -68,6 +68,8 @@ export async function onRequestPost(context){
   if(pendingQuestion&&isNo(incomingMessage))return json({ok:true,reply:"Abgebrochen, Sir. Es wurden keine OpenAI-Credits verwendet.",model:"local-zero-credit",local:true,cancelled:true},200,request);
   let message=incomingMessage,approved=false;if(pendingQuestion&&isYes(incomingMessage)){message=pendingQuestion;approved=true}
   if(!approved){const freeReply=localReply(message,body?.world);if(freeReply)return json({ok:true,reply:freeReply,model:"local-zero-credit",local:true},200,request);if(pendingQuestion)return json({ok:true,reply:"Bitte antworten Sie mit Ja, um die angekündigte kostenpflichtige Anfrage auszuführen, oder mit Nein, um sie abzubrechen, Sir.",model:"local-zero-credit",local:true},200,request);return json({ok:true,reply:costWarning(message,history),model:"local-cost-check",local:true,requiresConfirmation:true},200,request)}
+  if(!env.RHIA_OWNER_TOKEN)return json({ok:false,error:"Der Besitzerzugang ist serverseitig noch nicht eingerichtet.",code:"OWNER_AUTH_NOT_CONFIGURED"},503,request);
+  if(!ownerAuthorized(request,env))return json({ok:false,error:"Bitte bestätigen Sie zuerst Ihren RHIA-Besitzerschlüssel.",code:"OWNER_AUTH_REQUIRED"},401,request);
   if(!env.OPENAI_API_KEY)return json({ok:false,error:"OPENAI_API_KEY ist in Cloudflare noch nicht aktiv."},503,request);
   const usableHistory=history.filter(entry=>!String(entry?.content||"").includes(COST_MARKER));
   const knowledge=await readKnowledge(env);
