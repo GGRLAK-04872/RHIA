@@ -79,7 +79,7 @@ const worlds=["Allgemein","Mike / Privat","RH Produktion","Shadow Grown","RHIA",
 const themes={bordeauxrot:["#8f1738","#ff6d88","#390817","143,23,56"],blau:["#245ec9","#75a9ff","#102b69","36,94,201"],tuerkis:["#148a8a","#62dfda","#075252","20,138,138"],gruen:["#267b45","#70d38e","#123e24","38,123,69"],violett:["#7440ba","#bd91f1","#3e2169","116,64,186"],gold:["#a77a1c","#e8c264","#5c420d","167,122,28"],orange:["#dd641e","#ff9b56","#74300e","221,100,30"]};
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},state={tasks:load(K.tasks,[]),notes:load(K.notes,[]),chat:load(K.chat,[]),ideas:load(K.ideas,[]),memories:load(K.memories,[]),settings:Object.assign({world:"Allgemein",browserVoice:false,colorTheme:"bordeauxrot",profile:DEFAULT_PROFILE},load(K.settings,{}))};
 const $=id=>document.getElementById(id),save=()=>{localStorage.setItem(K.tasks,JSON.stringify(state.tasks));localStorage.setItem(K.notes,JSON.stringify(state.notes));localStorage.setItem(K.chat,JSON.stringify(state.chat));localStorage.setItem(K.ideas,JSON.stringify(state.ideas));localStorage.setItem(K.memories,JSON.stringify(state.memories));localStorage.setItem(K.settings,JSON.stringify(state.settings))};
-let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null;
+let centralKnowledge={schemaVersion:1,facts:[]},pendingKnowledge=null,pendingCentralDeletion=null,ownerPromptResolve=null,knowledgeLoadSequence=0;
 function setKnowledgeStatus(message,state="idle"){const status=$("knowledgeStatus");if(status){status.textContent=message;status.dataset.state=state}}
 function storedOwnerToken(){return localStorage.getItem(OWNER_TOKEN_KEY)||""}
 function forgetOwnerToken(){localStorage.removeItem(OWNER_TOKEN_KEY);setKnowledgeStatus("Besitzerzugang noch nicht bestätigt.","idle")}
@@ -93,17 +93,13 @@ function recordKnowledgeMutation(mutation){
   const next=storedKnowledgeMutations().filter(item=>item.id!==mutation.id);
   next.push({...mutation,expiresAt:Date.now()+KNOWLEDGE_MUTATION_TTL_MS});storeKnowledgeMutations(next);
 }
-function applyKnowledgeMutations(knowledge,{reconcile=false}={}){
+function applyKnowledgeMutations(knowledge){
   const base={schemaVersion:Number(knowledge?.schemaVersion)||1,updatedAt:knowledge?.updatedAt||null,facts:Array.isArray(knowledge?.facts)?knowledge.facts:[]};
-  const serverFacts=base.facts,mutations=storedKnowledgeMutations(),pending=[];let facts=[...serverFacts];
+  const mutations=storedKnowledgeMutations();let facts=[...base.facts];
   for(const mutation of mutations){
-    const serverFact=serverFacts.find(item=>item?.id===mutation.id);
-    const confirmed=mutation.type==="delete"?!serverFact:Boolean(serverFact&&serverFact.confirmedAt===mutation.fact?.confirmedAt);
-    if(reconcile&&confirmed)continue;
-    pending.push(mutation);facts=facts.filter(item=>item?.id!==mutation.id);
+    facts=facts.filter(item=>item?.id!==mutation.id);
     if(mutation.type==="upsert")facts.push(mutation.fact);
   }
-  if(pending.length!==mutations.length)storeKnowledgeMutations(pending);
   return{...base,facts};
 }
 function finishOwnerPrompt(value){const resolve=ownerPromptResolve;ownerPromptResolve=null;$("ownerTokenInput").value="";$("ownerAuth").hidden=true;resolve?.(String(value||"").trim())}
@@ -141,10 +137,11 @@ async function knowledgeRequest({method="GET",body=null,interactive=false,retry=
   return payload;
 }
 async function loadCentralKnowledge({interactive=false}={}){
+  const loadSequence=++knowledgeLoadSequence;
   try{
     const payload=await knowledgeRequest({interactive});if(!payload)return false;
     if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
-    centralKnowledge=applyKnowledgeMutations(payload.knowledge,{reconcile:true});return true;
+    if(loadSequence===knowledgeLoadSequence)centralKnowledge=applyKnowledgeMutations(payload.knowledge);return true;
   }catch(error){
     console.warn("RHIA central knowledge unavailable",{code:error?.code||"UNKNOWN"});
     if(interactive)throw error;return false;
@@ -153,18 +150,19 @@ async function loadCentralKnowledge({interactive=false}={}){
 async function saveCentralKnowledge(change){
   const payload=await knowledgeRequest({method:"POST",body:change,interactive:true});
   if(!payload?.fact||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Speicherbestätigung","KNOWLEDGE_INVALID_RESPONSE");
-  recordKnowledgeMutation({type:"upsert",id:payload.fact.id,fact:payload.fact});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+  knowledgeLoadSequence++;recordKnowledgeMutation({type:"upsert",id:payload.fact.id,fact:payload.fact});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
 }
 async function deleteCentralKnowledge(id){
   const payload=await knowledgeRequest({method:"DELETE",body:{id},interactive:true});
   if(payload?.deleted?.id!==id||!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültige Löschbestätigung","KNOWLEDGE_INVALID_RESPONSE");
-  recordKnowledgeMutation({type:"delete",id});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
+  knowledgeLoadSequence++;recordKnowledgeMutation({type:"delete",id});centralKnowledge=applyKnowledgeMutations(payload.knowledge);return payload;
 }
 async function exportCentralKnowledge(){
   const payload=await knowledgeRequest({interactive:true,exportMode:true});
-  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+  const exported={...payload,knowledge:applyKnowledgeMutations(payload.knowledge)};
+  const blob=new Blob([JSON.stringify(exported,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");
   link.href=url;link.download=`rhia-gedaechtnis-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  return payload;
+  return exported;
 }
 const MEMORY_CATEGORIES=Object.freeze(["Profil","Projekte","Vorlieben","Entscheidungen","Erinnerungen"]);
 function normalizeMemoryCategory(value){const key=String(value||"").toLocaleLowerCase("de-DE");return({"profil":"Profil","projekt":"Projekte","projekte":"Projekte","vorliebe":"Vorlieben","vorlieben":"Vorlieben","entscheidung":"Entscheidungen","entscheidungen":"Entscheidungen","erinnerung":"Erinnerungen","erinnerungen":"Erinnerungen"}[key]||"Erinnerungen")}
@@ -319,9 +317,15 @@ function findCentralFact(query){
     return item?.status==="confirmed"&&(subject===target||statement===target||statement.startsWith(target+" "));
   })||null;
 }
+function findCentralDeletionMatches(query,knowledge=centralKnowledge){
+  const needle=normalizedKnowledgeText(query);
+  return(knowledge?.facts||[]).filter(item=>{const statement=normalizedKnowledgeText(item?.statement);return statement===needle||statement.includes(needle)||needle.includes(statement)});
+}
 async function prepareCentralDeletion(query){
+  const previouslyVisible=findCentralDeletionMatches(query);
   try{await loadCentralKnowledge({interactive:true})}catch(error){say("Ich konnte das zentrale Gedächtnis nicht öffnen, Sir. "+error.message+".");return true}
-  const needle=normalizedKnowledgeText(query),matches=(centralKnowledge.facts||[]).filter(item=>{const statement=normalizedKnowledgeText(item?.statement);return statement===needle||statement.includes(needle)||needle.includes(statement)});
+  const refreshed=findCentralDeletionMatches(query),matches=[...refreshed];
+  for(const fact of previouslyVisible)if(!matches.some(item=>item?.id===fact?.id))matches.push(fact);
   if(!matches.length){say("Dazu habe ich keinen passenden zentralen Gedächtniseintrag gefunden, Sir.");return true}
   if(matches.length>1){say("Ich habe mehrere zentrale Einträge gefunden. Bitte nennen Sie den zu löschenden Satz genauer, Sir.");return true}
   pendingCentralDeletion={id:matches[0].id,statement:matches[0].statement};say(`Soll ich diesen zentralen Eintrag dauerhaft löschen, Sir: „${matches[0].statement}“? Bitte antworten Sie mit Ja oder Nein.`);return true;
@@ -399,7 +403,7 @@ $("ownerTokenBtn").onclick=async()=>{
     if(!token){setKnowledgeStatus("Prüfung abgebrochen. Der bisherige Schlüssel bleibt unverändert.","idle");return}
     const payload=await knowledgeRequest({interactive:true,token});
     if(!Array.isArray(payload?.knowledge?.facts))throw knowledgeError("Ungültiges Wissensformat","KNOWLEDGE_INVALID_RESPONSE");
-    centralKnowledge=payload.knowledge;say("Besitzerzugang bestätigt. Das zentrale Gedächtnis ist verbunden, Sir.");
+    knowledgeLoadSequence++;centralKnowledge=applyKnowledgeMutations(payload.knowledge);say("Besitzerzugang bestätigt. Das zentrale Gedächtnis ist verbunden, Sir.");
   }catch(error){setKnowledgeStatus(error.message,"error");say("Der Besitzerzugang konnte nicht bestätigt werden, Sir. "+error.message+".")}
 };
 $("knowledgeExportBtn").onclick=async()=>{try{await exportCentralKnowledge();say("Der Export des zentralen Gedächtnisses wurde heruntergeladen, Sir.")}catch(error){say("Der Export ist fehlgeschlagen, Sir. "+error.message+".")}};
