@@ -54,6 +54,47 @@ Bei jedem Baustein gilt: technischer Test, Daten- und Sicherheitstest, Fehlerfal
 
 ## Aktueller verbindlicher Stand
 
+### 07.08.2026, 11:04 Uhr – Tablet-Test 14 erneut fehlgeschlagen; zweite Löschreparatur lokal grün
+
+**Bereich:** Stufe 0.1 / zentrales Gedächtnis / wechselnde Cloudflare-KV-Stände / Löschbestätigung
+
+**Bestätigter Praxisstand:**
+
+- PR 21 wurde in `main` zusammengeführt und die Reparatur auf `rhia.pages.dev` bereitgestellt; die ausgelieferte Datei stimmte mit `main` überein.
+- Bei der Wiederholung von Tablet-Test 14 antwortete RHIA weiterhin: „Mein Testcode lautet Bordeaux 47, Sir.“
+- Der anschließende Löschbefehl meldete dagegen: „Dazu habe ich keinen passenden zentralen Gedächtniseintrag gefunden, Sir.“ Eine unmittelbar folgende Abfrage nannte erneut „Bordeaux 47“.
+- Damit ist bestätigt, dass eine neue und eine veraltete KV-Antwort in wechselnder Reihenfolge eintreffen können. Tablet-Test 14 ist weiterhin fehlgeschlagen. Stufe 0.1 bleibt offen; Stufe 1 wurde nicht begonnen.
+
+**Bestätigte Codeursache:**
+
+- Die erste Reparatur entfernte den lokalen Löschschutz bereits nach einer einzigen Serverantwort ohne den gelöschten Eintrag. Eine später eintreffende veraltete Antwort konnte den Satz dadurch erneut einblenden.
+- Die Löschsuche verwarf einen unmittelbar zuvor sichtbaren Altstand, wenn die nächste Abfrage den Eintrag schon nicht mehr enthielt. Dadurch kam keine Ja-/Nein-Sicherheitsfrage und es wurde keine lokale Löschvormerkung angelegt.
+- Eine erneute Löschung eines serverseitig bereits fehlenden Eintrags endete mit 404 statt als sicherer, wiederholbarer Erfolg.
+
+**Lokal vorbereitete Reparatur:**
+
+- Ein unmittelbar zuvor sichtbarer Eintrag bleibt bis zur ausdrücklichen Ja-/Nein-Entscheidung als Löschziel erhalten, auch wenn die nächste KV-Abfrage ihn schon nicht mehr findet.
+- Das Löschen ist idempotent: Ein bereits fehlender Eintrag wird als „bereits gelöscht“ bestätigt, damit der Browser trotzdem den Löschschutz anlegen kann.
+- Bestätigte Schreib- und Löschvormerkungen bleiben für ihre Schutzdauer aktiv und werden nicht nach nur einer einzelnen neuen KV-Antwort entfernt.
+- Überholte, später fertig werdende Leseanfragen dürfen einen neueren Browserstand nicht mehr überschreiben.
+- Besitzerprüfung und Export berücksichtigen denselben geschützten Wissensstand.
+
+**Technischer Test:**
+
+- Der unveränderte veröffentlichte Code fiel in drei neuen Regressionen erwartungsgemäß durch: wiederholte Löschung, „neu danach wieder alt“ und sichtbarer Altstand vor der Löschbestätigung.
+- Nach der lokalen Reparatur bestehen alle acht Testgruppen.
+- JavaScript-Syntax von Wissens- und Chat-Endpunkt sowie die eingebettete Oberfläche sind gültig.
+- Es wurden keine echten Besitzerschlüssel, Produktionsdaten oder OpenAI-Credits verwendet.
+
+**Offen:**
+
+- Diese zweite Reparatur ist lokal vorbereitet, aber noch nicht in `main` und noch nicht auf `rhia.pages.dev` veröffentlicht.
+- Tablet-Test 14 bleibt fehlgeschlagen. Stufe 0.1 bleibt offen; Stufe 1 bleibt unangetastet.
+
+**Nächster Schritt:**
+
+Die zweite Reparatur auf einem getrennten Branch prüfen und als Pull Request bereitstellen. Erst nach ausdrücklicher Freigabe zusammenführen, die Live-Bereitstellung kontrollieren und anschließend ausschließlich Tablet-Test 14 mit Löschbefehl, Ja-Bestätigung und Kontrollabfrage wiederholen.
+
 ### 07.08.2026, 10:34 Uhr – Stufe-0.1-Praxistest: verzögerte Löschung erkannt und Reparatur vorbereitet
 
 **Bereich:** Zentrales Gedächtnis / Cloudflare KV / Löschung / Geräte-Praxistest
