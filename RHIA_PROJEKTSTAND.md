@@ -1,6 +1,6 @@
 # RHIA – Projektstand
 
-**Letzte Aktualisierung:** 06.08.2026, 12:58 Uhr  
+**Letzte Aktualisierung:** 07.08.2026  
 **Projekt:** RHIA – RH Intelligent Assistant
 
 ## Fester Synchronisationsbefehl
@@ -32,7 +32,57 @@ Format:
 
 Neue Einträge werden oben in der Chronik ergänzt, damit RHIA sie zeitlich sortieren und später Fragen wie „Was haben wir am 05.08.2026 geändert?“ beantworten kann. Vermutungen dürfen nicht als getestete Ergebnisse eingetragen werden.
 
+## Verbindlicher RHIA-Aufbauplan
+
+Dieser Plan ist die dauerhafte Entwicklungsreihenfolge. Ein neuer Chat darf ihn nur ändern, wenn Mike eine andere Priorität bestätigt.
+
+1. **Stabile Grundlage und zentrale Oberfläche** – abgeschlossen: gemeinsame Weboberfläche, Android-App, dauerhafte App-Signierung und kontrollierte Kostenfreigabe.
+2. **Persönlichkeit und bestätigtes Wissen** – in Arbeit: situationsgerechte Antworten, zentrale Wissensbasis, geschütztes geräteübergreifendes Gedächtnis, Export und Löschung.
+3. **Einheitliches Sprachzentrum** – als Nächstes: eine feste natürliche RHIA-Stimme für alle Antwortarten, zuverlässige Spracheingabe auch bei Störgeräuschen und klarer Offline-/Online-Rückfall.
+4. **Bestehende Android-App aktuell halten** – danach: Web-Cache korrigieren und den signierten App-Updater fertigstellen, sodass Mike nicht immer neue Apps installieren muss.
+5. **Aufgaben, Termine und Projekte** – anschließend: Priorisierung nach Geldwirkung, Frist, Aufwand und Schutzzeit für RHIA sowie Shadow Grown; Morgenübersicht und verbindliche Ersatzblöcke.
+6. **Kontrollierte Integrationen** – später: Kalender, E-Mail, Dateien und weitere Dienste nur nach ausdrücklicher Freigabe, mit sichtbarer Bestätigung vor externen Aktionen.
+7. **Erweiterte Assistenz** – später: optionale Kamera, Rollen/Stimmen, Markt- und Aktienmodule sowie weitere Automatisierungen. Datenschutz und Kontrolle bleiben vor Autonomie.
+
+Bei jedem Baustein gilt: kleine Änderung, technischer Test, Mikes Praxistest, Ergebnis dokumentieren, erst dann der nächste Baustein.
+
 ## Aktueller verbindlicher Stand
+
+### 07.08.2026 – v0.26 live; Übergabe- und Teststand gesichert
+
+**Bereich:** Zentrales Gedächtnis / Cloudflare / Browser / Android-App / Sprache
+
+**Bestätigter Stand:**
+
+- PR 19 „Release RHIA v0.26 central memory“ wurde mit genau sechs Dateien in `main` zusammengeführt.
+- Die öffentliche Cloudflare-Pages-Seite `https://rhia.pages.dev/` zeigt v0.26.
+- Der neue Gedächtnis-Endpunkt antwortet mit HTTP 200 und das zentrale Grundwissen wird geladen.
+- Im tatsächlichen Cloudflare-Pages-Projekt `rhia` sind `OPENAI_API_KEY`, die KV-Bindung `RHIA_KNOWLEDGE` und das Secret `RHIA_OWNER_TOKEN` eingerichtet.
+- Die gleichnamigen Einträge im älteren Worker `falling-bar-25b6` dürfen vorerst bestehen bleiben; sie stören nicht und werden nicht ohne gesonderte Prüfung gelöscht.
+- Die installierte Android-App zeigt weiterhin v0.25, während der Browser bereits v0.26 zeigt. Die App wurde nicht gelöscht und es wurde keine neue APK installiert.
+
+**Bisheriger Praxistest:**
+
+- Bei der freien Formulierung „Mein Testcode ist …, merke dir das“ erschien zunächst die Kostenfreigabe. Mike hat korrekt „Nein“ gewählt; dadurch sollte kein kostenpflichtiger KI-Aufruf erfolgen.
+- Der eindeutige Befehl „Merke dir dauerhaft: Mein Testcode ist …“ löste korrekt die einmalige Abfrage des RHIA-Besitzerschlüssels aus.
+- Der Besitzerschlüssel wurde in diesem Test noch nicht als erfolgreich eingegeben bestätigt. Dauerhaftes Speichern und Wiederabrufen sind deshalb noch nicht als bestanden dokumentiert.
+- Im Browser klingt RHIA teilweise natürlicher, verwendet aber hörbar unterschiedliche Stimmen. Das ist ein offener Fehler; Systemmeldungen und normale Antworten sollen dieselbe feste RHIA-Stimme verwenden.
+
+**Sicherheitsregel:**
+
+- Der Wert von `RHIA_OWNER_TOKEN` darf niemals in Chat, Screenshot, Repository oder Programmcode erscheinen.
+- Mike gibt ihn nur auf seinem eigenen Gerät und nur auf der echten Adresse `rhia.pages.dev` ein. Er wird dort einmalig lokal gespeichert.
+- Neue Informationen werden nur nach dem ausdrücklichen dauerhaften Merkbefehl und anschließender Bestätigung gespeichert.
+
+**Exakter nächster Schritt:**
+
+1. Im Browser auf `rhia.pages.dev` bei der bereits ausgelösten Abfrage den vorhandenen Owner-Token eingeben und mit OK bestätigen.
+2. Nur die sichtbare Antwort von RHIA berichten, niemals den Token.
+3. Speichern von „Mein Testcode ist Bordeaux 47“ mit „Ja“ bestätigen.
+4. Browser-Tab vollständig schließen, neu öffnen und fragen: „Wie lautet mein Testcode?“
+5. Erst wenn „Bordeaux 47“ wiedergegeben wird, den geräteübergreifenden Gedächtnistest als bestanden dokumentieren.
+6. Danach den Wechsel der Stimmen beheben und anschließend dafür sorgen, dass die bestehende Android-App den zentralen v0.26-Stand lädt, ohne sie zu löschen.
+
 
 ### 06.08.2026, 13:30 Uhr – v0.26 begonnen: falsche Identitätsannahme entfernt
 
